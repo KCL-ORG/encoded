@@ -10,6 +10,7 @@ from pyramid.security import (
 )
 from .base import (
     Item,
+    paths_filtered_by_status,
 )
 from snovault import (
     CONNECTION,
@@ -53,7 +54,11 @@ class User(Item):
     # Avoid access_keys reverse link so editing access keys does not reindex content.
     embedded = [
         'lab',
+        'groupings',
     ]
+    rev = {
+        'groupings': ('Grouping', 'owner'),
+    }
     STATUS_ACL = {
         'current': [(Allow, 'role.owner', ['edit', 'view_details'])] + USER_ALLOW_CURRENT,
         'deleted': USER_DELETED,
@@ -86,6 +91,17 @@ class User(Item):
         objects = (request.embed('/', str(uuid), '@@object') for uuid in uuids)
         return [obj for obj in objects if obj['status'] not in ('deleted', 'replaced')]
 
+    @calculated_property(schema={
+        "title": "User's groupings",
+        "type": "array",
+        "items": {
+            "type": ['string', 'object'],
+            "linkFrom": "Grouping.owner",
+        },
+    })
+    def groupings(self, request, groupings):
+        return paths_filtered_by_status(request, groupings)
+
 
 @view_config(context=User, permission='view', request_method='GET', name='page')
 def user_page_view(context, request):
@@ -106,7 +122,7 @@ def user_page_view(context, request):
 def user_basic_view(context, request):
     properties = item_view_object(context, request)
     filtered = {}
-    for key in ['@id', '@type', 'uuid', 'lab', 'title']:
+    for key in ['@id', '@type', 'uuid', 'lab', 'title', 'groupings']:
         try:
             filtered[key] = properties[key]
         except KeyError:

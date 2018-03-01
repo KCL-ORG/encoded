@@ -264,3 +264,14 @@ class SoftwareVersion(Item):
         root = find_root(self)
         software = root.get_by_uuid(properties['software'])
         return software.__ac_local_roles__()
+
+
+@collection(
+    name='groupings',
+    properties={
+        'title': 'Grouping',
+        'description': 'Grouping of objects aka shopping cart',
+    })
+class Grouping(Item):
+    item_type = 'grouping'
+    schema = load_schema('encoded:schemas/grouping.json')

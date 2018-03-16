@@ -267,11 +267,11 @@ class SoftwareVersion(Item):
 
 
 @collection(
-    name='groupings',
+    name='cart',
     properties={
-        'title': 'Grouping',
-        'description': 'Grouping of objects aka shopping cart',
+        'title': 'Cart',
+        'description': 'Cart of objects aka shopping cart',
     })
-class Grouping(Item):
-    item_type = 'grouping'
-    schema = load_schema('encoded:schemas/grouping.json')
+class Cart(Item):
+    item_type = 'cart'
+    schema = load_schema('encoded:schemas/cart.json')

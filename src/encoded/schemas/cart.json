@@ -1,8 +1,8 @@
 {
-    "title": "Grouping",
-    "description": "Grouping of objects aka shopping cart.",
+    "title": "Cart",
+    "description": "Cart of objects aka shopping cart.",
     "comment": "This object gets connected with user objects.",
-    "id": "/profiles/grouping.json",
+    "id": "/profiles/cart.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "required": [ "name"],
@@ -22,22 +22,22 @@
             "description": "The name of the quality metric",
             "type": "string"
         },
-        "grouped_items": {
-            "title": "Grouped items",
-            "description": "Tracks all items in the group by UUID",
+        "cart_items": {
+            "title": "Cart items",
+            "description": "Tracks all items in the cart by UUID",
             "type": "array",
             "default": [],
             "uniqueItems": true,
             "items": {
-                "title": "Grouped item",
-                "description": "UUID of one item in the group",
+                "title": "Cart item",
+                "description": "UUID of one item in the cart",
                 "type":  "string",
                 "format": "uuid"
             }
         },
         "owner": {
             "title": "Owner",
-            "description": "User that owns this grouping",
+            "description": "User that owns this cart",
             "type": "string",
             "linkTo": "User"
         }

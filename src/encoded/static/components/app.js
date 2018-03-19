@@ -3,10 +3,13 @@ import PropTypes from 'prop-types';
 import Auth0Lock from 'auth0-lock';
 import serialize from 'form-serialize';
 import ga from 'google-analytics';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
 import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
+import { cartReducer } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import Footer from './footer';
@@ -75,6 +78,11 @@ const portal = {
         },
     ],
 };
+
+
+// Create the initial cart on page load.
+const initialCart = { cartItems: [], name: 'Untitled' };
+const cartStore = createStore(cartReducer, initialCart);
 
 
 // See https://github.com/facebook/react/issues/2323 for an IE8 fix removed for Redmine #4755.
@@ -987,15 +995,17 @@ class App extends React.Component {
                     <div id="slot-application">
                         <div id="application" className={appClass}>
                             <div className="loading-spinner" />
-                            <div id="layout">
-                                <Navigation isHomePage={isHomePage} />
-                                <div id="content" className={containerClass} key={key}>
-                                    {content}
+                            <Provider store={cartStore}>
+                                <div id="layout">
+                                    <Navigation isHomePage={isHomePage} />
+                                    <div id="content" className={containerClass} key={key}>
+                                        {content}
+                                    </div>
+                                    {errors}
+                                    <div id="layout-footer" />
                                 </div>
-                                {errors}
-                                <div id="layout-footer" />
-                            </div>
-                            <Footer version={this.props.context.app_version} />
+                                <Footer version={this.props.context.app_version} />
+                            </Provider>
                         </div>
                     </div>
                 </body>

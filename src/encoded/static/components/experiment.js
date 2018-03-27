@@ -459,7 +459,7 @@ class ExperimentComponent extends React.Component {
                     </div>
                 </header>
                 {this.props.auditDetail(context.audit, 'experiment-audit', { session: this.context.session, except: context['@id'] })}
-                <CartControl objToAdd={context} />
+                <CartControl current={context} />
                 <Panel addClasses="data-display">
                     <PanelBody addClasses="panel-body-with-header">
                         <div className="flexrow">

@@ -21,9 +21,6 @@ export const removeFromCart = id => (
 export const cartReducer = (state = {}, action = {}) => {
     switch (action.type) {
     case ADD_TO_CART:
-        if (!state.cart) {
-            return { cart: [action.id] };
-        }
         return { cart: state.cart.concat([action.id]) };
     case REMOVE_FROM_CART: {
         const doomedIndex = state.cart.indexOf(action.id);
@@ -93,19 +90,27 @@ const getWriteableCart = (cartAtId, fetch) => (
 
 
 // Button to add the current experiment to the cart, or to remove it.
-const CartControlComponent = ({ onCartControlClick }) => (
-    <button onClick={onCartControlClick}>Add to Cart</button>
-);
-
-CartControlComponent.propTypes = {
-    onCartControlClick: PropTypes.func.isRequired, //  Function to call when Add to Cart clicked
+const CartControlComponent = ({ cart, current, onCartControlClick }) => {
+    console.log('CART: %s:%o, ', current, cart);
+    return <button onClick={onCartControlClick}>Add to Cart</button>;
 };
 
+CartControlComponent.propTypes = {
+    cart: PropTypes.array, // Current contents of cart
+    current: PropTypes.string.isRequired, // UUID of current object being added
+    onCartControlClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
+};
+
+CartControlComponent.defaultProps = {
+    cart: [],
+};
+
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, current: ownProps.current.uuid });
 const mapDispatchToProps = (dispatch, ownProps) => (
-    { onCartControlClick: () => dispatch(addToCart(ownProps.objToAdd.uuid)) }
+    { onCartControlClick: () => dispatch(addToCart(ownProps.current.uuid)) }
 );
 
-const CarControl = connect(null, mapDispatchToProps)(CartControlComponent);
+const CarControl = connect(mapStateToProps, mapDispatchToProps)(CartControlComponent);
 
 
 export default CarControl;

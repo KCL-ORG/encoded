@@ -1005,9 +1005,9 @@ class App extends React.Component {
                                         {errors}
                                         <div id="layout-footer" />
                                     </div>
-                                    <Footer version={this.props.context.app_version} />
                                 </div>
                             </Provider>
+                            <Footer version={this.props.context.app_version} />
                         </div>
                     </div>
                 </body>

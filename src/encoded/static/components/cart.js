@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import * as globals from './globals';
 
 
@@ -11,8 +12,8 @@ export const addToCart = id => (
     { type: ADD_TO_CART, id }
 );
 
-export const removeFromCart = (id) => (
-    { type: REMOVE_FROM_CART, id }
+export const removeFromCart = id => (
+    ({ type: REMOVE_FROM_CART, id })
 );
 
 
@@ -65,7 +66,7 @@ const updateCart = (cart, cartAtId, fetch) => (
             throw response;
         }
         return response.json();
-    }).catch(globals.parseAndLogError.bind('Update cart', 'putRequest'));
+    }).catch(globals.parseAndLogError.bind('Update cart', 'putRequest'))
 );
 
 
@@ -91,46 +92,20 @@ const getWriteableCart = (cartAtId, fetch) => (
 );
 
 
-// Button to add the current experiment to the cart.
-const AddToCartComponent = ({ onAddToCartClick }) => (
-    <button onClick={onAddToCartClick}>Add to Cart</button>
+// Button to add the current experiment to the cart, or to remove it.
+const CartControlComponent = ({ onCartControlClick }) => (
+    <button onClick={onCartControlClick}>Add to Cart</button>
 );
 
-AddToCartComponent.propTypes = {
-    onAddToCartClick: PropTypes.func, //  Function to call when Add to Cart clicked
-};
-
-AddToCartComponent.defaultProps = {
-    onAddToCartClick: null,
-};
-
-// AddToCartComponent component doesn't need mapStateToProps because it doesn't use any state from
-// the Redux store.
-
-const mapDispatchToProps = (dispatch, ownProps) => (
-    { onAddToCartClick: () => dispatch(addToCart(ownProps.currentExperiment)) }
-);
-
-const AddToCart = connect(null, mapDispatchToProps)(AddToCartComponent);
-
-
-// Render the Add to Cart button and react to clicks in it by updating the current cart object
-// to include the UUID of the object given in `objToAdd`.
-const CartAddRenderer = ({ objToAdd, inCart, onAddToCartClick }) => (
-    <button onClick={onAddToCartClick} disabled={inCart}>{inCart ? 'In cart' : 'Add to cart'}</button>
-);
-
-CartAddRenderer.propTypes = {
-    objToAdd: PropTypes.object, // encodeD object to add to cart
-    inCart: PropTypes.bool, // True if the object this button is for is already in the cart
-    onAddToCartClick: PropTypes.func, // Function to call when Add to Cart button is clicked
+CartControlComponent.propTypes = {
+    onCartControlClick: PropTypes.func.isRequired, //  Function to call when Add to Cart clicked
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => (
-    { onAddToCartClick: () => dispatch(addToCart(ownProps.objToAdd)) }
+    { onCartControlClick: () => dispatch(addToCart(ownProps.objToAdd.uuid)) }
 );
 
-const AddToCart = connect(null, mapDispatchToProps)(AddToCartComponent);
+const CarControl = connect(null, mapDispatchToProps)(CartControlComponent);
 
 
-export default CartAdd;
+export default CarControl;

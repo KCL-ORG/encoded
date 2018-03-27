@@ -10,7 +10,7 @@ import { DbxrefList } from './dbxref';
 import { ExperimentTable } from './dataset';
 import { FetchedItems } from './fetched';
 import { FileGallery } from './filegallery';
-import CartAdd from './cart';
+import CartControl from './cart';
 import { ProjectBadge } from './image';
 import { Breadcrumbs } from './navigation';
 import { singleTreatment, AlternateAccession } from './objectutils';
@@ -459,7 +459,7 @@ class ExperimentComponent extends React.Component {
                     </div>
                 </header>
                 {this.props.auditDetail(context.audit, 'experiment-audit', { session: this.context.session, except: context['@id'] })}
-                {this.context.session_properties && this.context.session_properties.user ? <CartAdd objToAdd={context}} /> : null}
+                <CartControl objToAdd={context} />
                 <Panel addClasses="data-display">
                     <PanelBody addClasses="panel-body-with-header">
                         <div className="flexrow">

@@ -996,15 +996,17 @@ class App extends React.Component {
                         <div id="application" className={appClass}>
                             <div className="loading-spinner" />
                             <Provider store={cartStore}>
-                                <div id="layout">
-                                    <Navigation isHomePage={isHomePage} />
-                                    <div id="content" className={containerClass} key={key}>
-                                        {content}
+                                <div>
+                                    <div id="layout">
+                                        <Navigation isHomePage={isHomePage} />
+                                        <div id="content" className={containerClass} key={key}>
+                                            {content}
+                                        </div>
+                                        {errors}
+                                        <div id="layout-footer" />
                                     </div>
-                                    {errors}
-                                    <div id="layout-footer" />
+                                    <Footer version={this.props.context.app_version} />
                                 </div>
-                                <Footer version={this.props.context.app_version} />
                             </Provider>
                         </div>
                     </div>

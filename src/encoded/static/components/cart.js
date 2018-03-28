@@ -8,8 +8,8 @@ import * as globals from './globals';
 const ADD_TO_CART = 'ADD_TO_CART';
 const REMOVE_FROM_CART = 'REMOVE_FROM_CART';
 
-export const addToCart = id => (
-    { type: ADD_TO_CART, id }
+export const addToCart = currentUuid => (
+    { type: ADD_TO_CART, currentUuid }
 );
 
 export const removeFromCart = id => (
@@ -21,9 +21,9 @@ export const removeFromCart = id => (
 export const cartReducer = (state = {}, action = {}) => {
     switch (action.type) {
     case ADD_TO_CART:
-        return { cart: state.cart.concat([action.id]) };
+        return { cart: state.cart.concat([action.currentUuid]) };
     case REMOVE_FROM_CART: {
-        const doomedIndex = state.cart.indexOf(action.id);
+        const doomedIndex = state.cart.indexOf(action.currentUuid);
         if (doomedIndex !== -1) {
             return {
                 cart: state.cart
@@ -90,14 +90,13 @@ const getWriteableCart = (cartAtId, fetch) => (
 
 
 // Button to add the current experiment to the cart, or to remove it.
-const CartControlComponent = ({ cart, current, onCartControlClick }) => {
-    console.log('CART: %s:%o, ', current, cart);
-    return <button onClick={onCartControlClick}>Add to Cart</button>;
-};
+const CartControlComponent = ({ cart, currentUuid, onCartControlClick }) => (
+    <button onClick={onCartControlClick}>{cart.indexOf(currentUuid) === -1 ? 'Add to cart' : 'Remove from cart'}</button>
+);
 
 CartControlComponent.propTypes = {
     cart: PropTypes.array, // Current contents of cart
-    current: PropTypes.string.isRequired, // UUID of current object being added
+    currentUuid: PropTypes.string.isRequired, // UUID of current object being added
     onCartControlClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
 };
 
@@ -105,12 +104,12 @@ CartControlComponent.defaultProps = {
     cart: [],
 };
 
-const mapStateToProps = (state, ownProps) => ({ cart: state.cart, current: ownProps.current.uuid });
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, currentUuid: ownProps.current.uuid });
 const mapDispatchToProps = (dispatch, ownProps) => (
     { onCartControlClick: () => dispatch(addToCart(ownProps.current.uuid)) }
 );
 
-const CarControl = connect(mapStateToProps, mapDispatchToProps)(CartControlComponent);
+const CartControl = connect(mapStateToProps, mapDispatchToProps)(CartControlComponent);
 
 
-export default CarControl;
+export default CartControl;

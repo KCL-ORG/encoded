@@ -12,8 +12,8 @@ export const addToCart = currentUuid => (
     { type: ADD_TO_CART, currentUuid }
 );
 
-export const removeFromCart = id => (
-    ({ type: REMOVE_FROM_CART, id })
+export const removeFromCart = currentUuid => (
+    ({ type: REMOVE_FROM_CART, currentUuid })
 );
 
 
@@ -89,15 +89,18 @@ const getWriteableCart = (cartAtId, fetch) => (
 );
 
 
-// Button to add the current experiment to the cart, or to remove it.
-const CartControlComponent = ({ cart, currentUuid, onCartControlClick }) => (
-    <button onClick={onCartControlClick}>{cart.indexOf(currentUuid) === -1 ? 'Add to cart' : 'Remove from cart'}</button>
+// Button to add the current object to the cart, or to remove it.
+const CartControlComponent = ({ cart, currentUuid, onAddToCartClick, onRemoveFromCartClick }) => (
+    cart.indexOf(currentUuid) > -1
+        ? <button onClick={onRemoveFromCartClick}>Remove from Cart</button>
+        : <button onClick={onAddToCartClick}>Add to Cart</button>
 );
 
 CartControlComponent.propTypes = {
     cart: PropTypes.array, // Current contents of cart
     currentUuid: PropTypes.string.isRequired, // UUID of current object being added
-    onCartControlClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
+    onAddToCartClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
+    onRemoveFromCartClick: PropTypes.func.isRequired, // Function to call when Remove from Cart clicked
 };
 
 CartControlComponent.defaultProps = {
@@ -106,7 +109,10 @@ CartControlComponent.defaultProps = {
 
 const mapStateToProps = (state, ownProps) => ({ cart: state.cart, currentUuid: ownProps.current.uuid });
 const mapDispatchToProps = (dispatch, ownProps) => (
-    { onCartControlClick: () => dispatch(addToCart(ownProps.current.uuid)) }
+    {
+        onAddToCartClick: () => dispatch(addToCart(ownProps.current.uuid)),
+        onRemoveFromCartClick: () => dispatch(removeFromCart(ownProps.current.uuid)),
+    }
 );
 
 const CartControl = connect(mapStateToProps, mapDispatchToProps)(CartControlComponent);

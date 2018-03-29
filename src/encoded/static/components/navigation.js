@@ -4,6 +4,7 @@ import _ from 'underscore';
 import url from 'url';
 import { Navbar, Nav, NavItem } from '../libs/bootstrap/navbar';
 import { DropdownMenu, DropdownMenuSep } from '../libs/bootstrap/dropdown-menu';
+import { CartStatus } from './cart';
 import { productionHost } from './globals';
 
 
@@ -78,6 +79,7 @@ export default class Navigation extends React.Component {
                 <div className="container">
                     <Navbar brand={portal.portal_title} brandlink="/" label="main" navClasses="navbar-main">
                         <GlobalSections />
+                        <CartStatus />
                         <UserActions />
                         {this.props.isHomePage ? null : <ContextActions />}
                         <Search />

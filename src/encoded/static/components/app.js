@@ -9,7 +9,7 @@ import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import { cartReducer } from './cart';
+import { cartModule } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import Footer from './footer';
@@ -82,7 +82,7 @@ const portal = {
 
 // Create the initial cart on page load.
 const initialCart = { cart: [], name: 'Untitled' };
-const cartStore = createStore(cartReducer, initialCart);
+const cartStore = createStore(cartModule, initialCart);
 
 
 // See https://github.com/facebook/react/issues/2323 for an IE8 fix removed for Redmine #4755.

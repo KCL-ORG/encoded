@@ -10,7 +10,7 @@ import { DbxrefList } from './dbxref';
 import { ExperimentTable } from './dataset';
 import { FetchedItems } from './fetched';
 import { FileGallery } from './filegallery';
-import CartControl from './cart';
+import { CartControl } from './cart';
 import { ProjectBadge } from './image';
 import { Breadcrumbs } from './navigation';
 import { singleTreatment, AlternateAccession } from './objectutils';

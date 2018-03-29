@@ -174,6 +174,9 @@ class Item(snovault.Item):
 
         'archived': ALLOW_CURRENT,
     }
+    rev = {
+        'carts': ('Cart', 'items'),
+    }
 
     # Empty by default. Children objects to iterate through when changing status
     # of parent object.

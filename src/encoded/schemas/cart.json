@@ -23,17 +23,17 @@
             "description": "The name of the quality metric",
             "type": "string"
         },
-        "cart_items": {
+        "items": {
             "title": "Cart items",
-            "description": "Tracks all items in the cart by UUID",
+            "description": "Tracks all items in the cart",
             "type": "array",
             "default": [],
             "uniqueItems": true,
             "items": {
                 "title": "Cart item",
-                "description": "UUID of one item in the cart",
+                "description": "Reference to one item in the cart",
                 "type":  "string",
-                "format": "uuid"
+                "linkTo": "Item"
             }
         }
     }

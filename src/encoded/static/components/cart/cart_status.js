@@ -8,7 +8,7 @@ const CartStatusComponent = ({ cart }) => (
     cart.length > 0 ?
         <ul className="nav navbar-nav">
             <li>
-                <button>Cart {cart.length}</button>
+                <a href="/carts/">Cart {cart.length}</a>
             </li>
         </ul>
     : null

@@ -1424,7 +1424,7 @@ AssemblyChooser.defaultProps = {
 };
 
 
-class Search extends React.Component {
+export class Search extends React.Component {
     constructor() {
         super();
 

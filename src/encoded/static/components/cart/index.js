@@ -12,9 +12,9 @@ import CartStatus from './cart_status';
 const cartModule = (state = {}, action = {}) => {
     switch (action.type) {
     case ADD_TO_CART:
-        return { cart: state.cart.concat([action.currentUuid]) };
+        return { cart: state.cart.concat([action.current]) };
     case REMOVE_FROM_CART: {
-        const doomedIndex = state.cart.indexOf(action.currentUuid);
+        const doomedIndex = state.cart.indexOf(action.current);
         if (doomedIndex !== -1) {
             return {
                 cart: state.cart

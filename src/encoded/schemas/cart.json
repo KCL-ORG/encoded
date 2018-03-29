@@ -5,7 +5,7 @@
     "id": "/profiles/cart.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "required": [ "name"],
+    "required": ["name"],
     "identifyingProperties": ["uuid"],
     "additionalProperties": false,
     "mixinProperties": [

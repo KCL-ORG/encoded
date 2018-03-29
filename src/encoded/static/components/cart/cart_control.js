@@ -6,15 +6,15 @@ import * as globals from '../globals';
 
 
 // Button to add the current object to the cart, or to remove it.
-const CartControlComponent = ({ cart, currentUuid, onAddToCartClick, onRemoveFromCartClick }) => (
-    cart.indexOf(currentUuid) > -1
+const CartControlComponent = ({ cart, current, onAddToCartClick, onRemoveFromCartClick }) => (
+    cart.indexOf(current) > -1
         ? <button onClick={onRemoveFromCartClick}>Remove from Cart</button>
         : <button onClick={onAddToCartClick}>Add to Cart</button>
 );
 
 CartControlComponent.propTypes = {
     cart: PropTypes.array, // Current contents of cart
-    currentUuid: PropTypes.string.isRequired, // UUID of current object being added
+    current: PropTypes.string.isRequired, // @id of current object being added
     onAddToCartClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
     onRemoveFromCartClick: PropTypes.func.isRequired, // Function to call when Remove from Cart clicked
 };
@@ -23,11 +23,11 @@ CartControlComponent.defaultProps = {
     cart: [],
 };
 
-const mapStateToProps = (state, ownProps) => ({ cart: state.cart, currentUuid: ownProps.current.uuid });
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, current: ownProps.current['@id'] });
 const mapDispatchToProps = (dispatch, ownProps) => (
     {
-        onAddToCartClick: () => dispatch(addToCart(ownProps.current.uuid)),
-        onRemoveFromCartClick: () => dispatch(removeFromCart(ownProps.current.uuid)),
+        onAddToCartClick: () => dispatch(addToCart(ownProps.current['@id'])),
+        onRemoveFromCartClick: () => dispatch(removeFromCart(ownProps.current['@id'])),
     }
 );
 

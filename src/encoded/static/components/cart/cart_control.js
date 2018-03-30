@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { addToCart, removeFromCart } from './actions';
+import { addToCart, addMultipleToCart, removeFromCart } from './actions';
 import * as globals from '../globals';
 
 
@@ -42,9 +42,7 @@ export default CartControl;
  * @param {*} dispatch - Redux dispatch function for the cart store
  */
 const cartAddItems = (items, dispatch) => {
-    items.forEach((item) => {
-        dispatch(addToCart(item));
-    });
+    dispatch(addMultipleToCart(items));
 };
 
 export { cartAddItems };

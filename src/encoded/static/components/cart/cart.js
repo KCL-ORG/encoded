@@ -24,9 +24,8 @@ CartSearchResults.defaultProps = {
 // Renders the cart search results page.
 const CartComponent = ({ context, cart }) => {
     // Combine in-memory and DB carts.
-    const combinedCarts = (context.items && context.items.length > 0) ? context.items.concat(cart) : cart.slice();
-    if (combinedCarts.length > 0) {
-        const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${cartItem}`).join('&');
+    if (cart.length > 0) {
+        const cartQueryString = cart.map(cartItem => `${encodedURIComponent('@id')}=${cartItem}`).join('&');
         return (
             <div className={itemClass(context, 'view-item')}>
                 <header className="row">

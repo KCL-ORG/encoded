@@ -1,3 +1,4 @@
+// Cart-related rendering components exist in this file.
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -6,6 +7,7 @@ import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { Search } from '../search';
 
 
+// Called from <FetcheData> to render search results for all items in the current cart.
 const CartSearchResults = ({ results }) => (
     <Search context={results} />
 );
@@ -19,9 +21,12 @@ CartSearchResults.defaultProps = {
 };
 
 
+// Renders the cart search results page.
 const CartComponent = ({ context, cart }) => {
-    if (cart.length > 0) {
-        const cartQueryString = cart.map(cartItem => `${encodedURIComponent('@id')}=${cartItem}`).join('&');
+    // Combine in-memory and DB carts.
+    const combinedCarts = (context.items && context.items.length > 0) ? context.items.concat(cart) : cart.slice();
+    if (combinedCarts.length > 0) {
+        const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${cartItem}`).join('&');
         return (
             <div className={itemClass(context, 'view-item')}>
                 <header className="row">
@@ -46,5 +51,7 @@ CartComponent.propTypes = {
 
 const mapStateToProps = state => ({ cart: state.cart });
 const Cart = connect(mapStateToProps)(CartComponent);
-contentViews.register(Cart, 'carts');
 
+// Respond to both the 'carts' object for /carts/ URI, and 'Cart' for /carts/<uuid> URI.
+contentViews.register(Cart, 'carts');
+contentViews.register(Cart, 'Cart');

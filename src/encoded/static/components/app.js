@@ -9,7 +9,7 @@ import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import cartModule from './cart';
+import cartModule, { cartAddItems } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import Footer from './footer';
@@ -450,6 +450,9 @@ class App extends React.Component {
             return response.json();
         }).then((sessionProperties) => {
             this.setState({ session_properties: sessionProperties });
+
+            // Add saved user cart items to the Redux store.
+            cartAddItems(sessionProperties.user.carts[0].items, cartStore.dispatch);
         });
     }
 

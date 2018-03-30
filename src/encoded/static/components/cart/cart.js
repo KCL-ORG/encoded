@@ -1,4 +1,4 @@
-// Cart-related rendering components exist in this file.
+// Components for rendering the /carts/ page.
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';

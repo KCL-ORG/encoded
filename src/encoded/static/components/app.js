@@ -9,7 +9,7 @@ import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import { cartModule } from './cart';
+import cartModule from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import Footer from './footer';

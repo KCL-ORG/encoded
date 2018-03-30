@@ -1,3 +1,5 @@
+// This file lets other files import this directory to get the cart reducer function and any cart-
+// related rendering components.
 import { ADD_TO_CART, REMOVE_FROM_CART } from './actions';
 import CartControl from './cart_control';
 import CartStatus from './cart_status';
@@ -30,4 +32,4 @@ const cartModule = (state = {}, action = {}) => {
 };
 
 
-export { CartControl, CartStatus, cartModule };
+export { CartControl, CartStatus, cartModule as default };

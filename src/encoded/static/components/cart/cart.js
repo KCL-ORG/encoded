@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import CartSave from './cart_save';
 import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { Search } from '../search';
@@ -22,10 +23,14 @@ CartSearchResults.defaultProps = {
 
 
 // Renders the cart search results page.
-const CartComponent = ({ context, cart }) => {
+const CartComponent = ({ context, cart }, reactContext) => {
     // Combine in-memory and DB carts.
     if (cart.length > 0) {
         const cartQueryString = cart.map(cartItem => `${encodedURIComponent('@id')}=${cartItem}`).join('&');
+        const loggedIn = !!(reactContext.session && reactContext.session['auth.userid']);
+        const userCart = (loggedIn && reactContext.session_properties && reactContext.session_properties.user && reactContext.session_properties.user.carts.length > 0)
+            ? reactContext.session_properties.user.carts[0]
+            : null;
         return (
             <div className={itemClass(context, 'view-item')}>
                 <header className="row">
@@ -33,6 +38,7 @@ const CartComponent = ({ context, cart }) => {
                         <h2>Cart</h2>
                     </div>
                 </header>
+                {loggedIn ? <CartSave userCart={userCart} /> : null}
                 <FetchedData>
                     <Param name="results" url={`/search/?${cartQueryString}`} />
                     <CartSearchResults />
@@ -46,6 +52,11 @@ const CartComponent = ({ context, cart }) => {
 CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
+};
+
+CartComponent.contextTypes = {
+    session: PropTypes.object,
+    session_properties: PropTypes.object,
 };
 
 const mapStateToProps = state => ({ cart: state.cart });

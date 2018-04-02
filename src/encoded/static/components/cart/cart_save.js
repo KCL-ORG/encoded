@@ -13,9 +13,9 @@ import { parseAndLogError } from '../globals';
  * @param {object} cart - cart object to update; must be editable version (no @id etc)
  * @param {string} cartAtId - @id of the cart object to update
  * @param {func} fetch - fetch function to use
- * @return (object) - Promise containing PUT response that resolves when GET request completes
+ * @return (object) - Promise containing PUT response that resolves when request completes
  */
-const writeCart = (cart, cartAtId, fetch) => (
+const updateCartObject = (cart, cartAtId, fetch) => (
     fetch(cartAtId, {
         method: 'PUT',
         body: JSON.stringify(cart),
@@ -39,7 +39,7 @@ const writeCart = (cart, cartAtId, fetch) => (
  * @param {func} fetch - fetch function to use
  * @return {object} - Promise containing the retrieved cart object, or an error response
  */
-const getWriteableCart = (cartAtId, fetch) => (
+const getWriteableCartObject = (cartAtId, fetch) => (
     fetch(`${cartAtId}?frame=edit`, {
         method: 'GET',
         headers: {
@@ -54,14 +54,21 @@ const getWriteableCart = (cartAtId, fetch) => (
 );
 
 
-const updateCart = (cart, cartAtId, fetch) => {
-    getWriteableCart(cartAtId, fetch).then((writeableCart) => {
-        // Add the new UUID to the end of the `items` array and then write it to the
-        // db.
+/**
+ * Save the in-memory cart to the database.
+ *
+ * @param {array} cart - Array of @ids contained with the in-memory cart to be saved
+ * @param {*} cartAtId - @id of the cart to update
+ * @param {*} fetch - System fetch function; usually from <App> context
+ */
+const saveCart = (cart, cartAtId, fetch) => {
+    getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
+        // Copy the in-memory cart to the writeable cart object and then update it in the DB.
         writeableCart.items = cart;
-        return writeCart(writeableCart, cartAtId, fetch);
+        return updateCartObject(writeableCart, cartAtId, fetch);
     });
 };
+
 
 // Renders and reacts to the button to save a cart to the DB.
 class CartSaveComponent extends React.Component {
@@ -94,7 +101,7 @@ const mapStateToProps = (state, ownProps) => ({
     userCart: ownProps.userCart,
 });
 const mapDispatchToProps = () => (
-    { onSaveCartClick: (cart, cartAtId, fetch) => updateCart(cart, cartAtId, fetch) }
+    { onSaveCartClick: (cart, cartAtId, fetch) => saveCart(cart, cartAtId, fetch) }
 );
 
 const CartSave = connect(mapStateToProps, mapDispatchToProps)(CartSaveComponent);

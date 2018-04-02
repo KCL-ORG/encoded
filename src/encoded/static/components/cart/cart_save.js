@@ -88,7 +88,7 @@ class CartSaveComponent extends React.Component {
 
 CartSaveComponent.propTypes = {
     cart: PropTypes.array.isRequired, // In-memory cart from redux store
-    userCart: PropTypes.object.isRequired, // @id of the cart to write to the DB
+    userCart: PropTypes.object.isRequired, // User cart object from the DB
     onSaveCartClick: PropTypes.func.isRequired, // Function to call when "Save cart" clicked.
 };
 

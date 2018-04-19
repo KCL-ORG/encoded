@@ -456,10 +456,12 @@ class ExperimentComponent extends React.Component {
                         <AlternateAccession altAcc={context.alternate_accessions} />
                         <Supersede context={context} />
                         {this.props.auditIndicators(context.audit, 'experiment-audit', { session: this.context.session })}
+                        <div className="audit-cart-section audit-cart-section__cart">
+                            <CartControl current={context} />
+                        </div>
                     </div>
                 </header>
                 {this.props.auditDetail(context.audit, 'experiment-audit', { session: this.context.session, except: context['@id'] })}
-                <CartControl current={context} />
                 <Panel addClasses="data-display">
                     <PanelBody addClasses="panel-body-with-header">
                         <div className="flexrow">

@@ -357,7 +357,19 @@ div.meta-status {
     }
 }
 
+.result-item {
+    display: flex;
+    flex-wrap: nowrap;
 
+    @at-root #{&}__data {
+        flex: 0 1 95%;
+    }
+
+    @at-root #{&}__cart-control {
+        flex: 0 1 5%;
+    }
+}
+ 
 .main-panel {
     position: relative;
     z-index: 0;

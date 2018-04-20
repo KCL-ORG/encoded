@@ -2,6 +2,7 @@
 // related rendering components.
 import { ADD_TO_CART, ADD_MULTIPLE_TO_CART, REMOVE_FROM_CART } from './actions';
 import CartControl, { cartAddItems } from './cart_control';
+import CartToggle from './cart_toggle';
 import CartStatus from './cart_status';
 
 
@@ -34,4 +35,4 @@ const cartModule = (state = {}, action = {}) => {
 };
 
 
-export { CartControl, CartStatus, cartAddItems, cartModule as default };
+export { CartControl, CartToggle, CartStatus, cartAddItems, cartModule as default };

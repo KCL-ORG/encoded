@@ -7,6 +7,7 @@ import { svgIcon } from '../libs/svg-icons';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '../libs/bootstrap/modal';
 import { TabPanel, TabPanelPane } from '../libs/bootstrap/panel';
 import { auditDecor } from './audit';
+import { CartToggle } from './cart';
 import { FetchedData, Param } from './fetched';
 import GenomeBrowser from './genome_browser';
 import * as globals from './globals';
@@ -284,13 +285,15 @@ class ExperimentComponent extends React.Component {
 
         return (
             <li>
-                <div className="clearfix">
-                    <PickerActions {...this.props} />
-                    <div className="pull-right search-meta">
-                        <p className="type meta-title">Experiment</p>
-                        <p className="type">{` ${result.accession}`}</p>
-                        <Status item={result.status} badgeSize="small" css="result-table__status" />
-                        {this.props.auditIndicators(result.audit, result['@id'], { session: this.context.session, search: true })}
+                <div className="result-item">
+                    <div className="result-item__data">
+                        <PickerActions {...this.props} />
+                        <div className="pull-right search-meta">
+                            <p className="type meta-title">Experiment</p>
+                            <p className="type">{` ${result.accession}`}</p>
+                            <p className="type meta-status">{` ${result.status}`}</p>
+                            {this.props.auditIndicators(result.audit, result['@id'], { session: this.context.session, search: true })}
+                        </div>
                     </div>
                     <div className="accession">
                         <a href={result['@id']}>
@@ -302,32 +305,37 @@ class ExperimentComponent extends React.Component {
                             {result.biosample_term_name ? <span>{` of ${result.biosample_term_name}`}</span> : null}
                         </a>
                     </div>
-                    {result.biosample_summary ?
-                        <div className="highlight-row">
-                            {organismNames.length ?
-                                <span>
-                                    {organismNames.map((organism, i) =>
-                                        <span key={organism}>
-                                            {i > 0 ? <span>and </span> : null}
-                                            <i>{organism} </i>
-                                        </span>
-                                    )}
-                                </span>
+                    <div>
+                        {result.biosample_summary ?
+                            <div className="highlight-row">
+                                {organismNames.length ?
+                                    <span>
+                                        {organismNames.map((organism, i) =>
+                                            <span key={organism}>
+                                                {i > 0 ? <span>and </span> : null}
+                                                <i>{organism} </i>
+                                            </span>
+                                        )}
+                                    </span>
+                                : null}
+                                {result.biosample_summary}
+                            </div>
+                        : null}
+                        <div className="data-row">
+                            {result.target && result.target.label ?
+                                <div><strong>Target: </strong>{result.target.label}</div>
                             : null}
-                            {result.biosample_summary}
+
+                            {synchronizations && synchronizations.length ?
+                                <div><strong>Synchronization timepoint: </strong>{synchronizations.join(', ')}</div>
+                            : null}
+
+                            <div><strong>Lab: </strong>{result.lab.title}</div>
+                            <div><strong>Project: </strong>{result.award.project}</div>
                         </div>
-                    : null}
-                    <div className="data-row">
-                        {result.target && result.target.label ?
-                            <div><strong>Target: </strong>{result.target.label}</div>
-                        : null}
-
-                        {synchronizations && synchronizations.length ?
-                            <div><strong>Synchronization timepoint: </strong>{synchronizations.join(', ')}</div>
-                        : null}
-
-                        <div><strong>Lab: </strong>{result.lab.title}</div>
-                        <div><strong>Project: </strong>{result.award.project}</div>
+                    </div>
+                    <div className="result-item__cart-control">
+                        <CartToggle current={result} />
                     </div>
                 </div>
                 {this.props.auditDetail(result.audit, result['@id'], { session: this.context.session, except: result['@id'], forcedEditLink: true })}

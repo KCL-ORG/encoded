@@ -2,6 +2,7 @@
 export const ADD_TO_CART = 'ADD_TO_CART';
 export const ADD_MULTIPLE_TO_CART = 'ADD_MULTIPLE_TO_CART';
 export const REMOVE_FROM_CART = 'REMOVE_FROM_CART';
+export const REMOVE_MULTIPLE_FROM_CART = 'REMOVE_MULTIPLE_FROM_CART';
 
 // Add one @id to the cart.
 export const addToCart = current => (
@@ -16,4 +17,9 @@ export const addMultipleToCart = items => (
 // Remove an @id from the cart.
 export const removeFromCart = current => (
     { type: REMOVE_FROM_CART, current }
+);
+
+// Remove multiple @ids from the cart.
+export const removeMultipleFromCart = items => (
+    { type: REMOVE_MULTIPLE_FROM_CART, items }
 );

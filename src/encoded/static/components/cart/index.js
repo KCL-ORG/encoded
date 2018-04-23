@@ -1,10 +1,12 @@
 // This file lets other files import this directory to get the cart reducer function and any cart-
 // related rendering components.
-import { ADD_TO_CART, ADD_MULTIPLE_TO_CART, REMOVE_FROM_CART } from './actions';
+import _ from 'underscore';
+import { ADD_TO_CART, ADD_MULTIPLE_TO_CART, REMOVE_FROM_CART, REMOVE_MULTIPLE_FROM_CART } from './actions';
 import CartControl, { cartAddItems } from './cart_control';
 import CartToggle from './cart_toggle';
 import CartStatus from './cart_status';
 import CartAddMultiple from './cart_add_multiple';
+import CartRemoveMultiple from './cart_remove_multiple';
 
 
 /**
@@ -18,8 +20,9 @@ const cartModule = (state = {}, action = {}) => {
     case ADD_TO_CART:
         return { cart: state.cart.concat([action.current]) };
     case ADD_MULTIPLE_TO_CART: {
+        // Merge the current cart contents with the incoming items while deduping them.
         const items = [...new Set([...state.cart, ...action.items])];
-        return { cart: state.cart.concat(items) };
+        return { cart: items };
     }
     case REMOVE_FROM_CART: {
         const doomedIndex = state.cart.indexOf(action.current);
@@ -32,6 +35,8 @@ const cartModule = (state = {}, action = {}) => {
         }
         return state;
     }
+    case REMOVE_MULTIPLE_FROM_CART:
+        return { cart: _.difference(state.cart, action.items) };
     default:
         return state;
     }
@@ -40,6 +45,7 @@ const cartModule = (state = {}, action = {}) => {
 
 export {
     CartAddMultiple,
+    CartRemoveMultiple,
     CartControl,
     CartStatus,
     CartToggle,

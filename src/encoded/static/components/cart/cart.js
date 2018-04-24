@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import CartSave from './cart_save';
+import CartShare from './cart_share';
 import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { Search } from '../search';
@@ -38,7 +39,12 @@ const CartComponent = ({ context, cart }, reactContext) => {
                         <h2>Cart</h2>
                     </div>
                 </header>
-                {loggedIn ? <CartSave userCart={userCart} /> : null}
+                {loggedIn ?
+                    <div>
+                        <CartSave userCart={userCart} />
+                        <CartShare userCart={userCart} />
+                    </div>
+                : null}
                 <FetchedData>
                     <Param name="results" url={`/search/?${cartQueryString}`} />
                     <CartSearchResults />

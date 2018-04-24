@@ -2,11 +2,12 @@
 // related rendering components.
 import _ from 'underscore';
 import { ADD_TO_CART, ADD_MULTIPLE_TO_CART, REMOVE_FROM_CART, REMOVE_MULTIPLE_FROM_CART } from './actions';
-import CartControl, { cartAddItems } from './cart_control';
-import CartToggle from './cart_toggle';
-import CartStatus from './cart_status';
 import CartAddMultiple from './cart_add_multiple';
+import CartControl, { cartAddItems } from './cart_control';
 import CartRemoveMultiple from './cart_remove_multiple';
+import CartShare from './cart_share';
+import CartStatus from './cart_status';
+import CartToggle from './cart_toggle';
 
 
 /**
@@ -50,5 +51,6 @@ export {
     CartStatus,
     CartToggle,
     cartAddItems,
+    CartShare,
     cartModule as default,
 };

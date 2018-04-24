@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import _ from 'underscore';
 import CartSave from './cart_save';
 import CartShare from './cart_share';
 import { FetchedData, Param } from '../fetched';
@@ -24,13 +25,16 @@ CartSearchResults.defaultProps = {
 
 
 // Renders the cart search results page.
-const CartComponent = ({ context, cart }, reactContext) => {
-    // Combine in-memory and DB carts.
-    if (cart.length > 0) {
-        const cartQueryString = cart.map(cartItem => `${encodedURIComponent('@id')}=${cartItem}`).join('&');
-        const loggedIn = !!(reactContext.session && reactContext.session['auth.userid']);
-        const userCart = (loggedIn && reactContext.session_properties && reactContext.session_properties.user && reactContext.session_properties.user.carts.length > 0)
-            ? reactContext.session_properties.user.carts[0]
+const CartComponent = ({ context, cart, session, sessionProperties }) => {
+    // Combine in-memory and DB carts. We can have in-memory carts with different contents from
+    // the DB cart, so have to consider both.
+    console.log('CART %o', session);
+    if ((context.items && context.items.length) > 0 || cart.length > 0) {
+        const combinedCarts = _.uniq(cart.concat(context.items));
+        const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
+        const loggedIn = !!(session && session['auth.userid']);
+        const userCart = (loggedIn && sessionProperties && sessionProperties.user && sessionProperties.user.carts.length > 0)
+            ? sessionProperties.user.carts[0]
             : null;
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -39,14 +43,8 @@ const CartComponent = ({ context, cart }, reactContext) => {
                         <h2>Cart</h2>
                     </div>
                 </header>
-                {loggedIn ?
-                    <div>
-                        <CartSave userCart={userCart} />
-                        <CartShare userCart={userCart} />
-                    </div>
-                : null}
                 <FetchedData>
-                    <Param name="results" url={`/search/?${cartQueryString}`} />
+                    <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
                     <CartSearchResults />
                 </FetchedData>
             </div>
@@ -58,15 +56,35 @@ const CartComponent = ({ context, cart }, reactContext) => {
 CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
+    session: PropTypes.object, // App session object
+    sessionProperties: PropTypes.object, // App session_properties object
 };
 
-CartComponent.contextTypes = {
+CartComponent.defaultProps = {
+    session: null,
+    sessionProperties: null,
+};
+
+const mapStateToProps = (state, ownProps) => ({
+    cart: state.cart,
+    session: ownProps.session,
+    sessionProperties: ownProps.sessionProperties,
+});
+const CartInternal = connect(mapStateToProps)(CartComponent);
+
+
+const Cart = (props, reactContext) => (
+    <CartInternal context={props.context} session={reactContext.session} sessionProperties={reactContext.session_properties} />
+);
+
+Cart.propTypes = {
+    context: PropTypes.object.isRequired, // Cart object to render
+};
+
+Cart.contextTypes = {
     session: PropTypes.object,
     session_properties: PropTypes.object,
 };
-
-const mapStateToProps = state => ({ cart: state.cart });
-const Cart = connect(mapStateToProps)(CartComponent);
 
 // Respond to both the 'carts' object for /carts/ URI, and 'Cart' for /carts/<uuid> URI.
 contentViews.register(Cart, 'carts');

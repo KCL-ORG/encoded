@@ -477,6 +477,10 @@ class App extends React.Component {
             return response.json();
         }).then((sessionProperties) => {
             this.setState({ session_properties: sessionProperties });
+
+            // Add saved user cart items to the Redux store.
+            cartAddItems(sessionProperties.user.carts[0].items, cartStore.dispatch);
+
             this.sessionPropertiesRequest = null;
             let nextUrl = window.location.href;
             if (window.location.hash === '#logged-out') {

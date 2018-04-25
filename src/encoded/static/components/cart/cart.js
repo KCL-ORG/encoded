@@ -28,14 +28,11 @@ CartSearchResults.defaultProps = {
 const CartComponent = ({ context, cart, session, sessionProperties }) => {
     // Combine in-memory and DB carts. We can have in-memory carts with different contents from
     // the DB cart, so have to consider both.
-    console.log('CART %o', session);
     if ((context.items && context.items.length) > 0 || cart.length > 0) {
         const combinedCarts = _.uniq(cart.concat(context.items));
         const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
         const loggedIn = !!(session && session['auth.userid']);
-        const userCart = (loggedIn && sessionProperties && sessionProperties.user && sessionProperties.user.carts.length > 0)
-            ? sessionProperties.user.carts[0]
-            : null;
+        const userCart = (loggedIn && sessionProperties && sessionProperties.user) ? sessionProperties.user.carts[0] : null;
         return (
             <div className={itemClass(context, 'view-item')}>
                 <header className="row">
@@ -43,6 +40,12 @@ const CartComponent = ({ context, cart, session, sessionProperties }) => {
                         <h2>Cart</h2>
                     </div>
                 </header>
+                {loggedIn ?
+                    <div>
+                        <CartSave userCart={userCart} />
+                        <CartShare userCart={userCart} />
+                    </div>
+                : null}
                 <FetchedData>
                     <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
                     <CartSearchResults />
@@ -57,7 +60,7 @@ CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
     session: PropTypes.object, // App session object
-    sessionProperties: PropTypes.object, // App session_properties object
+    sessionProperties: PropTypes.object,
 };
 
 CartComponent.defaultProps = {
@@ -73,6 +76,9 @@ const mapStateToProps = (state, ownProps) => ({
 const CartInternal = connect(mapStateToProps)(CartComponent);
 
 
+// Called when a "Cart" object is requested to be rendered. This is a standard React component
+// that's sort of a wrapper around <CartInternal> which is a Redux component. This lets us pass the
+// encoded context properties as regular props to <CartIntenral>.
 const Cart = (props, reactContext) => (
     <CartInternal context={props.context} session={reactContext.session} sessionProperties={reactContext.session_properties} />
 );

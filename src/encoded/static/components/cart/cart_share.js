@@ -19,15 +19,14 @@ const CartShareComponent = ({ cart, userCart }, reactContext) => {
                 <ModalHeader title="Share cart" closeModal />
                 <ModalBody>
                     <p>
-                        Click the &ldquo;Download&rdquo; button below to download a &ldquo;files.txt&rdquo; file that contains a list of URLs to a file containing all the experimental metadata and links to download the file.
-                        The first line of the file will always be the URL to download the metadata file. <br />
-                        Further description of the contents of the metadata file are described in the <a href="/help/batch-download/">Batch Download help doc</a>.
+                        Copy the URL below to share with other people. Some items might not appear
+                        for all people depending on whether they have logged in or not.
                     </p>
                     <code>{sharableUrl}</code>
                 </ModalBody>
                 <ModalFooter
                     closeModal={<button className="btn btn-info btn-sm">Close</button>}
-                    dontClose
+                    submitBtn={<a data-bypass="true" target="_self" className="btn btn-info btn-sm" href={userCart['@id']}>Visit sharable cart</a>}
                 />
             </Modal>
         : null

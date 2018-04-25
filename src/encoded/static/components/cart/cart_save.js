@@ -82,7 +82,7 @@ class CartSaveComponent extends React.Component {
     }
 
     render() {
-        return <button onClick={this.saveCartClick}>Save cart</button>;
+        return <button className="btn btn-info btn-sm" onClick={this.saveCartClick}>Save cart</button>;
     }
 }
 

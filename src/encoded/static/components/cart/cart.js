@@ -33,6 +33,7 @@ const CartComponent = ({ context, cart, session, sessionProperties }) => {
         const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
         const loggedIn = !!(session && session['auth.userid']);
         const userCart = (loggedIn && sessionProperties && sessionProperties.user) ? sessionProperties.user.carts[0] : null;
+
         return (
             <div className={itemClass(context, 'view-item')}>
                 <header className="row">
@@ -40,7 +41,7 @@ const CartComponent = ({ context, cart, session, sessionProperties }) => {
                         <h2>Cart</h2>
                     </div>
                 </header>
-                {loggedIn ?
+                {loggedIn && userCart ?
                     <div>
                         <CartSave userCart={userCart} />
                         <CartShare userCart={userCart} />

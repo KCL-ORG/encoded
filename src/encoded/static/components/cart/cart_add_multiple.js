@@ -8,7 +8,7 @@ import { addMultipleToCart } from './actions';
 // Button to add the current object to the cart, or to remove it.
 const CartAddMultipleComponent = ({ cart, items, onClick }) => {
     const disabled = items.every(item => cart.indexOf(item['@id']) > -1);
-    return <button disabled={disabled} onClick={onClick}>Add all</button>;
+    return <button className="btn btn-info btn-sm" disabled={disabled} onClick={onClick}>Add all</button>;
 };
 
 CartAddMultipleComponent.propTypes = {

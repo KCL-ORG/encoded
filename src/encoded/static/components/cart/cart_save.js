@@ -54,11 +54,20 @@ const getWriteableCartObject = (cartAtId, fetch) => (
 );
 
 
-const createCartObject = (cart, fetch) => {
-    console.log('CREATE %o', cart);
+const createCartObject = (cart, user, fetch) => {
+    const writeableCart = {
+        name: 'Untitled',
+        items: cart,
+        submitted_by: user['@id'],
+        status: 'current',
+    };
     fetch('/cart/', {
-        method: 'PUT',
-        body: JSON.stringify(cart),
+        method: 'POST',
+        body: JSON.stringify(writeableCart),
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
     });
 };
 
@@ -67,10 +76,11 @@ const createCartObject = (cart, fetch) => {
  * Save the in-memory cart to the database.
  *
  * @param {array} cart - Array of @ids contained with the in-memory cart to be saved
- * @param {*} cartAtId - @id of the cart to update
- * @param {*} fetch - System fetch function; usually from <App> context
+ * @param {string} cartAtId - @id of the cart to update
+ * @param {func} fetch - System fetch function; usually from <App> context
  */
-const saveCart = (cart, cartAtId, fetch) => {
+const saveCart = (cart, user, fetch) => {
+    const cartAtId = (user.carts.length > 0) ? user.carts[0]['@id'] : null;
     if (cartAtId) {
         getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
@@ -78,7 +88,7 @@ const saveCart = (cart, cartAtId, fetch) => {
             return updateCartObject(writeableCart, cartAtId, fetch);
         });
     } else {
-        createCartObject(cart, fetch);
+        createCartObject(cart, user, fetch);
     }
 };
 
@@ -91,7 +101,7 @@ class CartSaveComponent extends React.Component {
     }
 
     saveCartClick() {
-        this.props.onSaveCartClick(this.props.cart, this.props.userCart ? this.props.userCart['@id'] : null, this.context.fetch);
+        this.props.onSaveCartClick(this.props.cart, this.props.user, this.props.fetch);
     }
 
     render() {
@@ -101,26 +111,35 @@ class CartSaveComponent extends React.Component {
 
 CartSaveComponent.propTypes = {
     cart: PropTypes.array.isRequired, // In-memory cart from redux store
-    userCart: PropTypes.object, // User cart object from the DB
-    onSaveCartClick: PropTypes.func.isRequired, // Function to call when "Save cart" clicked.
+    user: PropTypes.object, // Logged-in user object
+    onSaveCartClick: PropTypes.func.isRequired, // Function to call when "Save cart" clicked
+    fetch: PropTypes.func.isRequired, // fetch function from App context
 };
 
 CartSaveComponent.defaultProps = {
-    userCart: null,
-};
-
-CartSaveComponent.contextTypes = {
-    fetch: PropTypes.func,
+    user: null,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
-    userCart: ownProps.userCart,
+    user: ownProps.sessionProperties.user,
+    fetch: ownProps.fetch,
 });
 const mapDispatchToProps = () => (
-    { onSaveCartClick: (cart, cartAtId, fetch) => saveCart(cart, cartAtId, fetch) }
+    { onSaveCartClick: (cart, user, fetch) => saveCart(cart, user, fetch) }
 );
 
-const CartSave = connect(mapStateToProps, mapDispatchToProps)(CartSaveComponent);
+const CartSaveInternal = connect(mapStateToProps, mapDispatchToProps)(CartSaveComponent);
+
+
+const CartSave = (props, reactContext) => (
+    <CartSaveInternal sessionProperties={reactContext.session_properties} fetch={reactContext.fetch} />
+);
+
+CartSave.contextTypes = {
+    session_properties: PropTypes.object.isRequired,
+    fetch: PropTypes.func.isRequired,
+};
+
 export default CartSave;
 

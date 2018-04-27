@@ -41,7 +41,7 @@ const CartComponent = ({ context, cart, session, sessionProperties }) => {
                         <h2>Cart</h2>
                     </div>
                 </header>
-                {loggedIn ? <CartSave userCart={userCart} /> : null}
+                {loggedIn ? <CartSave /> : null}
                 {userCart ? <CartShare userCart={userCart} /> : null}
                 <FetchedData>
                     <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />

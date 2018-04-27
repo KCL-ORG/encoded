@@ -481,7 +481,9 @@ class App extends React.Component {
             this.setState({ session_properties: sessionProperties });
 
             // Add saved user cart items to the Redux store.
-            cartAddItems(sessionProperties.user.carts[0].items, cartStore.dispatch);
+            if (sessionProperties.user.carts.length > 0) {
+                cartAddItems(sessionProperties.user.carts[0].items, cartStore.dispatch);
+            }
 
             this.sessionPropertiesRequest = null;
             let nextUrl = window.location.href;

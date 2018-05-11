@@ -12,7 +12,7 @@ import { parseAndLogError } from '../globals';
  *
  * @param {object} cart - cart object to update; must be editable version (no @id etc)
  * @param {string} cartAtId - @id of the cart object to update
- * @param {func} fetch - fetch function to use
+ * @param {func} fetch - system-wide fetch operation
  * @return {object} - Promise containing PUT response that resolves when request completes
  */
 const updateCartObject = (cart, cartAtId, fetch) => (
@@ -36,7 +36,7 @@ const updateCartObject = (cart, cartAtId, fetch) => (
  * Get a writeable version of the cart object specified by `cartAtId`.
  *
  * @param {string} cartAtId - @id of the cart object to retrieve
- * @param {func} fetch - fetch function to use
+ * @param {func} fetch - system-wide fetch operation
  * @return {object} - Promise containing the retrieved cart object, or an error response
  */
 const getWriteableCartObject = (cartAtId, fetch) => (
@@ -54,9 +54,16 @@ const getWriteableCartObject = (cartAtId, fetch) => (
 );
 
 
+/**
+ * Create a new object in the DB for the given cart object and user.
+ *
+ * @param {object} cart - current cart object to be saved
+ * @param {object} user - current logged-in user's object
+ * @param {func} fetch - system-wide fetch operation
+ */
 const createCartObject = (cart, user, fetch) => {
     const writeableCart = {
-        name: 'Untitled',
+        name: `${user.title} cart`,
         items: cart,
         submitted_by: user['@id'],
         status: 'current',

@@ -17,10 +17,10 @@ CartNavTitle.propTypes = {
 
 
 // Button to add the current object to the cart, or to remove it.
-const CartStatusComponent = ({ cart }) => (
+const CartStatusComponent = ({ cart, openDropdown, dropdownClick }) => (
     cart.length > 0 ?
         <Nav>
-            <NavItem dropdownId="cart-control" dropdownTitle={<CartNavTitle cart={cart} />}>
+            <NavItem dropdownId="cart-control" dropdownTitle={<CartNavTitle cart={cart} />} openDropdown={openDropdown} dropdownClick={dropdownClick}>
                 <DropdownMenu label="cart-control">
                     {[<a key="view" href="/carts/">View cart</a>]}
                 </DropdownMenu>
@@ -31,13 +31,19 @@ const CartStatusComponent = ({ cart }) => (
 
 CartStatusComponent.propTypes = {
     cart: PropTypes.array, // Cart contents
+    openDropdown: PropTypes.string.isRequired, // ID of the dropdown currently visible
+    dropdownClick: PropTypes.func.isRequired, // Function to call when dropdown clicked
 };
 
 CartStatusComponent.defaultProps = {
     cart: [],
 };
 
-const mapStateToProps = state => ({ cart: state.cart });
+const mapStateToProps = (state, ownProps) => ({
+    cart: state.cart,
+    openDropdown: ownProps.openDropdown,
+    dropdownClick: ownProps.dropdownClick,
+ });
 
 const CartStatus = connect(mapStateToProps)(CartStatusComponent);
 export default CartStatus;

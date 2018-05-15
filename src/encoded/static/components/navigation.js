@@ -77,7 +77,7 @@ export default class Navigation extends React.Component {
         return (
             <div id="navbar" className="navbar navbar-fixed-top navbar-inverse">
                 <div className="container">
-                    <Navbar brand={portal.portal_title} brandlink="/" label="main" navClasses="navbar-main">
+                    <Navbar brand={portal.portal_title} brandlink="/" label="main" navClasses="navbar-main" openDropdown={this.state.openDropdown} dropdownClick={this.dropdownClick}>
                         <GlobalSections />
                         <CartStatus />
                         <UserActions />
@@ -124,7 +124,7 @@ Navigation.childContextTypes = {
 // Main navigation menus
 const GlobalSections = (props, context) => {
     const actions = context.listActionsFor('global_sections').map(action =>
-        <NavItem key={action.id} dropdownId={action.id} dropdownTitle={action.title}>
+        <NavItem key={action.id} dropdownId={action.id} dropdownTitle={action.title} openDropdown={props.openDropdown} dropdownClick={props.dropdownClick} >
             {action.children ?
                 <DropdownMenu label={action.id}>
                     {action.children.map((childAction) => {
@@ -145,6 +145,16 @@ const GlobalSections = (props, context) => {
         </NavItem>
     );
     return <Nav>{actions}</Nav>;
+};
+
+GlobalSections.propTypes = {
+    openDropdown: PropTypes.string, // ID of the dropdown currently visible
+    dropdownClick: PropTypes.func, // Function to call when dropdown clicked
+};
+
+GlobalSections.defaultProps = {
+    openDropdown: '',
+    dropdownClick: null,
 };
 
 GlobalSections.contextTypes = {

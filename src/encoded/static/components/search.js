@@ -1334,7 +1334,7 @@ const BrowserTabQuickView = function BrowserTabQuickView() {
 };
 
 
-const ResultTableList = (props) => {
+export const ResultTableList = (props) => {
     const { results, columns, tabbed } = props;
     return (
         <ul className={`nav result-table${tabbed ? ' result-table-tabbed' : ''}`} id="result-table">

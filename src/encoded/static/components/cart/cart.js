@@ -3,16 +3,21 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _ from 'underscore';
+import { Panel, PanelBody } from '../../libs/bootstrap/panel';
 import CartSave from './cart_save';
 import CartShare from './cart_share';
 import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
-import { Search } from '../search';
+import { ResultTableList } from '../search';
 
 
 // Called from <FetcheData> to render search results for all items in the current cart.
 const CartSearchResults = ({ results }) => (
-    <Search context={results} />
+    <Panel>
+        <PanelBody addClasses="cart__result-table">
+            <ResultTableList results={results['@graph']} columns={results.columns} />
+        </PanelBody>
+    </Panel>
 );
 
 CartSearchResults.propTypes = {

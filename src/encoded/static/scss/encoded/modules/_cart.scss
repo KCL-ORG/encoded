@@ -1,0 +1,28 @@
+.cart {
+    // Cart navigation menu
+    @at-root #{&}__nav {
+        fill: white;
+
+        &-icon {
+            display: inline-block;
+            width: 16px;
+        }
+
+        &-count {
+            display: inline-block;
+            padding: 0 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 1.4rem;
+            background-color: green;
+        }
+    }
+
+    // Cart contents list
+    @at-root #{&}__result-table {
+        .result-table {
+            padding: 0;
+            border: none;
+        }
+    }
+}

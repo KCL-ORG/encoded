@@ -179,7 +179,7 @@ const ContextActions = (props, context) => {
     if (actions.length > 1) {
         return (
             <Nav right>
-                <NavItem dropdownId="context" dropdownTitle={<i className="icon icon-gear" />}>
+                <NavItem dropdownId="context" dropdownTitle={<i className="icon icon-gear" />} openDropdown={props.openDropdown} dropdownClick={props.dropdownClick}>
                     <DropdownMenu label="context">
                         {actions}
                     </DropdownMenu>
@@ -190,6 +190,16 @@ const ContextActions = (props, context) => {
 
     // Action menu without a dropdown menu
     return <Nav right><NavItem>{actions}</NavItem></Nav>;
+};
+
+ContextActions.propTypes = {
+    openDropdown: PropTypes.string, // ID of the dropdown currently visible
+    dropdownClick: PropTypes.func, // Function to call when dropdown clicked
+};
+
+ContextActions.defaultProps = {
+    openDropdown: '',
+    dropdownClick: null,
 };
 
 ContextActions.contextTypes = {
@@ -237,13 +247,23 @@ const UserActions = (props, context) => {
     const fullname = (user && user.title) || 'unknown';
     return (
         <Nav right>
-            <NavItem dropdownId="useractions" dropdownTitle={fullname}>
+            <NavItem dropdownId="useractions" dropdownTitle={fullname} openDropdown={props.openDropdown} dropdownClick={props.dropdownClick}>
                 <DropdownMenu label="useractions">
                     {actions}
                 </DropdownMenu>
             </NavItem>
         </Nav>
     );
+};
+
+UserActions.propTypes = {
+    openDropdown: PropTypes.string, // ID of the dropdown currently visible
+    dropdownClick: PropTypes.func, // Function to call when dropdown clicked
+};
+
+UserActions.defaultProps = {
+    openDropdown: '',
+    dropdownClick: null,
 };
 
 UserActions.contextTypes = {

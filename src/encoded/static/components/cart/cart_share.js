@@ -44,7 +44,6 @@ CartShareComponent.defaultProps = {
 };
 
 CartShareComponent.contextTypes = {
-    session: PropTypes.object, // Login information
     location_href: PropTypes.string, // URL of this experiment page, including query string stuff
 };
 

@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { DropdownMenu } from '../../libs/bootstrap/dropdown-menu';
 import { Nav, NavItem } from '../../libs/bootstrap/navbar';
 import { svgIcon } from '../../libs/svg-icons';
+import CartSave from './cart_save';
 
 
 const CartNavTitle = ({ cart }) => (
@@ -17,17 +18,22 @@ CartNavTitle.propTypes = {
 
 
 // Button to add the current object to the cart, or to remove it.
-const CartStatusComponent = ({ cart, openDropdown, dropdownClick }) => (
-    cart.length > 0 ?
-        <Nav>
-            <NavItem dropdownId="cart-control" dropdownTitle={<CartNavTitle cart={cart} />} openDropdown={openDropdown} dropdownClick={dropdownClick}>
-                <DropdownMenu label="cart-control">
-                    {[<a key="view" href="/carts/">View cart</a>]}
-                </DropdownMenu>
-            </NavItem>
-        </Nav>
-    : null
-);
+const CartStatusComponent = ({ cart, openDropdown, dropdownClick }, reactContext) => {
+    const loggedIn = !!(reactContext.session && reactContext.session['auth.userid']);
+    const menuItems = [<a key="view" href="/carts/">View cart</a>];
+
+    return (
+        cart.length > 0 ?
+            <Nav>
+                <NavItem dropdownId="cart-control" dropdownTitle={<CartNavTitle cart={cart} />} openDropdown={openDropdown} dropdownClick={dropdownClick}>
+                    <DropdownMenu label="cart-control">
+                        {menuItems}
+                    </DropdownMenu>
+                </NavItem>
+            </Nav>
+        : null
+    );
+};
 
 CartStatusComponent.propTypes = {
     cart: PropTypes.array, // Cart contents
@@ -39,11 +45,16 @@ CartStatusComponent.defaultProps = {
     cart: [],
 };
 
+CartStatusComponent.contextTypes = {
+    session: PropTypes.object, // Login information
+};
+
+
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
     openDropdown: ownProps.openDropdown,
     dropdownClick: ownProps.dropdownClick,
- });
+});
 
 const CartStatus = connect(mapStateToProps)(CartStatusComponent);
 export default CartStatus;

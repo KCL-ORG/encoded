@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import _ from 'underscore';
 import { Panel, PanelBody } from '../../libs/bootstrap/panel';
 import CartSave from './cart_save';
-import CartShare from './cart_share';
 import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { ResultTableList } from '../search';
@@ -30,14 +29,13 @@ CartSearchResults.defaultProps = {
 
 
 // Renders the cart search results page.
-const CartComponent = ({ context, cart, session, sessionProperties }) => {
+const CartComponent = ({ context, cart, session }) => {
     // Combine in-memory and DB carts. We can have in-memory carts with different contents from
     // the DB cart, so have to consider both.
     if ((context.items && context.items.length) > 0 || cart.length > 0) {
         const combinedCarts = _.uniq(cart.concat(context.items));
         const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
         const loggedIn = !!(session && session['auth.userid']);
-        const userCart = (loggedIn && sessionProperties && sessionProperties.user) ? sessionProperties.user.carts[0] : null;
 
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -47,7 +45,6 @@ const CartComponent = ({ context, cart, session, sessionProperties }) => {
                     </div>
                 </header>
                 {loggedIn ? <CartSave /> : null}
-                {userCart ? <CartShare userCart={userCart} /> : null}
                 <FetchedData>
                     <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
                     <CartSearchResults />
@@ -62,18 +59,15 @@ CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
     session: PropTypes.object, // App session object
-    sessionProperties: PropTypes.object,
 };
 
 CartComponent.defaultProps = {
     session: null,
-    sessionProperties: null,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
     session: ownProps.session,
-    sessionProperties: ownProps.sessionProperties,
 });
 const CartInternal = connect(mapStateToProps)(CartComponent);
 
@@ -82,7 +76,7 @@ const CartInternal = connect(mapStateToProps)(CartComponent);
 // that's sort of a wrapper around <CartInternal> which is a Redux component. This lets us pass the
 // encoded context properties as regular props to <CartIntenral>.
 const Cart = (props, reactContext) => (
-    <CartInternal context={props.context} session={reactContext.session} sessionProperties={reactContext.session_properties} />
+    <CartInternal context={props.context} session={reactContext.session} />
 );
 
 Cart.propTypes = {
@@ -91,7 +85,6 @@ Cart.propTypes = {
 
 Cart.contextTypes = {
     session: PropTypes.object,
-    session_properties: PropTypes.object,
 };
 
 // Respond to both the 'carts' object for /carts/ URI, and 'Cart' for /carts/<uuid> URI.

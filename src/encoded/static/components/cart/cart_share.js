@@ -7,7 +7,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../libs/bootstrap
 
 
 // Button to add the current object to the cart, or to remove it.
-const CartShareComponent = ({ cart, userCart }, reactContext) => {
+const CartShareComponent = ({ cart, userCart, closeShareCart }, reactContext) => {
     const parsedUrl = url.parse(reactContext.location_href);
     parsedUrl.pathname = userCart['@id'];
     parsedUrl.search = '';
@@ -15,7 +15,7 @@ const CartShareComponent = ({ cart, userCart }, reactContext) => {
     const sharableUrl = url.format(parsedUrl);
     return (
         cart.length > 0 ?
-            <Modal actuator={<button className="btn btn-info btn-sm">Share</button>}>
+            <Modal>
                 <ModalHeader title="Share cart" closeModal />
                 <ModalBody>
                     <p>
@@ -25,7 +25,7 @@ const CartShareComponent = ({ cart, userCart }, reactContext) => {
                     <code>{sharableUrl}</code>
                 </ModalBody>
                 <ModalFooter
-                    closeModal={<button className="btn btn-info btn-sm">Close</button>}
+                    closeModal={closeShareCart}
                     submitBtn={<a data-bypass="true" target="_self" className="btn btn-info btn-sm" href={userCart['@id']}>Visit sharable cart</a>}
                 />
             </Modal>
@@ -35,7 +35,8 @@ const CartShareComponent = ({ cart, userCart }, reactContext) => {
 
 CartShareComponent.propTypes = {
     cart: PropTypes.array, // Cart contents
-    userCart: PropTypes.object,
+    userCart: PropTypes.object, // Logged-in users's cart object
+    closeShareCart: PropTypes.func.isRequired, // Function to close the modal
 };
 
 CartShareComponent.defaultProps = {
@@ -51,6 +52,7 @@ CartShareComponent.contextTypes = {
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
     userCart: ownProps.userCart,
+    closeShareCart: ownProps.closeShareCart,
 });
 
 const CartShare = connect(mapStateToProps)(CartShareComponent);

@@ -52,11 +52,11 @@ export class Navbar extends React.Component {
     render() {
         const { brand, brandlink, label, navClasses, openDropdown, dropdownClick } = this.props;
 
+        // Add openDropdown and dropdownClick props to the child components.
         let children = [];
         if (this.props.children && this.props.children.length) {
             children = React.Children.map(this.props.children, child => (
-                // Replace the existing child <TabPanelPane> component
-                React.cloneElement(child, { openDropdown, dropdownClick })
+                child ? React.cloneElement(child, { openDropdown, dropdownClick }) : null
             ));
         }
 

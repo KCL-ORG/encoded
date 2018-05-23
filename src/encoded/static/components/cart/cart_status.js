@@ -50,7 +50,7 @@ class CartStatusComponent extends React.Component {
         return (
             cart.length > 0 ?
                 <Nav>
-                    <NavItem dropdownId="cart-control" dropdownTitle={<CartNavTitle cart={cart} />} openDropdown={openDropdown} dropdownClick={dropdownClick}>
+                    <NavItem dropdownId="cart-control" dropdownTitle={<CartNavTitle cart={cart} />} openDropdown={openDropdown} dropdownClick={dropdownClick} buttonCss="cart__nav-button">
                         <DropdownMenu label="cart-control">
                             {menuItems}
                         </DropdownMenu>

@@ -1,16 +1,24 @@
 .cart {
     // Cart navigation menu
     @at-root #{&}__nav {
+        position: relative;
+        display: table-cell;
+        vertical-align: bottom;
+        width: 34px;
+        height: 24px;
         fill: white;
 
         &-icon {
-            display: inline-block;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 16px;
             vertical-align: top;
         }
 
         &-count {
             display: inline-block;
+            position: relative;
             padding: 0 5px;
             font-size: 0.8rem;
             font-weight: bold;
@@ -18,7 +26,7 @@
             background-color: green;
             height: 16px;
             line-height: 16px;
-            vertical-align: top;        }
+       }
     }
 
     // Cart contents list
@@ -28,4 +36,10 @@
             border: none;
         }
     }
+}
+
+// Cart button in navigation bar
+.navbar-inverse .nav > li > button.cart__nav-button {
+    padding-top: 8px;
+    padding-bottom: 8px;
 }

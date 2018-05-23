@@ -123,7 +123,7 @@ Nav.defaultProps = {
 
 // Controls one top-level item within a <Nav>. It can be a stand-alone item or a dropdown menu
 export const NavItem = (props) => {
-    const { dropdownId, dropdownTitle } = props;
+    const { dropdownId, dropdownTitle, buttonCss } = props;
     const dropdownOpen = dropdownId && (props.openDropdown === dropdownId);
 
     return (
@@ -134,6 +134,7 @@ export const NavItem = (props) => {
                     dropdownOpen={dropdownOpen}
                     dropdownTitle={dropdownTitle}
                     dropdownId={dropdownId}
+                    css={buttonCss}
                 />
             : null}
             {props.children}
@@ -149,6 +150,7 @@ NavItem.propTypes = {
     ]),
     openDropdown: PropTypes.string,
     dropdownClick: PropTypes.func,
+    buttonCss: PropTypes.string, // CSS classes to add to navigation button
     children: PropTypes.node, // Child components within one menu item, likely just text
 };
 
@@ -157,6 +159,7 @@ NavItem.defaultProps = {
     dropdownTitle: null,
     openDropdown: '',
     dropdownClick: null,
+    buttonCss: '',
     children: null,
 };
 
@@ -176,15 +179,16 @@ class NavItemButton extends React.Component {
     }
 
     render() {
+        const { dropdownOpen, dropdownTitle, css } = this.props;
         return (
             <button
-                className="dropdown-toggle"
+                className={`dropdown-toggle${css ? ` ${css}` : ''}`}
                 data-toggle="dropdown"
                 aria-haspopup="true"
-                aria-expanded={this.props.dropdownOpen}
+                aria-expanded={dropdownOpen}
                 onClick={this.clickHandler}
             >
-                {this.props.dropdownTitle}
+                {dropdownTitle}
             </button>
         );
     }
@@ -198,6 +202,7 @@ NavItemButton.propTypes = {
         PropTypes.string,
         PropTypes.object,
     ]),
+    css: PropTypes.string, // CSS classes to add to button
 };
 
 NavItemButton.defaultProps = {
@@ -205,4 +210,5 @@ NavItemButton.defaultProps = {
     dropdownOpen: false,
     dropdownId: '',
     dropdownTitle: null,
+    css: '',
 };

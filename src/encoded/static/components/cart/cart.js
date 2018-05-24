@@ -29,31 +29,44 @@ CartSearchResults.defaultProps = {
 
 
 // Renders the cart search results page.
-const CartComponent = ({ context, cart, session }) => {
-    // Combine in-memory and DB carts. We can have in-memory carts with different contents from
-    // the DB cart, so have to consider both.
-    if ((context.items && context.items.length) > 0 || cart.length > 0) {
-        const combinedCarts = _.uniq(cart.concat(context.items));
-        const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
-        const loggedIn = !!(session && session['auth.userid']);
-
-        return (
-            <div className={itemClass(context, 'view-item')}>
-                <header className="row">
-                    <div className="col-sm-12">
-                        <h2>Cart</h2>
-                    </div>
-                </header>
-                {loggedIn ? <CartSave /> : null}
-                <FetchedData>
-                    <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
-                    <CartSearchResults />
-                </FetchedData>
-            </div>
-        );
+class CartComponent extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        // Each render does a GET request, so we need to avoid them if possible.
+        if ((nextProps.cart.length !== this.props.cart.length) ||
+            (nextProps.context.items.length !== this.props.context.items.length)) {
+            return true;
+        }
+        return !_.isEqual(nextProps.cart, this.props.cart) || !_.isEqual(nextProps.context.items, this.props.context.items);
     }
-    return null;
-};
+
+    render() {
+        const { context, cart, session } = this.props;
+
+        // Combine in-memory and DB carts. We can have in-memory carts with different contents from
+        // the DB cart, so have to consider both.
+        if ((context.items && context.items.length > 0) || cart.length > 0) {
+            const combinedCarts = _.uniq(cart.concat(context.items || []));
+            const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
+            const loggedIn = !!(session && session['auth.userid']);
+
+            return (
+                <div className={itemClass(context, 'view-item')}>
+                    <header className="row">
+                        <div className="col-sm-12">
+                            <h2>Cart</h2>
+                        </div>
+                    </header>
+                    {loggedIn ? <CartSave /> : null}
+                    <FetchedData>
+                        <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
+                        <CartSearchResults />
+                    </FetchedData>
+                </div>
+            );
+        }
+        return null;
+    }
+}
 
 CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
@@ -74,7 +87,8 @@ const CartInternal = connect(mapStateToProps)(CartComponent);
 
 // Called when a "Cart" object is requested to be rendered. This is a standard React component
 // that's sort of a wrapper around <CartInternal> which is a Redux component. This lets us pass the
-// encoded context properties as regular props to <CartIntenral>.
+// encoded context properties as regular props to <CartIntenral>. Passing React context directly to
+// a Redux component doesn't seem very reliable.
 const Cart = (props, reactContext) => (
     <CartInternal context={props.context} session={reactContext.session} />
 );

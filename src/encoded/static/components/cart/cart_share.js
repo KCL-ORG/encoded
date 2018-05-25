@@ -26,7 +26,7 @@ const CartShareComponent = ({ cart, userCart, closeShareCart }, reactContext) =>
                 </ModalBody>
                 <ModalFooter
                     closeModal={closeShareCart}
-                    submitBtn={<a data-bypass="true" target="_self" className="btn btn-info btn-sm" href={userCart['@id']}>Visit sharable cart</a>}
+                    submitBtn={<a data-bypass="true" target="_self" className="btn btn-info" href={userCart['@id']}>Visit sharable cart</a>}
                 />
             </Modal>
         : null

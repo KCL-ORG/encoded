@@ -26,7 +26,17 @@
             background-color: green;
             height: 16px;
             line-height: 16px;
-       }
+        }
+    }
+
+    // Indicates if item has been saved.
+    @at-root #{&}__saved-status {
+        text-align: center;
+
+        @at-root #{&}-icon {
+            display: inline-block;
+            color: #cc0700;
+        }
     }
 
     // Cart contents list
@@ -34,6 +44,19 @@
         .result-table {
             padding: 0;
             border: none;
+        }
+    }
+
+    // Checkbox with font awesome icon for use in search results list
+    // https://codepen.io/jamesbarnett/pen/yILjk
+    // Accessibility: https://weblog.west-wind.com/posts/2015/Feb/26/Using-FontAwesome-Fonts-for-HTML-Radio-Buttons-and-Checkboxes
+    @at-root #{&}__checkbox {
+        position: relative;
+        text-align: center;
+
+        input[type=checkbox] {
+            display: inline-block;
+            zoom: 1.4;
         }
     }
 }

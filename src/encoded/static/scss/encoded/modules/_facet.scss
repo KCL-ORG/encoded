@@ -365,11 +365,15 @@ div.meta-status {
     flex-wrap: nowrap;
 
     @at-root #{&}__data {
-        flex: 0 1 95%;
+        flex: 1 1 auto;
     }
 
     @at-root #{&}__cart-control {
-        flex: 0 1 5%;
+        flex: 0 0 32px;
+
+        @at-root #{&}--unsaved {
+            background-color: #ffc0c0;
+        }
     }
 }
  

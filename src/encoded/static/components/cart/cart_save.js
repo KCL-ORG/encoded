@@ -13,7 +13,7 @@ import { parseAndLogError } from '../globals';
  * @param {object} cart - cart object to update; must be editable version (no @id etc)
  * @param {string} cartAtId - @id of the cart object to update
  * @param {func} fetch - system-wide fetch operation
- * @return {object} - Promise containing PUT response that resolves when request completes
+ * @return {object} - Promise containing array of carts for logged-in user
  */
 const updateCartObject = (cart, cartAtId, fetch) => (
     fetch(cartAtId, {
@@ -28,7 +28,9 @@ const updateCartObject = (cart, cartAtId, fetch) => (
             throw response;
         }
         return response.json();
-    }).catch(parseAndLogError.bind('Update cart', 'putRequest'))
+    }).then(result => (
+        result['@graph']
+    )).catch(parseAndLogError.bind('Update cart', 'putRequest'))
 );
 
 
@@ -68,14 +70,14 @@ const createCartObject = (cart, user, fetch) => {
         submitted_by: user['@id'],
         status: 'current',
     };
-    fetch('/cart/', {
+    return fetch('/cart/', {
         method: 'POST',
         body: JSON.stringify(writeableCart),
         headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
         },
-    });
+    }).then(result => result['@graph']);
 };
 
 
@@ -89,14 +91,15 @@ const createCartObject = (cart, user, fetch) => {
 const saveCart = (cart, user, fetch) => {
     const cartAtId = (user.carts.length > 0) ? user.carts[0]['@id'] : null;
     if (cartAtId) {
-        getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
+        return getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
             writeableCart.items = cart;
             return updateCartObject(writeableCart, cartAtId, fetch);
         });
-    } else {
-        createCartObject(cart, user, fetch);
     }
+
+    // No user cart. Make one from scratch and save it.
+    return createCartObject(cart, user, fetch);
 };
 
 
@@ -108,7 +111,9 @@ class CartSaveComponent extends React.Component {
     }
 
     saveCartClick() {
-        this.props.onSaveCartClick(this.props.cart, this.props.user, this.props.fetch);
+        this.props.onSaveCartClick(this.props.cart, this.props.user, this.props.fetch).then((o) => {
+            this.props.fetchSessionProperties();
+        });
     }
 
     render() {
@@ -121,6 +126,7 @@ CartSaveComponent.propTypes = {
     user: PropTypes.object, // Logged-in user object
     onSaveCartClick: PropTypes.func.isRequired, // Function to call when "Save cart" clicked
     fetch: PropTypes.func.isRequired, // fetch function from App context
+    fetchSessionProperties: PropTypes.func.isRequired, // fetchSessionProperties function from App context
 };
 
 CartSaveComponent.defaultProps = {
@@ -131,6 +137,7 @@ const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
     user: ownProps.sessionProperties.user,
     fetch: ownProps.fetch,
+    fetchSessionProperties: ownProps.fetchSessionProperties,
 });
 const mapDispatchToProps = () => (
     { onSaveCartClick: (cart, user, fetch) => saveCart(cart, user, fetch) }
@@ -140,12 +147,13 @@ const CartSaveInternal = connect(mapStateToProps, mapDispatchToProps)(CartSaveCo
 
 
 const CartSave = (props, reactContext) => (
-    <CartSaveInternal sessionProperties={reactContext.session_properties} fetch={reactContext.fetch} />
+    <CartSaveInternal sessionProperties={reactContext.session_properties} fetch={reactContext.fetch} fetchSessionProperties={reactContext.fetchSessionProperties} />
 );
 
 CartSave.contextTypes = {
     session_properties: PropTypes.object.isRequired,
     fetch: PropTypes.func.isRequired,
+    fetchSessionProperties: PropTypes.func.isRequired,
 };
 
 export default CartSave;

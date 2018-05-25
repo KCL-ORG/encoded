@@ -29,31 +29,56 @@ CartSearchResults.defaultProps = {
 
 
 // Renders the cart search results page.
-const CartComponent = ({ context, cart, session }) => {
-    // Combine in-memory and DB carts. We can have in-memory carts with different contents from
-    // the DB cart, so have to consider both.
-    if ((context.items && context.items.length > 0) || cart.length > 0) {
-        const combinedCarts = _.uniq(cart.concat(context.items || []));
-        const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
-        const loggedIn = !!(session && session['auth.userid']);
-
-        return (
-            <div className={itemClass(context, 'view-item')}>
-                <header className="row">
-                    <div className="col-sm-12">
-                        <h2>Cart</h2>
-                    </div>
-                </header>
-                {loggedIn ? <CartSave /> : null}
-                <FetchedData>
-                    <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
-                    <CartSearchResults />
-                </FetchedData>
-            </div>
-        );
+class CartComponent extends React.Component {
+    componentDidMount() {
+        console.log('CDM %o', this.props);
     }
-    return null;
-};
+
+    shouldComponentUpdate(nextProps) {
+        console.log('SCU %o\n%o', this.props, nextProps);
+        const nextSavedCart = nextProps.context.items || [];
+        const currentSavedCart = this.props.context.items || [];
+
+        // Each render does a GET request, so we need to avoid them if possible.
+        if ((nextProps.cart.length !== this.props.cart.length) ||
+            (nextSavedCart.length !== currentSavedCart.length)) {
+            return true;
+        }
+        return !_.isEqual(nextProps.cart, this.props.cart) || !_.isEqual(nextProps.context.items, this.props.context.items);
+    }
+
+    componentWillUnmount() {
+        console.log('CWU');
+    }
+
+    render() {
+        const { context, cart, session } = this.props;
+
+        // Combine in-memory and DB carts. We can have in-memory carts with different contents from
+        // the DB cart, so have to consider both.
+        if ((context.items && context.items.length > 0) || cart.length > 0) {
+            const combinedCarts = _.uniq(cart.concat(context.items || []));
+            const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
+            const loggedIn = !!(session && session['auth.userid']);
+
+            return (
+                <div className={itemClass(context, 'view-item')}>
+                    <header className="row">
+                        <div className="col-sm-12">
+                            <h2>Cart</h2>
+                        </div>
+                    </header>
+                    {loggedIn ? <CartSave /> : null}
+                    <FetchedData>
+                        <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
+                        <CartSearchResults />
+                    </FetchedData>
+                </div>
+            );
+        }
+        return null;
+    }
+}
 
 CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display

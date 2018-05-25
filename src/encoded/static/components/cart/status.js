@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { DropdownMenu } from '../../libs/bootstrap/dropdown-menu';
 import { Nav, NavItem } from '../../libs/bootstrap/navbar';
 import { svgIcon } from '../../libs/svg-icons';
-import CartShare from './cart_share';
+import CartShare from './share';
 
 
 const CartNavTitle = ({ cart }) => (

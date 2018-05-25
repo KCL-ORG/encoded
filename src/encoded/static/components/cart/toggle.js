@@ -60,7 +60,12 @@ const CartToggleInternal = connect(mapStateToProps, mapDispatchToProps)(CartTogg
 const CartToggle = (props, reactContext) => (
     <CartToggleInternal
         {...props}
-        savedItems={reactContext.session_properties && reactContext.session_properties.user && reactContext.session_properties.user.carts[0].items}
+        savedItems={
+            reactContext.session_properties &&
+            reactContext.session_properties.user &&
+            reactContext.session_properties.user.carts[0] &&
+            reactContext.session_properties.user.carts[0].items
+        }
     />
 );
 

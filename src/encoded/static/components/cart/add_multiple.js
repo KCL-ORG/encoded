@@ -3,11 +3,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { addMultipleToCart } from './actions';
+import { filterAllowedItems } from './util';
 
 
 // Button to add the current object to the cart, or to remove it.
 const CartAddMultipleComponent = ({ cart, items, onClick }) => {
-    const disabled = items.every(item => cart.indexOf(item['@id']) > -1);
+    const allowedItems = filterAllowedItems(items);
+    const disabled = allowedItems.every(item => cart.indexOf(item['@id']) > -1);
     return <button className="btn btn-info btn-sm" disabled={disabled} onClick={onClick}>Add all</button>;
 };
 
@@ -25,7 +27,7 @@ const mapStateToProps = (state, ownProps) => ({ cart: state.cart, items: ownProp
 const mapDispatchToProps = (dispatch, ownProps) => (
     {
         onClick: () => {
-            const itemAtIds = ownProps.items.map(item => item['@id']);
+            const itemAtIds = filterAllowedItems(ownProps.items).map(item => item['@id']);
             return dispatch(addMultipleToCart(itemAtIds));
         },
     }

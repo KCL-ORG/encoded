@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _ from 'underscore';
 import { Panel, PanelBody } from '../../libs/bootstrap/panel';
-import CartSave from './cart_save';
+import CartSave from './save';
 import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { ResultTableList } from '../search';

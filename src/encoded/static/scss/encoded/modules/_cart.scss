@@ -47,6 +47,18 @@
         }
     }
 
+    @at-root #{&}__loss-warning {
+        margin-bottom: 0;
+        text-align: center;
+        font-style: italic;
+    }
+
+    @at-root #{&}__empty-message {
+        margin: 10px 0;
+        text-align: center;
+        font-style: italic;
+    }
+
     // Checkbox with font awesome icon for use in search results list
     // https://codepen.io/jamesbarnett/pen/yILjk
     // Accessibility: https://weblog.west-wind.com/posts/2015/Feb/26/Using-FontAwesome-Fonts-for-HTML-Radio-Buttons-and-Checkboxes

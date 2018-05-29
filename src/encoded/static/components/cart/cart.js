@@ -12,11 +12,7 @@ import { ResultTableList } from '../search';
 
 // Called from <FetcheData> to render search results for all items in the current cart.
 const CartSearchResults = ({ results }) => (
-    <Panel>
-        <PanelBody addClasses="cart__result-table">
-            <ResultTableList results={results['@graph']} columns={results.columns} />
-        </PanelBody>
-    </Panel>
+    <ResultTableList results={results['@graph']} columns={results.columns} />
 );
 
 CartSearchResults.propTypes = {
@@ -30,10 +26,6 @@ CartSearchResults.defaultProps = {
 
 // Renders the cart search results page.
 class CartComponent extends React.Component {
-    componentDidMount() {
-        console.log('CDM %o', this.props);
-    }
-
     shouldComponentUpdate(nextProps) {
         console.log('SCU %o\n%o', this.props, nextProps);
         const nextSavedCart = nextProps.context.items || [];
@@ -47,36 +39,49 @@ class CartComponent extends React.Component {
         return !_.isEqual(nextProps.cart, this.props.cart) || !_.isEqual(nextProps.context.items, this.props.context.items);
     }
 
-    componentWillUnmount() {
-        console.log('CWU');
-    }
-
     render() {
         const { context, cart, session } = this.props;
+        let combinedCarts;
+        let cartQueryString;
 
         // Combine in-memory and DB carts. We can have in-memory carts with different contents from
         // the DB cart, so have to consider both.
+        const loggedIn = !!(session && session['auth.userid']);
+        const hasCart = (context.items && context.items.length > 0) || cart.length > 0;
         if ((context.items && context.items.length > 0) || cart.length > 0) {
-            const combinedCarts = _.uniq(cart.concat(context.items || []));
-            const cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
-            const loggedIn = !!(session && session['auth.userid']);
-
-            return (
-                <div className={itemClass(context, 'view-item')}>
-                    <header className="row">
-                        <div className="col-sm-12">
-                            <h2>Cart</h2>
-                        </div>
-                    </header>
-                    {loggedIn ? <CartSave /> : null}
-                    <FetchedData>
-                        <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
-                        <CartSearchResults />
-                    </FetchedData>
-                </div>
-            );
+            combinedCarts = _.uniq(cart.concat(context.items || []));
+            cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
         }
-        return null;
+
+        return (
+            <div className={itemClass(context, 'view-item')}>
+                <header className="row">
+                    <div className="col-sm-12">
+                        <h2>Cart</h2>
+                    </div>
+                </header>
+                {loggedIn ? <CartSave /> : null}
+                <Panel>
+                    <PanelBody addClasses="cart__result-table">
+                        {hasCart ?
+                            <div>
+                                <p className="cart__loss-warning">
+                                    Reloading any page while you have unsaved cart items removes those items from the cart.
+                                </p>
+                                <FetchedData>
+                                    <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
+                                    <CartSearchResults />
+                                </FetchedData>
+                            </div>
+                        :
+                            <p className="cart__empty-message">
+                                Empty cart
+                            </p>
+                        }
+                    </PanelBody>
+                </Panel>
+            </div>
+        );
     }
 }
 

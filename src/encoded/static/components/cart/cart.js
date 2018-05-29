@@ -89,9 +89,11 @@ CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
     session: PropTypes.object, // App session object
+    sessionProperties: PropTypes.object,
 };
 
 CartComponent.defaultProps = {
+    session: null,
     session: null,
 };
 
@@ -107,7 +109,7 @@ const CartInternal = connect(mapStateToProps)(CartComponent);
 // encoded context properties as regular props to <CartIntenral>. Passing React context directly to
 // a Redux component doesn't seem very reliable.
 const Cart = (props, reactContext) => (
-    <CartInternal context={props.context} session={reactContext.session} />
+    <CartInternal context={props.context} session={reactContext.session} sessionProperties={reactContext.session_properties} />
 );
 
 Cart.propTypes = {
@@ -116,6 +118,7 @@ Cart.propTypes = {
 
 Cart.contextTypes = {
     session: PropTypes.object,
+    session_properties: PropTypes.object,
 };
 
 // Respond to both the 'carts' object for /carts/ URI, and 'Cart' for /carts/<uuid> URI.

@@ -26,17 +26,27 @@ CartSearchResults.defaultProps = {
 
 // Renders the cart search results page.
 class CartComponent extends React.Component {
+    // Each render does a GET request, so we need to avoid them if possible.
     shouldComponentUpdate(nextProps) {
-        console.log('SCU %o\n%o', this.props, nextProps);
-        const nextSavedCart = nextProps.context.items || [];
-        const currentSavedCart = this.props.context.items || [];
+        // Start by getting the sharable cart objects and the saved cart objects.
+        const nextSharedCart = nextProps.context.items || [];
+        const currentSharedCart = this.props.context.items || [];
+        const nextSavedCart = (nextProps.sessionProperties && nextProps.sessionProperties.user.carts) || [];
+        const currentSavedCart = (this.props.sessionProperties && this.props.sessionProperties.user.carts) || [];
 
-        // Each render does a GET request, so we need to avoid them if possible.
+        // Redraw if the in-memory, shared, or saved cart lengths have changed.
         if ((nextProps.cart.length !== this.props.cart.length) ||
-            (nextSavedCart.length !== currentSavedCart.length)) {
+            (nextSharedCart.length !== currentSharedCart.length) ||
+            (nextSavedCart.length != currentSavedCart.length)) {
             return true;
         }
-        return !_.isEqual(nextProps.cart, this.props.cart) || !_.isEqual(nextProps.context.items, this.props.context.items);
+
+        // Redraw if the in-memory, shared, or saved cart contents have changed.
+        return (
+            !_.isEqual(nextProps.cart, this.props.cart) ||
+            !_.isEqual(nextSharedCart, currentSharedCart) ||
+            !_.isEqual(nextSavedCart, currentSavedCart)
+        );
     }
 
     render() {
@@ -95,6 +105,7 @@ CartComponent.propTypes = {
 CartComponent.defaultProps = {
     session: null,
     session: null,
+    sessionProperties: null,
 };
 
 const mapStateToProps = (state, ownProps) => ({

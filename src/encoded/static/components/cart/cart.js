@@ -37,7 +37,7 @@ class CartComponent extends React.Component {
         // Redraw if the in-memory, shared, or saved cart lengths have changed.
         if ((nextProps.cart.length !== this.props.cart.length) ||
             (nextSharedCart.length !== currentSharedCart.length) ||
-            (nextSavedCart.length != currentSavedCart.length)) {
+            (nextSavedCart.length !== currentSavedCart.length)) {
             return true;
         }
 
@@ -103,7 +103,6 @@ CartComponent.propTypes = {
 };
 
 CartComponent.defaultProps = {
-    session: null,
     session: null,
     sessionProperties: null,
 };

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { removeMultipleFromCart } from './actions';
 
 
-// Button to add the current object to the cart, or to remove it.
+// Button to remove mutliple items from the cart..
 const CartRemoveMultipleComponent = ({ cart, items, onClick }) => {
     const disabled = items.every(item => cart.indexOf(item['@id']) === -1);
     return <button className="btn btn-info btn-sm" disabled={disabled} onClick={onClick}>Remove all</button>;

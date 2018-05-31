@@ -5,6 +5,7 @@ import { ADD_TO_CART, ADD_MULTIPLE_TO_CART, REMOVE_FROM_CART, REMOVE_MULTIPLE_FR
 import CartAddMultiple from './add_multiple';
 import CartControl, { cartAddItems } from './control';
 import CartRemoveMultiple from './remove_multiple';
+import CartSearchControls from './search_controls';
 import CartShare from './share';
 import CartStatus from './status';
 import CartToggle from './toggle';
@@ -48,6 +49,7 @@ export {
     CartAddMultiple,
     CartRemoveMultiple,
     CartControl,
+    CartSearchControls,
     CartStatus,
     CartToggle,
     cartAddItems,

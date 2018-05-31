@@ -7,7 +7,7 @@ import { svgIcon } from '../libs/svg-icons';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '../libs/bootstrap/modal';
 import { TabPanel, TabPanelPane } from '../libs/bootstrap/panel';
 import { auditDecor } from './audit';
-import { CartToggle, CartAddMultiple, CartRemoveMultiple } from './cart';
+import { CartToggle, CartSearchControls } from './cart';
 import { FetchedData, Param } from './fetched';
 import GenomeBrowser from './genome_browser';
 import * as globals from './globals';
@@ -1278,8 +1278,7 @@ export class ResultTable extends React.Component {
                                     : null}
                                 </div>
                                 <hr />
-                                <CartAddMultiple items={results} />
-                                <CartRemoveMultiple items={results} />
+                                <CartSearchControls items={results} />
                                 {browserAvail ?
                                     <TabPanel tabs={{ listpane: 'List', browserpane: <BrowserTabQuickView /> }} selectedTab={this.state.selectedTab} handleTabClick={this.handleTabClick} addClasses="browser-tab-bg" tabFlange>
                                         <TabPanelPane key="listpane">

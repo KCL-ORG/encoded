@@ -75,6 +75,19 @@
         }
     }
 
+    @at-root #{&}__search-controls {
+        padding: 5px;
+        text-align: right;
+        border-width: 1px 1px 0 1px;
+        border-color: #a0a0a0;
+        border-style: solid;
+        background-color: #d8d8d8;
+
+        button {
+            margin-left: 5px;
+        }
+    }
+
     @at-root #{&}__empty-message {
         margin: 10px 0;
         text-align: center;

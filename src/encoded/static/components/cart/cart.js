@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _ from 'underscore';
-import { Panel, PanelBody } from '../../libs/bootstrap/panel';
+import { Panel, PanelHeading, PanelBody } from '../../libs/bootstrap/panel';
 import CartSave from './save';
 import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
@@ -31,8 +31,8 @@ class CartComponent extends React.Component {
         // Start by getting the sharable cart objects and the saved cart objects.
         const nextSharedCart = nextProps.context.items || [];
         const currentSharedCart = this.props.context.items || [];
-        const nextSavedCart = (nextProps.sessionProperties && nextProps.sessionProperties.user.carts) || [];
-        const currentSavedCart = (this.props.sessionProperties && this.props.sessionProperties.user.carts) || [];
+        const nextSavedCart = (nextProps.sessionProperties && nextProps.sessionProperties.user && nextProps.sessionProperties.user.carts) || [];
+        const currentSavedCart = (this.props.sessionProperties && this.props.sessionProperties.user && this.props.sessionProperties.user.carts) || [];
 
         // Redraw if the in-memory, shared, or saved cart lengths have changed.
         if ((nextProps.cart.length !== this.props.cart.length) ||
@@ -70,14 +70,16 @@ class CartComponent extends React.Component {
                         <h2>Cart</h2>
                     </div>
                 </header>
-                {loggedIn ? <CartSave /> : null}
                 <Panel>
+                    <PanelHeading addClasses="cart__heading">
+                        <div className="cart__loss-warning">
+                            Reloading any page while you have unsaved cart items removes those items from the cart.
+                        </div>
+                        {loggedIn ? <CartSave /> : null}
+                    </PanelHeading>
                     <PanelBody addClasses="cart__result-table">
                         {hasCart ?
                             <div>
-                                <p className="cart__loss-warning">
-                                    Reloading any page while you have unsaved cart items removes those items from the cart.
-                                </p>
                                 <FetchedData>
                                     <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
                                     <CartSearchResults />

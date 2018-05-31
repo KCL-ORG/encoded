@@ -111,13 +111,13 @@ class CartSaveComponent extends React.Component {
     }
 
     saveCartClick() {
-        this.props.onSaveCartClick(this.props.cart, this.props.user, this.props.fetch).then((o) => {
+        this.props.onSaveCartClick(this.props.cart, this.props.user, this.props.fetch).then(() => {
             this.props.fetchSessionProperties();
         });
     }
 
     render() {
-        return <button className="btn btn-info btn-sm" onClick={this.saveCartClick}>Save cart</button>;
+        return <button className="btn btn-info btn-sm cart__save-button" onClick={this.saveCartClick}>Save cart</button>;
     }
 }
 

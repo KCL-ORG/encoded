@@ -47,10 +47,20 @@
         }
     }
 
+    @at-root #{&}__heading {
+        display: flex;
+        justify-content: space-between;
+    }
+
     @at-root #{&}__loss-warning {
-        margin-bottom: 0;
+        flex: 0 1 auto;
         text-align: center;
         font-style: italic;
+    }
+
+    @at-root #{&}__save-button {
+        flex: 0 1 auto;
+        margin: -5px;
     }
 
     @at-root #{&}__empty-message {
@@ -59,9 +69,6 @@
         font-style: italic;
     }
 
-    // Checkbox with font awesome icon for use in search results list
-    // https://codepen.io/jamesbarnett/pen/yILjk
-    // Accessibility: https://weblog.west-wind.com/posts/2015/Feb/26/Using-FontAwesome-Fonts-for-HTML-Radio-Buttons-and-Checkboxes
     @at-root #{&}__checkbox {
         position: relative;
         text-align: center;

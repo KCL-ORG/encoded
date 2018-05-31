@@ -48,19 +48,31 @@
     }
 
     @at-root #{&}__heading {
-        display: flex;
-        justify-content: space-between;
+        text-align: center;
+
+        @media screen and (min-width: $screen-sm-min) {
+            display: flex;
+            justify-content: space-between;
+        }
     }
 
     @at-root #{&}__loss-warning {
-        flex: 0 1 auto;
-        text-align: center;
         font-style: italic;
+        text-align: center;
+    
+        @media screen and (min-width: $screen-sm-min) {
+            flex: 0 1 auto;
+            text-align: left;
+        }
     }
 
     @at-root #{&}__save-button {
-        flex: 0 1 auto;
-        margin: -5px;
+        margin-top: 10px;
+
+        @media screen and (min-width: $screen-sm-min) {
+            flex: 0 1 auto;
+            margin: -5px;
+        }
     }
 
     @at-root #{&}__empty-message {

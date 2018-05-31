@@ -27,7 +27,7 @@ CartSearchResults.defaultProps = {
 // Renders the cart search results page.
 class CartComponent extends React.Component {
     // Each render does a GET request, so we need to avoid them if possible.
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
         // Start by getting the sharable cart objects and the saved cart objects.
         const nextSharedCart = nextProps.context.items || [];
         const currentSharedCart = this.props.context.items || [];
@@ -38,6 +38,11 @@ class CartComponent extends React.Component {
         if ((nextProps.cart.length !== this.props.cart.length) ||
             (nextSharedCart.length !== currentSharedCart.length) ||
             (nextSavedCart.length !== currentSavedCart.length)) {
+            return true;
+        }
+
+        // Redraw if login cookie information changed.
+        if (!_.isEqual(nextContext.session, this.context.session)) {
             return true;
         }
 

@@ -78,7 +78,7 @@ class CartComponent extends React.Component {
                 <Panel>
                     <PanelHeading addClasses="cart__heading">
                         <div className="cart__loss-warning">
-                            Reloading any page while you have unsaved cart items removes those items from the cart.
+                            Any unsaved changes to the cart are lost if you reload any page.
                         </div>
                         {loggedIn ? <CartSave /> : null}
                     </PanelHeading>

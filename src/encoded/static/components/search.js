@@ -294,18 +294,16 @@ class ExperimentComponent extends React.Component {
                             <p className="type meta-status">{` ${result.status}`}</p>
                             {this.props.auditIndicators(result.audit, result['@id'], { session: this.context.session, search: true })}
                         </div>
-                    </div>
-                    <div className="accession">
-                        <a href={result['@id']}>
-                            {result.assay_title ?
-                                <span>{result.assay_title}</span>
-                            :
-                                <span>{result.assay_term_name}</span>
-                            }
-                            {result.biosample_term_name ? <span>{` of ${result.biosample_term_name}`}</span> : null}
-                        </a>
-                    </div>
-                    <div>
+                        <div className="accession">
+                            <a href={result['@id']}>
+                                {result.assay_title ?
+                                    <span>{result.assay_title}</span>
+                                :
+                                    <span>{result.assay_term_name}</span>
+                                }
+                                {result.biosample_term_name ? <span>{` of ${result.biosample_term_name}`}</span> : null}
+                            </a>
+                        </div>
                         {result.biosample_summary ?
                             <div className="highlight-row">
                                 {organismNames.length ?

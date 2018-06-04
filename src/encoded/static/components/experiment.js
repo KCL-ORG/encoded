@@ -455,9 +455,9 @@ class ExperimentComponent extends React.Component {
                         <h2>Experiment summary for {context.accession}</h2>
                         <AlternateAccession altAcc={context.alternate_accessions} />
                         <Supersede context={context} />
-                        {this.props.auditIndicators(context.audit, 'experiment-audit', { session: this.context.session })}
                         <div className="audit-cart-section audit-cart-section__cart">
                             <CartControl current={context} />
+                            {this.props.auditIndicators(context.audit, 'experiment-audit', { session: this.context.session })}
                         </div>
                     </div>
                 </header>

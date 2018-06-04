@@ -8,8 +8,8 @@ import { addToCart, addMultipleToCart, removeFromCart } from './actions';
 // Button to add the current object to the cart, or to remove it.
 const CartControlComponent = ({ cart, current, onAddToCartClick, onRemoveFromCartClick }) => (
     cart.indexOf(current) > -1
-        ? <button className="btn btn-info btn-sm" onClick={onRemoveFromCartClick}>Remove from Cart</button>
-        : <button className="btn btn-info btn-sm" onClick={onAddToCartClick}>Add to Cart</button>
+        ? <button className="btn btn-info btn-sm cart__control-button--inline" onClick={onRemoveFromCartClick}>Remove from Cart</button>
+        : <button className="btn btn-info btn-sm cart__control-button--inline" onClick={onAddToCartClick}>Add to Cart</button>
 );
 
 CartControlComponent.propTypes = {

@@ -254,98 +254,104 @@ const Biosample = auditDecor(BiosampleComponent);
 globals.listingViews.register(Biosample, 'Biosample');
 
 
-class ExperimentComponent extends React.Component {
-    render() {
-        const result = this.props.context;
-        let synchronizations;
+const ExperimentComponent = (props, reactContext) => {
+    const { activeCart } = props;
+    const result = props.context;
+    let synchronizations;
 
-        // Collect all biosamples associated with the experiment. This array can contain duplicate
-        // biosamples, but no null entries.
-        let biosamples = [];
-        if (result.replicates && result.replicates.length) {
-            biosamples = _.compact(result.replicates.map(replicate => replicate.library && replicate.library.biosample));
-        }
+    // Collect all biosamples associated with the experiment. This array can contain duplicate
+    // biosamples, but no null entries.
+    let biosamples = [];
+    if (result.replicates && result.replicates.length) {
+        biosamples = _.compact(result.replicates.map(replicate => replicate.library && replicate.library.biosample));
+    }
 
-        // Get all biosample organism names
-        const organismNames = biosamples.length ? BiosampleOrganismNames(biosamples) : [];
+    // Get all biosample organism names
+    const organismNames = biosamples.length ? BiosampleOrganismNames(biosamples) : [];
 
-        // Bek: Forrest should review the change for correctness
-        // Collect synchronizations
-        if (result.replicates && result.replicates.length) {
-            synchronizations = _.uniq(result.replicates.filter(replicate =>
-                replicate.library && replicate.library.biosample && replicate.library.biosample.synchronization
-            ).map((replicate) => {
-                const biosample = replicate.library.biosample;
-                return (biosample.synchronization +
-                    (biosample.post_synchronization_time ?
-                        ` + ${biosample.post_synchronization_time}${biosample.post_synchronization_time_units ? ` ${biosample.post_synchronization_time_units}` : ''}`
-                    : ''));
-            }));
-        }
+    // Bek: Forrest should review the change for correctness
+    // Collect synchronizations
+    if (result.replicates && result.replicates.length) {
+        synchronizations = _.uniq(result.replicates.filter(replicate =>
+            replicate.library && replicate.library.biosample && replicate.library.biosample.synchronization
+        ).map((replicate) => {
+            const biosample = replicate.library.biosample;
+            return (biosample.synchronization +
+                (biosample.post_synchronization_time ?
+                    ` + ${biosample.post_synchronization_time}${biosample.post_synchronization_time_units ? ` ${biosample.post_synchronization_time_units}` : ''}`
+                : ''));
+        }));
+    }
 
-        return (
-            <li>
-                <div className="result-item">
-                    <div className="result-item__data">
-                        <PickerActions {...this.props} />
-                        <div className="pull-right search-meta">
-                            <p className="type meta-title">Experiment</p>
-                            <p className="type">{` ${result.accession}`}</p>
-                            <p className="type meta-status">{` ${result.status}`}</p>
-                            {this.props.auditIndicators(result.audit, result['@id'], { session: this.context.session, search: true })}
-                        </div>
-                        <div className="accession">
-                            <a href={result['@id']}>
-                                {result.assay_title ?
-                                    <span>{result.assay_title}</span>
-                                :
-                                    <span>{result.assay_term_name}</span>
-                                }
-                                {result.biosample_term_name ? <span>{` of ${result.biosample_term_name}`}</span> : null}
-                            </a>
-                        </div>
-                        {result.biosample_summary ?
-                            <div className="highlight-row">
-                                {organismNames.length ?
-                                    <span>
-                                        {organismNames.map((organism, i) =>
-                                            <span key={organism}>
-                                                {i > 0 ? <span>and </span> : null}
-                                                <i>{organism} </i>
-                                            </span>
-                                        )}
-                                    </span>
-                                : null}
-                                {result.biosample_summary}
-                            </div>
-                        : null}
-                        <div className="data-row">
-                            {result.target && result.target.label ?
-                                <div><strong>Target: </strong>{result.target.label}</div>
-                            : null}
-
-                            {synchronizations && synchronizations.length ?
-                                <div><strong>Synchronization timepoint: </strong>{synchronizations.join(', ')}</div>
-                            : null}
-
-                            <div><strong>Lab: </strong>{result.lab.title}</div>
-                            <div><strong>Project: </strong>{result.award.project}</div>
-                        </div>
+    return (
+        <li>
+            <div className="result-item">
+                <div className="result-item__data">
+                    <PickerActions {...props} />
+                    <div className="pull-right search-meta">
+                        <p className="type meta-title">Experiment</p>
+                        <p className="type">{` ${result.accession}`}</p>
+                        <p className="type meta-status">{` ${result.status}`}</p>
+                        {props.auditIndicators(result.audit, result['@id'], { session: reactContext.session, search: true })}
                     </div>
+                    <div className="accession">
+                        <a href={result['@id']}>
+                            {result.assay_title ?
+                                <span>{result.assay_title}</span>
+                            :
+                                <span>{result.assay_term_name}</span>
+                            }
+                            {result.biosample_term_name ? <span>{` of ${result.biosample_term_name}`}</span> : null}
+                        </a>
+                    </div>
+                    {result.biosample_summary ?
+                        <div className="highlight-row">
+                            {organismNames.length ?
+                                <span>
+                                    {organismNames.map((organism, i) =>
+                                        <span key={organism}>
+                                            {i > 0 ? <span>and </span> : null}
+                                            <i>{organism} </i>
+                                        </span>
+                                    )}
+                                </span>
+                            : null}
+                            {result.biosample_summary}
+                        </div>
+                    : null}
+                    <div className="data-row">
+                        {result.target && result.target.label ?
+                            <div><strong>Target: </strong>{result.target.label}</div>
+                        : null}
+
+                        {synchronizations && synchronizations.length ?
+                            <div><strong>Synchronization timepoint: </strong>{synchronizations.join(', ')}</div>
+                        : null}
+
+                        <div><strong>Lab: </strong>{result.lab.title}</div>
+                        <div><strong>Project: </strong>{result.award.project}</div>
+                    </div>
+                </div>
+                {activeCart ?
                     <div className="result-item__cart-control">
                         <CartToggle current={result} />
                     </div>
-                </div>
-                {this.props.auditDetail(result.audit, result['@id'], { session: this.context.session, except: result['@id'], forcedEditLink: true })}
-            </li>
-        );
-    }
-}
+                : null}
+            </div>
+            {props.auditDetail(result.audit, result['@id'], { session: reactContext.session, except: result['@id'], forcedEditLink: true })}
+        </li>
+    );
+};
 
 ExperimentComponent.propTypes = {
     context: PropTypes.object.isRequired, // Experiment search results
+    activeCart: PropTypes.bool, // True if displayed in active cart
     auditIndicators: PropTypes.func.isRequired, // Audit decorator function
     auditDetail: PropTypes.func.isRequired,
+};
+
+ExperimentComponent.defaultProps = {
+    activeCart: false,
 };
 
 ExperimentComponent.contextTypes = {
@@ -1288,7 +1294,7 @@ export class ResultTable extends React.Component {
                                         </TabPanelPane>
                                     </TabPanel>
                                 :
-                                    <ResultTableList results={results} columns={columns} />
+                                    <ResultTableList results={results} columns={columns} activeCart />
                                 }
                             </div>
                         :
@@ -1332,25 +1338,24 @@ const BrowserTabQuickView = function BrowserTabQuickView() {
 
 
 // Display the list of search results.
-export const ResultTableList = (props) => {
-    const { results, columns, tabbed } = props;
-    return (
-        <ul className={`nav result-table${tabbed ? ' result-table-tabbed' : ''}`} id="result-table">
-            {results.length ?
-                results.map(result => Listing({ context: result, columns, key: result['@id'] }))
-            : null}
-        </ul>
-    );
-};
+export const ResultTableList = ({ results, columns, tabbed, activeCart }) => (
+    <ul className={`nav result-table${tabbed ? ' result-table-tabbed' : ''}`} id="result-table">
+        {results.length ?
+            results.map(result => Listing({ context: result, columns, key: result['@id'], activeCart }))
+        : null}
+    </ul>
+);
 
 ResultTableList.propTypes = {
     results: PropTypes.array.isRequired, // Array of search results to display
     columns: PropTypes.object.isRequired, // Columns from search results
     tabbed: PropTypes.bool, // True if table is in a tab
+    activeCart: PropTypes.bool, // True if items displayed in active cart
 };
 
 ResultTableList.defaultProps = {
     tabbed: false,
+    activeCart: false,
 };
 
 

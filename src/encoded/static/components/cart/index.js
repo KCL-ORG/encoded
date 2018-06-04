@@ -1,5 +1,16 @@
 // This file lets other files import this directory to get the cart reducer function and any cart-
 // related rendering components.
+//
+// You'll see references to various kinds of related carts:
+//
+// active - The in-memory representation of the cart held in a Redux store
+// shared - The cart in a user's `carts` object referenced by "/carts/<uuid>"
+// saved - The cart contents in a user's `carts` object
+// user - The user's `carts` object
+//
+// "active" carts hold both saved and unsaved items. "shared" carts hold saved items. Users who
+// aren't logged in can only have an "active" cart. "shared" carts, when displayed with the cart's
+// uuid, can be shared with others.
 import _ from 'underscore';
 import { ADD_TO_CART, ADD_MULTIPLE_TO_CART, REMOVE_FROM_CART, REMOVE_MULTIPLE_FROM_CART } from './actions';
 import CartAddMultiple from './add_multiple';

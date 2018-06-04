@@ -5,34 +5,41 @@ import { connect } from 'react-redux';
 import _ from 'underscore';
 import { Panel, PanelHeading, PanelBody } from '../../libs/bootstrap/panel';
 import CartSave from './save';
+import { getSavedCart } from './util';
 import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { ResultTableList } from '../search';
 
 
 // Called from <FetcheData> to render search results for all items in the current cart.
-const CartSearchResults = ({ results }) => (
-    <ResultTableList results={results['@graph']} columns={results.columns} />
+const CartSearchResults = ({ results, activeCart }) => (
+    <ResultTableList results={results['@graph']} columns={results.columns} activeCart={activeCart} />
 );
 
 CartSearchResults.propTypes = {
     results: PropTypes.object, // encode search results
+    activeCart: PropTypes.bool, // True if displaying an active cart
 };
 
 CartSearchResults.defaultProps = {
     results: null,
+    activeCart: false,
 };
 
 
-// Renders the cart search results page.
+// Renders the cart search results page. Display either:
+// 1. Shared cart (/carts/<uuid>) containing user's saved items
+// 2. Active cart (/carts/) containing saved and in-memory items
+// Also note the "saved cart" which comes from the user object's `carts` object that contains saved
+// items even when viewing the active cart.
 class CartComponent extends React.Component {
     // Each render does a GET request, so we need to avoid them if possible.
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
+    shouldComponentUpdate(nextProps) {
         // Start by getting the sharable cart objects and the saved cart objects.
         const nextSharedCart = nextProps.context.items || [];
         const currentSharedCart = this.props.context.items || [];
-        const nextSavedCart = (nextProps.sessionProperties && nextProps.sessionProperties.user && nextProps.sessionProperties.user.carts) || [];
-        const currentSavedCart = (this.props.sessionProperties && this.props.sessionProperties.user && this.props.sessionProperties.user.carts) || [];
+        const nextSavedCart = getSavedCart(nextProps.sessionProperties);
+        const currentSavedCart = getSavedCart(this.props.sessionProperties);
 
         // Redraw if the in-memory, shared, or saved cart lengths have changed.
         if ((nextProps.cart.length !== this.props.cart.length) ||
@@ -42,7 +49,7 @@ class CartComponent extends React.Component {
         }
 
         // Redraw if login cookie information changed.
-        if (!_.isEqual(nextContext.session, this.context.session)) {
+        if (!_.isEqual(this.props.session, nextProps.session)) {
             return true;
         }
 
@@ -55,18 +62,21 @@ class CartComponent extends React.Component {
     }
 
     render() {
-        const { context, cart, session } = this.props;
-        let combinedCarts;
-        let cartQueryString;
-
-        // Combine in-memory and DB carts. We can have in-memory carts with different contents from
-        // the DB cart, so have to consider both.
+        const { context, cart, session, sessionProperties } = this.props;
         const loggedIn = !!(session && session['auth.userid']);
-        const hasCart = (context.items && context.items.length > 0) || cart.length > 0;
-        if ((context.items && context.items.length > 0) || cart.length > 0) {
-            combinedCarts = _.uniq(cart.concat(context.items || []));
-            cartQueryString = combinedCarts.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
+        let cartItems = [];
+
+        // Shared and active carts displayed slightly differently.
+        const activeCart = context['@type'][0] === 'carts';
+
+        // Retrieve active or shared cart item uuids and build a search query string out of them.
+        if (activeCart) {
+            // Combine in-memory and saved carts.
+            cartItems = _.uniq(cart.concat(getSavedCart(sessionProperties)));
+        } else {
+            cartItems = context.items || [];
         }
+        const cartQueryString = cartItems.length > 0 ? cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&') : '';
 
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -76,18 +86,20 @@ class CartComponent extends React.Component {
                     </div>
                 </header>
                 <Panel>
-                    <PanelHeading addClasses="cart__heading">
-                        <div className="cart__loss-warning">
-                            Any unsaved changes to the cart are lost if you reload any page.
-                        </div>
-                        {loggedIn ? <CartSave /> : null}
-                    </PanelHeading>
+                    {activeCart ?
+                        <PanelHeading addClasses="cart__heading">
+                            <div className="cart__loss-warning">
+                                Any unsaved changes to the cart are lost if you reload any page.
+                            </div>
+                            {loggedIn ? <CartSave /> : null}
+                        </PanelHeading>
+                    : null}
                     <PanelBody addClasses="cart__result-table">
-                        {hasCart ?
+                        {cartQueryString ?
                             <div>
                                 <FetchedData>
                                     <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
-                                    <CartSearchResults />
+                                    <CartSearchResults activeCart={activeCart} />
                                 </FetchedData>
                             </div>
                         :
@@ -105,8 +117,8 @@ class CartComponent extends React.Component {
 CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
-    session: PropTypes.object, // App session object
-    sessionProperties: PropTypes.object,
+    session: PropTypes.object, // App session info
+    sessionProperties: PropTypes.object, // Session login info, including saved cart
 };
 
 CartComponent.defaultProps = {
@@ -138,6 +150,5 @@ Cart.contextTypes = {
     session_properties: PropTypes.object,
 };
 
-// Respond to both the 'carts' object for /carts/ URI, and 'Cart' for /carts/<uuid> URI.
-contentViews.register(Cart, 'carts');
-contentViews.register(Cart, 'Cart');
+contentViews.register(Cart, 'carts'); // /carts/ URI
+contentViews.register(Cart, 'Cart'); // /carts/<uuid> URI

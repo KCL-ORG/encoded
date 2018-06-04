@@ -18,7 +18,7 @@ const CartToggleComponent = ({ cart, current, savedItems, onAddToCartClick, onRe
                     <span className="sr-only">{checked ? `Remove ${current} from cart` : `Add ${current} to cart`}</span>
                 </label>
             </div>
-            {checked && !saved ?
+            {checked !== saved ?
                 <div className="cart__saved-status">
                     <i className="icon icon-circle cart__saved-status-icon" title="Unsaved cart item" />
                 </div>

@@ -6,8 +6,8 @@ import _ from 'underscore';
 import { Panel, PanelHeading, PanelBody } from '../../libs/bootstrap/panel';
 import CartSave from './save';
 import { getSavedCart } from './util';
-import { FetchedData, Param } from '../fetched';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
+import { requestSearch } from '../objectutils';
 import { ResultTableList } from '../search';
 
 
@@ -17,12 +17,12 @@ const CartSearchResults = ({ results, activeCart }) => (
 );
 
 CartSearchResults.propTypes = {
-    results: PropTypes.object, // encode search results
+    results: PropTypes.object, // Array of cart item objects from search
     activeCart: PropTypes.bool, // True if displaying an active cart
 };
 
 CartSearchResults.defaultProps = {
-    results: null,
+    results: {},
     activeCart: false,
 };
 
@@ -33,37 +33,90 @@ CartSearchResults.defaultProps = {
 // Also note the "saved cart" which comes from the user object's `carts` object that contains saved
 // items even when viewing the active cart.
 class CartComponent extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            cartSearchResults: {},
+        };
+        this.renderCartObjects = this.renderCartObjects.bind(this);
+    }
+
+    componentDidMount() {
+        this.renderCartObjects();
+    }
+
     // Each render does a GET request, so we need to avoid them if possible.
-    shouldComponentUpdate(nextProps) {
+    // shouldComponentUpdate(nextProps, nextState) {
+    //     // Start by seeing if we got a response to our GET request.
+    //     const nextSearchItems = nextState.cartSearchResults['@graph'] || [];
+    //     const currSearchItems = this.state.cartSearchResults['@graph'] || [];
+    //     if (nextSearchItems.length !== currSearchItems.length) {
+    //         return true;
+    //     }
+
+    //     // Start by getting the sharable cart objects and the saved cart objects.
+    //     const nextSharedCart = nextProps.context.items || [];
+    //     const currentSharedCart = this.props.context.items || [];
+    //     const nextSavedCart = getSavedCart(nextProps.sessionProperties);
+    //     const currentSavedCart = getSavedCart(this.props.sessionProperties);
+
+    //     // Redraw if the in-memory, shared, or saved cart lengths have changed.
+    //     if ((nextProps.cart.length !== this.props.cart.length) ||
+    //         (nextSharedCart.length !== currentSharedCart.length) ||
+    //         (nextSavedCart.length !== currentSavedCart.length)) {
+    //         return true;
+    //     }
+    //     // Redraw if login cookie information changed.
+    //     if (!_.isEqual(this.props.session, nextProps.session)) {
+    //         return true;
+    //     }
+    //     // Redraw if the in-memory, shared, or saved cart contents have changed.
+    //     const result = (
+    //         !_.isEqual(nextProps.cart, this.props.cart) ||
+    //         !_.isEqual(nextSharedCart, currentSharedCart) ||
+    //         !_.isEqual(nextSavedCart, currentSavedCart)
+    //     );
+    //     return result;
+    // }
+
+    componentDidUpdate(prevProps, prevState) {
+        // Start by seeing if we got a response to our GET request.
+        const prevSearchItems = prevState.cartSearchResults['@graph'] || [];
+        const currSearchItems = this.state.cartSearchResults['@graph'] || [];
+        if (prevSearchItems.length !== currSearchItems.length) {
+            return;
+        }
+
         // Start by getting the sharable cart objects and the saved cart objects.
-        const nextSharedCart = nextProps.context.items || [];
+        const prevSharedCart = prevProps.context.items || [];
         const currentSharedCart = this.props.context.items || [];
-        const nextSavedCart = getSavedCart(nextProps.sessionProperties);
+        const prevSavedCart = getSavedCart(prevProps.sessionProperties);
         const currentSavedCart = getSavedCart(this.props.sessionProperties);
 
         // Redraw if the in-memory, shared, or saved cart lengths have changed.
-        if ((nextProps.cart.length !== this.props.cart.length) ||
-            (nextSharedCart.length !== currentSharedCart.length) ||
-            (nextSavedCart.length !== currentSavedCart.length)) {
-            return true;
+        if ((prevProps.cart.length !== this.props.cart.length) ||
+            (prevSharedCart.length !== currentSharedCart.length) ||
+            (prevSavedCart.length !== currentSavedCart.length)) {
+            this.renderCartObjects();
+            return;
         }
 
         // Redraw if login cookie information changed.
-        if (!_.isEqual(this.props.session, nextProps.session)) {
-            return true;
+        if (!_.isEqual(this.props.session, prevProps.session)) {
+            this.renderCartObjects();
+            return;
         }
 
         // Redraw if the in-memory, shared, or saved cart contents have changed.
-        return (
-            !_.isEqual(nextProps.cart, this.props.cart) ||
-            !_.isEqual(nextSharedCart, currentSharedCart) ||
-            !_.isEqual(nextSavedCart, currentSavedCart)
-        );
+        if (!_.isEqual(prevProps.cart, this.props.cart) ||
+            !_.isEqual(prevSharedCart, currentSharedCart) ||
+            !_.isEqual(prevSavedCart, currentSavedCart)) {
+            this.renderCartObjects();
+        }
     }
 
-    render() {
-        const { context, cart, session, sessionProperties } = this.props;
-        const loggedIn = !!(session && session['auth.userid']);
+    renderCartObjects() {
+        const { context, cart, sessionProperties } = this.props;
         let cartItems = [];
 
         // Shared and active carts displayed slightly differently.
@@ -77,6 +130,17 @@ class CartComponent extends React.Component {
             cartItems = context.items || [];
         }
         const cartQueryString = cartItems.length > 0 ? cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&') : '';
+        requestSearch(cartQueryString).then((searchResults) => {
+            this.setState({ cartSearchResults: searchResults });
+        });
+    }
+
+    render() {
+        const { context, session } = this.props;
+        const loggedIn = !!(session && session['auth.userid']);
+
+        // Shared and active carts displayed slightly differently.
+        const activeCart = context['@type'][0] === 'carts';
 
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -95,13 +159,8 @@ class CartComponent extends React.Component {
                         </PanelHeading>
                     : null}
                     <PanelBody addClasses="cart__result-table">
-                        {cartQueryString ?
-                            <div>
-                                <FetchedData>
-                                    <Param name="results" url={`/search/?type=Experiment&${cartQueryString}`} />
-                                    <CartSearchResults activeCart={activeCart} />
-                                </FetchedData>
-                            </div>
+                        {Object.keys(this.state.cartSearchResults).length > 0 ?
+                            <CartSearchResults results={this.state.cartSearchResults} activeCart={activeCart} />
                         :
                             <p className="cart__empty-message">
                                 Empty cart

@@ -42,42 +42,9 @@ class CartComponent extends React.Component {
     }
 
     componentDidMount() {
+        // The cart only has object @ids, so first thing is to get search results for each of them.
         this.renderCartObjects();
     }
-
-    // Each render does a GET request, so we need to avoid them if possible.
-    // shouldComponentUpdate(nextProps, nextState) {
-    //     // Start by seeing if we got a response to our GET request.
-    //     const nextSearchItems = nextState.cartSearchResults['@graph'] || [];
-    //     const currSearchItems = this.state.cartSearchResults['@graph'] || [];
-    //     if (nextSearchItems.length !== currSearchItems.length) {
-    //         return true;
-    //     }
-
-    //     // Start by getting the sharable cart objects and the saved cart objects.
-    //     const nextSharedCart = nextProps.context.items || [];
-    //     const currentSharedCart = this.props.context.items || [];
-    //     const nextSavedCart = getSavedCart(nextProps.sessionProperties);
-    //     const currentSavedCart = getSavedCart(this.props.sessionProperties);
-
-    //     // Redraw if the in-memory, shared, or saved cart lengths have changed.
-    //     if ((nextProps.cart.length !== this.props.cart.length) ||
-    //         (nextSharedCart.length !== currentSharedCart.length) ||
-    //         (nextSavedCart.length !== currentSavedCart.length)) {
-    //         return true;
-    //     }
-    //     // Redraw if login cookie information changed.
-    //     if (!_.isEqual(this.props.session, nextProps.session)) {
-    //         return true;
-    //     }
-    //     // Redraw if the in-memory, shared, or saved cart contents have changed.
-    //     const result = (
-    //         !_.isEqual(nextProps.cart, this.props.cart) ||
-    //         !_.isEqual(nextSharedCart, currentSharedCart) ||
-    //         !_.isEqual(nextSavedCart, currentSavedCart)
-    //     );
-    //     return result;
-    // }
 
     componentDidUpdate(prevProps, prevState) {
         // Start by seeing if we got a response to our GET request.

@@ -29,7 +29,7 @@ CartSearchResults.defaultProps = {
 
 // Renders the cart search results page. Display either:
 // 1. Shared cart (/carts/<uuid>) containing user's saved items
-// 2. Active cart (/carts/) containing saved and in-memory items
+// 2. Active cart (/cart-view/) containing saved and in-memory items
 // Also note the "saved cart" which comes from the user object's `carts` object that contains saved
 // items even when viewing the active cart.
 class CartComponent extends React.Component {

@@ -70,7 +70,7 @@ const createCartObject = (cart, user, fetch) => {
         submitted_by: user['@id'],
         status: 'current',
     };
-    return fetch('/cart/', {
+    return fetch('/carts/', {
         method: 'POST',
         body: JSON.stringify(writeableCart),
         headers: {

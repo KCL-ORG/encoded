@@ -45,7 +45,7 @@ class CartStatusComponent extends React.Component {
         const savedCart = getSavedCart(this.context.session_properties);
 
         // Define the menu items for the Cart Status menu.
-        const menuItems = [<a key="view" href="/carts/">View cart</a>];
+        const menuItems = [<a key="view" href="/cart-view/">View cart</a>];
         if (loggedIn && savedCart.length > 0) {
             menuItems.push(<button key="share" onClick={this.shareCartClick}>Share cart</button>);
         }

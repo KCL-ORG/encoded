@@ -87,7 +87,7 @@ class CartComponent extends React.Component {
         let cartItems = [];
 
         // Shared and active carts displayed slightly differently.
-        const activeCart = context['@type'][0] === 'carts';
+        const activeCart = context['@type'][0] === 'cart-view';
 
         // Retrieve active or shared cart item uuids and build a search query string out of them.
         if (activeCart) {
@@ -113,7 +113,7 @@ class CartComponent extends React.Component {
         const loggedIn = !!(session && session['auth.userid']);
 
         // Shared and active carts displayed slightly differently.
-        const activeCart = context['@type'][0] === 'carts';
+        const activeCart = context['@type'][0] === 'cart-view';
 
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -182,5 +182,5 @@ Cart.contextTypes = {
     session_properties: PropTypes.object,
 };
 
-contentViews.register(Cart, 'carts'); // /carts/ URI
+contentViews.register(Cart, 'cart-view'); // /cart-view/ URI
 contentViews.register(Cart, 'Cart'); // /carts/<uuid> URI

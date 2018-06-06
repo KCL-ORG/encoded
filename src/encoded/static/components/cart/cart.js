@@ -96,10 +96,14 @@ class CartComponent extends React.Component {
         } else {
             cartItems = context.items || [];
         }
-        const cartQueryString = cartItems.length > 0 ? cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&') : '';
-        requestSearch(cartQueryString).then((searchResults) => {
-            this.setState({ cartSearchResults: searchResults });
-        });
+
+        // Perform the search if the cart isn't empty.
+        if (cartItems.length > 0) {
+            const cartQueryString = cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
+            requestSearch(cartQueryString).then((searchResults) => {
+                this.setState({ cartSearchResults: searchResults });
+            });
+        }
     }
 
     render() {

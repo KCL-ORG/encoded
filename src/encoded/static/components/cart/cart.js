@@ -103,6 +103,8 @@ class CartComponent extends React.Component {
             requestSearch(cartQueryString).then((searchResults) => {
                 this.setState({ cartSearchResults: searchResults });
             });
+        } else {
+            this.setState({ cartSearchResults: {} });
         }
     }
 

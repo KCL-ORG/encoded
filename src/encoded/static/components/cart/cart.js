@@ -57,13 +57,11 @@ class CartComponent extends React.Component {
         // Start by getting the sharable cart objects and the saved cart objects.
         const prevSharedCart = prevProps.context.items || [];
         const currentSharedCart = this.props.context.items || [];
-        const prevSavedCart = getSavedCart(prevProps.sessionProperties);
-        const currentSavedCart = getSavedCart(this.props.sessionProperties);
 
         // Redraw if the in-memory, shared, or saved cart lengths have changed.
         if ((prevProps.cart.length !== this.props.cart.length) ||
             (prevSharedCart.length !== currentSharedCart.length) ||
-            (prevSavedCart.length !== currentSavedCart.length)) {
+            (prevProps.savedCart.length !== this.props.savedCart.length)) {
             this.renderCartObjects();
             return;
         }
@@ -77,13 +75,13 @@ class CartComponent extends React.Component {
         // Redraw if the in-memory, shared, or saved cart contents have changed.
         if (!_.isEqual(prevProps.cart, this.props.cart) ||
             !_.isEqual(prevSharedCart, currentSharedCart) ||
-            !_.isEqual(prevSavedCart, currentSavedCart)) {
+            !_.isEqual(prevProps.savedCart, this.props.savedCart)) {
             this.renderCartObjects();
         }
     }
 
     renderCartObjects() {
-        const { context, cart, sessionProperties } = this.props;
+        const { context, cart, savedCart } = this.props;
         let cartItems = [];
 
         // Shared and active carts displayed slightly differently.
@@ -92,7 +90,7 @@ class CartComponent extends React.Component {
         // Retrieve active or shared cart item uuids and build a search query string out of them.
         if (activeCart) {
             // Combine in-memory and saved carts.
-            cartItems = _.uniq(cart.concat(getSavedCart(sessionProperties)));
+            cartItems = _.uniq(cart.concat(savedCart));
         } else {
             cartItems = context.items || [];
         }
@@ -149,17 +147,17 @@ class CartComponent extends React.Component {
 CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
+    savedCart: PropTypes.array.isRequired, // Saved cart contents
     session: PropTypes.object, // App session info
-    sessionProperties: PropTypes.object, // Session login info, including saved cart
 };
 
 CartComponent.defaultProps = {
     session: null,
-    sessionProperties: null,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
+    savedCart: state.savedCartObj.items || [],
     session: ownProps.session,
 });
 const CartInternal = connect(mapStateToProps)(CartComponent);
@@ -170,7 +168,7 @@ const CartInternal = connect(mapStateToProps)(CartComponent);
 // encoded context properties as regular props to <CartIntenral>. Passing React context directly to
 // a Redux component doesn't seem very reliable.
 const Cart = (props, reactContext) => (
-    <CartInternal context={props.context} session={reactContext.session} sessionProperties={reactContext.session_properties} />
+    <CartInternal context={props.context} session={reactContext.session} />
 );
 
 Cart.propTypes = {
@@ -179,7 +177,6 @@ Cart.propTypes = {
 
 Cart.contextTypes = {
     session: PropTypes.object,
-    session_properties: PropTypes.object,
 };
 
 contentViews.register(Cart, 'cart-view'); // /cart-view/ URI

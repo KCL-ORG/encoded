@@ -9,7 +9,7 @@ import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import cartModule, { cartAddItems } from './cart';
+import cartModule, { cartAddItems, cartCacheSaved } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import Footer from './footer';
@@ -81,7 +81,11 @@ const portal = {
 
 
 // Create the initial cart on page load.
-const initialCart = { cart: [], name: 'Untitled' };
+const initialCart = {
+    cart: [], // Active cart contents as array of @ids
+    name: 'Untitled',
+    savedCartObj: {}, // Cache of saved cart
+};
 const cartStore = createStore(cartModule, initialCart);
 
 
@@ -452,9 +456,24 @@ class App extends React.Component {
         }).then((sessionProperties) => {
             this.setState({ session_properties: sessionProperties });
 
-            // Add saved user cart items to the Redux store.
-            if (sessionProperties.user.carts[0]) {
-                cartAddItems(sessionProperties.user.carts[0].items, cartStore.dispatch);
+            // If the user has a saved cart (for v72 assume one cart per user) we need to do a GET
+            // request on the cart object to fill the in-memory Redux cart.
+            if (sessionProperties.user.carts.length > 0) {
+                return this.fetch(sessionProperties.user.carts[0], { headers: { Accept: 'application/json' } }).then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw response;
+                });
+            }
+
+            // Logged-in user has no cart.
+            return Promise.resolve(null);
+        }).then((cart) => {
+            // If the logged-in user has a cart, add it to the in-memory cart.
+            if (cart) {
+                cartAddItems(cart.items, cartStore.dispatch);
+                cartCacheSaved(cart, cartStore.dispatch);
             }
         });
     }
@@ -484,6 +503,7 @@ class App extends React.Component {
             // Add saved user cart items to the Redux store.
             if (sessionProperties.user.carts.length > 0) {
                 cartAddItems(sessionProperties.user.carts[0].items, cartStore.dispatch);
+                cartCacheSaved(cart, cartStore.dispatch);
             }
 
             this.sessionPropertiesRequest = null;

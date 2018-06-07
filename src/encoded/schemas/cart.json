@@ -36,5 +36,10 @@
                 "linkTo": "Item"
             }
         }
+    },
+    "columns": {
+        "items": {
+            "title": "Cart items"
+        }
     }
 }

@@ -9,7 +9,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../libs/bootstrap
 // Button to add the current object to the cart, or to remove it.
 const CartShareComponent = ({ cart, userCart, closeShareCart }, reactContext) => {
     const parsedUrl = url.parse(reactContext.location_href);
-    parsedUrl.pathname = userCart['@id'];
+    parsedUrl.pathname = userCart;
     parsedUrl.search = '';
     parsedUrl.query = '';
     const sharableUrl = url.format(parsedUrl);
@@ -26,7 +26,7 @@ const CartShareComponent = ({ cart, userCart, closeShareCart }, reactContext) =>
                 </ModalBody>
                 <ModalFooter
                     closeModal={closeShareCart}
-                    submitBtn={<a data-bypass="true" target="_self" className="btn btn-info" href={userCart['@id']}>Visit sharable cart</a>}
+                    submitBtn={<a data-bypass="true" target="_self" className="btn btn-info" href={userCart}>Visit sharable cart</a>}
                 />
             </Modal>
         : null

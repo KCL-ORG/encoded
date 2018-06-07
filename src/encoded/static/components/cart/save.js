@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { parseAndLogError } from '../globals';
+import cartCacheSaved from './cache_saved';
 
 
 /**
@@ -29,7 +30,7 @@ const updateCartObject = (cart, cartAtId, fetch) => (
         }
         return response.json();
     }).then(result => (
-        result['@graph']
+        result['@graph'][0]
     )).catch(parseAndLogError.bind('Update cart', 'putRequest'))
 );
 
@@ -77,7 +78,7 @@ const createCartObject = (cart, user, fetch) => {
             Accept: 'application/json',
             'Content-Type': 'application/json',
         },
-    }).then(result => result['@graph']);
+    }).then(result => result['@graph'][0]);
 };
 
 
@@ -89,7 +90,7 @@ const createCartObject = (cart, user, fetch) => {
  * @param {func} fetch - System fetch function; usually from <App> context
  */
 const saveCart = (cart, user, fetch) => {
-    const cartAtId = (user.carts.length > 0) ? user.carts[0]['@id'] : null;
+    const cartAtId = (user.carts.length > 0) ? user.carts[0] : null;
     if (cartAtId) {
         return getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
@@ -139,8 +140,14 @@ const mapStateToProps = (state, ownProps) => ({
     fetch: ownProps.fetch,
     fetchSessionProperties: ownProps.fetchSessionProperties,
 });
-const mapDispatchToProps = () => (
-    { onSaveCartClick: (cart, user, fetch) => saveCart(cart, user, fetch) }
+const mapDispatchToProps = dispatch => (
+    {
+        onSaveCartClick: (cart, user, fetch) => (
+            saveCart(cart, user, fetch).then((savedCartObj) => {
+                cartCacheSaved(savedCartObj, dispatch);
+            })
+        ),
+    }
 );
 
 const CartSaveInternal = connect(mapStateToProps, mapDispatchToProps)(CartSaveComponent);
@@ -157,4 +164,3 @@ CartSave.contextTypes = {
 };
 
 export default CartSave;
-

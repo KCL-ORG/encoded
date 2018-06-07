@@ -54,7 +54,6 @@ class User(Item):
     # Avoid access_keys reverse link so editing access keys does not reindex content.
     embedded = [
         'lab',
-        'carts',
     ]
     rev = {
         'carts': ('Cart', 'submitted_by'),

@@ -41,5 +41,6 @@
         "items": {
             "title": "Cart items"
         }
-    }
+    },
+    "changelog": "/profiles/changelogs/cart.md"
 }

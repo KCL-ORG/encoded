@@ -499,14 +499,27 @@ class App extends React.Component {
             return response.json();
         }).then((sessionProperties) => {
             this.setState({ session_properties: sessionProperties });
+            this.sessionPropertiesRequest = null;
 
-            // Add saved user cart items to the Redux store.
+            // If the user has a saved cart (for v72 assume one cart per user) we need to do a GET
+            // request on the cart object to fill the in-memory Redux cart.
             if (sessionProperties.user.carts.length > 0) {
-                cartAddItems(sessionProperties.user.carts[0].items, cartStore.dispatch);
-                cartCacheSaved(cart, cartStore.dispatch);
+                return this.fetch(sessionProperties.user.carts[0], { headers: { Accept: 'application/json' } }).then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw response;
+                });
             }
 
-            this.sessionPropertiesRequest = null;
+            // Logged-in user has no cart.
+            return Promise.resolve(null);
+        }).then((cart) => {
+            // If the logged-in user has a cart, add it to the in-memory cart.
+            if (cart) {
+                cartAddItems(cart.items, cartStore.dispatch);
+                cartCacheSaved(cart, cartStore.dispatch);
+            }
             let nextUrl = window.location.href;
             if (window.location.hash === '#logged-out') {
                 nextUrl = window.location.pathname + window.location.search;

@@ -21,6 +21,7 @@ def includeme(config):
     config.add_request_method(lambda request: set(), '_set_status_considered_paths', reify=True)
     config.add_route('carts', '/carts{slash:/?}')
     config.add_route('cart', '/cart-view{slash:/?}')
+    config.scan(__name__)
 
 
 @collection(

@@ -118,7 +118,10 @@ class CartSaveComponent extends React.Component {
     }
 
     render() {
-        return <button className="btn btn-info btn-sm cart__save-button" onClick={this.saveCartClick}>Save cart</button>;
+        if (this.props.user) {
+            return <button className="btn btn-info btn-sm cart__save-button" onClick={this.saveCartClick}>Save cart</button>;
+        }
+        return null;
     }
 }
 

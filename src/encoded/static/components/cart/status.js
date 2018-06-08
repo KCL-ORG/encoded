@@ -6,7 +6,7 @@ import { DropdownMenu } from '../../libs/bootstrap/dropdown-menu';
 import { Nav, NavItem } from '../../libs/bootstrap/navbar';
 import { svgIcon } from '../../libs/svg-icons';
 import CartShare from './share';
-import { getUserCart, getSavedCart } from './util';
+import { getUserCart } from './util';
 
 
 // Renders the cart icon and count in the nav bar.

@@ -271,6 +271,17 @@ class SoftwareVersion(Item):
         return software.__ac_local_roles__()
 
 
+@collection(
+    name='carts',
+    properties={
+        'title': 'Cart',
+        'description': 'Listing of cart contents',
+    })
+class Cart(Item):
+    item_type = 'cart'
+    schema = load_schema('encoded:schemas/cart.json')
+
+
 @view_config(route_name='cart', request_method='GET', permission='search')
 def cart(context, request):
     result = {

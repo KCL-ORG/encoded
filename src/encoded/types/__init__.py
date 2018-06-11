@@ -1,3 +1,4 @@
+from pyramid.view import view_config
 from snovault.attachment import ItemWithAttachment
 from snovault import (
     calculated_property,
@@ -5,6 +6,7 @@ from snovault import (
     load_schema,
 )
 from pyramid.traversal import find_root
+from collections import OrderedDict
 from .base import (
     Item,
     paths_filtered_by_status,
@@ -278,3 +280,18 @@ class SoftwareVersion(Item):
 class Cart(Item):
     item_type = 'cart'
     schema = load_schema('encoded:schemas/cart.json')
+
+
+@view_config(route_name='cart', request_method='GET', permission='search')
+def cart(context, request):
+    result = {
+        '@id': '/cart-view/',
+        '@type': ['cart-view'],
+        'title': 'Cart',
+        'facets': [],
+        '@graph': [],
+        'columns': OrderedDict(),
+        'notification': '',
+        'filters': []
+    }
+    return result

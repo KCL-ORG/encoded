@@ -55,9 +55,6 @@ class User(Item):
     embedded = [
         'lab',
     ]
-    rev = {
-        'carts': ('Cart', 'submitted_by'),
-    }
     STATUS_ACL = {
         'current': [(Allow, 'role.owner', ['edit', 'view_details'])] + USER_ALLOW_CURRENT,
         'deleted': USER_DELETED,
@@ -98,8 +95,12 @@ class User(Item):
             "linkFrom": "Cart.submitted_by",
         },
     })
-    def carts(self, request, carts):
-        return paths_filtered_by_status(request, carts)
+    def carts(self, request):
+        if not request.has_permission('view_details'):
+            return
+        uuids = self.registry[CONNECTION].get_rev_links(self.model, 'submitted_by', 'Cart')
+        objects = (request.embed('/', str(uuid), '@@object') for uuid in uuids)
+        return [obj for obj in objects if obj['status'] not in ('deleted')]
 
 
 
@@ -122,7 +123,7 @@ def user_page_view(context, request):
 def user_basic_view(context, request):
     properties = item_view_object(context, request)
     filtered = {}
-    for key in ['@id', '@type', 'uuid', 'lab', 'title']:
+    for key in ['@id', '@type', 'uuid', 'lab', 'title', 'carts']:
         try:
             filtered[key] = properties[key]
         except KeyError:

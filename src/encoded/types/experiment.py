@@ -438,7 +438,6 @@ class Experiment(Dataset,
             "type": ['string', 'object'],
             "linkFrom": "Cart.items",
         },
-        "notSubmittable": True,
     })
     def carts(self, request, carts):
         return paths_filtered_by_status(request, carts)

@@ -20,7 +20,7 @@
         },
         "name": {
             "title": "Name",
-            "description": "The name of the quality metric",
+            "description": "The name of the cart",
             "type": "string"
         },
         "items": {

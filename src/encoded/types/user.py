@@ -99,9 +99,7 @@ class User(Item):
         if not request.has_permission('view_details'):
             return
         uuids = self.registry[CONNECTION].get_rev_links(self.model, 'submitted_by', 'Cart')
-        objects = (request.embed('/', str(uuid), '@@object') for uuid in uuids)
-        return [obj for obj in objects if obj['status'] not in ('deleted')]
-
+        return [request.resource_path(self.registry[CONNECTION].get_by_uuid(uuid)) for uuid in uuids]
 
 
 @view_config(context=User, permission='view', request_method='GET', name='page')

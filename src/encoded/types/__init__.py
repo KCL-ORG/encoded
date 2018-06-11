@@ -281,6 +281,12 @@ class Cart(Item):
     item_type = 'cart'
     schema = load_schema('encoded:schemas/cart.json')
 
+    @property
+    def __name__(self):
+        properties = self.upgrade_properties()
+        return properties.get(self.name_key, None) or self.uuid
+
+
 
 @view_config(route_name='cart', request_method='GET', permission='search')
 def cart(context, request):

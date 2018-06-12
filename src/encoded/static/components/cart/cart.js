@@ -43,39 +43,43 @@ class CartComponent extends React.Component {
         this.retrieveCartContents();
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    shouldComponentUpdate(nextProps, nextState) {
         // See if we got a response to our GET request. Just allow the cart to get
         // rendered with the new contents if that's the case.
-        const prevSearchItems = prevState.cartSearchResults['@graph'] || [];
+        const nextSearchItems = nextState.cartSearchResults['@graph'] || [];
         const currSearchItems = this.state.cartSearchResults['@graph'] || [];
-        if (prevSearchItems.length !== currSearchItems.length) {
-            return;
+        if (nextSearchItems.length !== currSearchItems.length) {
+            return true;
         }
 
         // Rerender if the in-memory, shared, or saved cart lengths have changed.
-        const prevSharedCart = prevProps.context.items || [];
+        const nextSharedCart = nextProps.context.items || [];
         const currentSharedCart = this.props.context.items || [];
-        const prevSavedCartItems = (prevProps.savedCartObj && prevProps.savedCartObj.items) || [];
+        const nextSavedCartItems = (nextProps.savedCartObj && nextProps.savedCartObj.items) || [];
         const currSavedCartItems = (this.props.savedCartObj && this.props.savedCartObj.items) || [];
-        if ((prevProps.cart.length !== this.props.cart.length) ||
-            (prevSharedCart.length !== currentSharedCart.length) ||
-            (prevSavedCartItems.length !== currSavedCartItems.length)) {
+        if ((nextProps.cart.length !== this.props.cart.length) ||
+            (nextSharedCart.length !== currentSharedCart.length) ||
+            (nextSavedCartItems.length !== currSavedCartItems.length)) {
             this.retrieveCartContents();
-            return;
+            return true;
         }
 
         // Rerender if login cookie information changed, usually caused by logging in or
         // impersonating.
-        if (!_.isEqual(this.props.session, prevProps.session)) {
+        if (!_.isEqual(this.props.session, nextProps.session)) {
             this.retrieveCartContents();
-            return;
+            return true;
         }
 
         // Redraw if the in-memory, shared, or saved cart contents have changed.
-        if (!_.isEqual(prevProps.cart, this.props.cart) ||
-            !_.isEqual(prevSharedCart, currentSharedCart)) {
+        if (!_.isEqual(nextProps.cart, this.props.cart) ||
+            !_.isEqual(nextSharedCart, currentSharedCart)) {
             this.retrieveCartContents();
+            return true;
         }
+
+        // Nothing relevant to re-rendering has changed.
+        return false;
     }
 
     retrieveCartContents() {

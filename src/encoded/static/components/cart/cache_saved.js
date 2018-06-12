@@ -8,6 +8,7 @@ import { cacheSavedCart } from './actions';
  * @param {func} dispatch - Redux dispatch function for the cart store
  */
 const cartCacheSaved = (cartObj, dispatch) => {
+    console.log('CARTCACHESAVED %o', cartObj);
     dispatch(cacheSavedCart(cartObj));
 };
 

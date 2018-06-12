@@ -112,12 +112,11 @@ class CartSaveComponent extends React.Component {
     }
 
     saveCartClick() {
-        this.props.onSaveCartClick(this.props.cart, this.props.savedCartObj, this.props.user, this.props.fetch).then(() => {
-            this.props.fetchSessionProperties();
-        });
+        this.props.onSaveCartClick(this.props.cart, this.props.savedCartObj, this.props.user, this.props.fetch);
     }
 
     render() {
+        console.log('CartSaveComponent %o', this.props);
         if (this.props.user) {
             return <button className="btn btn-info btn-sm cart__save-button" onClick={this.saveCartClick}>Save cart</button>;
         }
@@ -131,7 +130,6 @@ CartSaveComponent.propTypes = {
     user: PropTypes.object, // Logged-in user object
     onSaveCartClick: PropTypes.func.isRequired, // Function to call when "Save cart" clicked
     fetch: PropTypes.func.isRequired, // fetch function from App context
-    fetchSessionProperties: PropTypes.func.isRequired, // fetchSessionProperties function from App context
 };
 
 CartSaveComponent.defaultProps = {
@@ -160,13 +158,12 @@ const CartSaveInternal = connect(mapStateToProps, mapDispatchToProps)(CartSaveCo
 
 
 const CartSave = (props, reactContext) => (
-    <CartSaveInternal sessionProperties={reactContext.session_properties} fetch={reactContext.fetch} fetchSessionProperties={reactContext.fetchSessionProperties} />
+    <CartSaveInternal sessionProperties={reactContext.session_properties} fetch={reactContext.fetch} />
 );
 
 CartSave.contextTypes = {
     session_properties: PropTypes.object.isRequired,
     fetch: PropTypes.func.isRequired,
-    fetchSessionProperties: PropTypes.func.isRequired,
 };
 
 export default CartSave;

@@ -60,26 +60,34 @@ class CartComponent extends React.Component {
         if ((nextProps.cart.length !== this.props.cart.length) ||
             (nextSharedCart.length !== currentSharedCart.length) ||
             (nextSavedCartItems.length !== currSavedCartItems.length)) {
-            this.retrieveCartContents();
             return true;
         }
 
         // Rerender if login cookie information changed, usually caused by logging in or
         // impersonating.
         if (!_.isEqual(this.props.session, nextProps.session)) {
-            this.retrieveCartContents();
             return true;
         }
 
         // Redraw if the in-memory, shared, or saved cart contents have changed.
         if (!_.isEqual(nextProps.cart, this.props.cart) ||
             !_.isEqual(nextSharedCart, currentSharedCart)) {
-            this.retrieveCartContents();
             return true;
         }
 
         // Nothing relevant to re-rendering has changed.
         return false;
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        // If the search result lengths changed, don't do anything additional on update because
+        // that just means our search results returned, and they've been re-rendered already.
+        // Otherwise we need to do the GET request for the @ids in the cart.
+        const prevSearchItems = prevState.cartSearchResults['@graph'] || [];
+        const currSearchItems = this.state.cartSearchResults['@graph'] || [];
+        if (prevSearchItems.length === currSearchItems.length) {
+            this.retrieveCartContents();
+        }
     }
 
     retrieveCartContents() {

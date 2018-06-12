@@ -14,7 +14,7 @@ const CartToggleComponent = ({ cart, savedItems, current, onAddToCartClick, onRe
 
     return (
         <div className="cart__toggle">
-            <div className="cart__checkbox">
+            <div className={`cart__checkbox${inCart ? ' cart__checkbox--in-cart' : ''}`}>
                 <button onClick={onClick}>{svgIcon('cart')}</button>
                 <label htmlFor={current}>
                     <span className="sr-only">{inCart ? `Remove ${current} from cart` : `Add ${current} to cart`}</span>

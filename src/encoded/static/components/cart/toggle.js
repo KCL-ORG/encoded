@@ -15,7 +15,7 @@ const CartToggleComponent = ({ cart, savedItems, current, onAddToCartClick, onRe
     return (
         <div className="cart__toggle">
             <div className="cart__checkbox">
-                <button onChange={onClick}>{svgIcon('cart')}</button>
+                <button onClick={onClick}>{svgIcon('cart')}</button>
                 <label htmlFor={current}>
                     <span className="sr-only">{inCart ? `Remove ${current} from cart` : `Add ${current} to cart`}</span>
                 </label>
@@ -44,7 +44,7 @@ CartToggleComponent.defaultProps = {
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
-    savedItems: state.savedCartObj.items || [],
+    savedItems: (state.savedCartObj && state.savedCartObj.items) || [],
     current: ownProps.current['@id'],
 });
 

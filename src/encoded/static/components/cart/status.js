@@ -39,9 +39,10 @@ class CartStatusComponent extends React.Component {
     }
 
     render() {
-        const { cart, savedCart, openDropdown, dropdownClick } = this.props;
+        const { cart, savedCartObj, openDropdown, dropdownClick } = this.props;
         const loggedIn = !!(this.context.session && this.context.session['auth.userid']);
         const userCart = getUserCart(this.context.session_properties);
+        const savedCart = (savedCartObj && savedCartObj.items) || [];
 
         // Define the menu items for the Cart Status menu.
         const menuItems = [<a key="view" href="/cart-view/">View cart</a>];
@@ -66,14 +67,14 @@ class CartStatusComponent extends React.Component {
 
 CartStatusComponent.propTypes = {
     cart: PropTypes.array, // Cart contents
-    savedCart: PropTypes.array, // Saved cart contents
+    savedCartObj: PropTypes.object, // Saved cart contents
     openDropdown: PropTypes.string.isRequired, // ID of the dropdown currently visible
     dropdownClick: PropTypes.func.isRequired, // Function to call when dropdown clicked
 };
 
 CartStatusComponent.defaultProps = {
     cart: [],
-    savedCart: [],
+    savedCartObj: null,
 };
 
 CartStatusComponent.contextTypes = {
@@ -84,7 +85,7 @@ CartStatusComponent.contextTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
-    savedCart: state.savedCartObj.items || [],
+    savedCartObj: state.savedCartObj || null,
     openDropdown: ownProps.openDropdown,
     dropdownClick: ownProps.dropdownClick,
 });

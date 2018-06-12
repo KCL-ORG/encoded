@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import _ from 'underscore';
 import { Panel, PanelHeading, PanelBody } from '../../libs/bootstrap/panel';
 import CartSave from './save';
-import { getSavedCart } from './util';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch } from '../objectutils';
 import { ResultTableList } from '../search';
@@ -28,80 +27,85 @@ CartSearchResults.defaultProps = {
 
 
 // Renders the cart search results page. Display either:
-// 1. Shared cart (/carts/<uuid>) containing user's saved items
+// 1. Shared cart (/carts/<uuid>) containing a user's saved items
 // 2. Active cart (/cart-view/) containing saved and in-memory items
-// Also note the "saved cart" which comes from the user object's `carts` object that contains saved
-// items even when viewing the active cart.
 class CartComponent extends React.Component {
     constructor() {
         super();
         this.state = {
             cartSearchResults: {},
         };
-        this.renderCartObjects = this.renderCartObjects.bind(this);
+        this.retrieveCartContents = this.retrieveCartContents.bind(this);
     }
 
     componentDidMount() {
         // The cart only has object @ids, so first thing is to get search results for each of them.
-        this.renderCartObjects();
+        this.retrieveCartContents();
     }
 
     componentDidUpdate(prevProps, prevState) {
-        // Start by seeing if we got a response to our GET request.
+        // See if we got a response to our GET request. Just allow the cart to get
+        // rendered with the new contents if that's the case.
         const prevSearchItems = prevState.cartSearchResults['@graph'] || [];
         const currSearchItems = this.state.cartSearchResults['@graph'] || [];
         if (prevSearchItems.length !== currSearchItems.length) {
             return;
         }
 
-        // Start by getting the sharable cart objects and the saved cart objects.
+        // Rerender if the in-memory, shared, or saved cart lengths have changed.
         const prevSharedCart = prevProps.context.items || [];
         const currentSharedCart = this.props.context.items || [];
-
-        // Redraw if the in-memory, shared, or saved cart lengths have changed.
+        const prevSavedCartItems = (prevProps.savedCartObj && prevProps.savedCartObj.items) || [];
+        const currSavedCartItems = (this.props.savedCartObj && this.props.savedCartObj.items) || [];
         if ((prevProps.cart.length !== this.props.cart.length) ||
             (prevSharedCart.length !== currentSharedCart.length) ||
-            (prevProps.savedCart.length !== this.props.savedCart.length)) {
-            this.renderCartObjects();
+            (prevSavedCartItems.length !== currSavedCartItems.length)) {
+            this.retrieveCartContents();
             return;
         }
 
-        // Redraw if login cookie information changed.
+        // Rerender if login cookie information changed, usually caused by logging in or
+        // impersonating.
         if (!_.isEqual(this.props.session, prevProps.session)) {
-            this.renderCartObjects();
+            this.retrieveCartContents();
             return;
         }
 
         // Redraw if the in-memory, shared, or saved cart contents have changed.
         if (!_.isEqual(prevProps.cart, this.props.cart) ||
-            !_.isEqual(prevSharedCart, currentSharedCart) ||
-            !_.isEqual(prevProps.savedCart, this.props.savedCart)) {
-            this.renderCartObjects();
+            !_.isEqual(prevSharedCart, currentSharedCart)) {
+            this.retrieveCartContents();
         }
     }
 
-    renderCartObjects() {
-        const { context, cart, savedCart } = this.props;
+    retrieveCartContents() {
+        // Get search results for cart contents so it can be displayed as search results.
+        const { context, cart, savedCartObj } = this.props;
         let cartItems = [];
 
         // Shared and active carts displayed slightly differently.
         const activeCart = context['@type'][0] === 'cart-view';
 
-        // Retrieve active or shared cart item uuids and build a search query string out of them.
+        // Retrieve active or shared cart item @ids and build a search query string out of them.
         if (activeCart) {
-            // Combine in-memory and saved carts.
-            cartItems = _.uniq(cart.concat(savedCart));
+            // Combine in-memory and saved carts to show the active cart.
+            cartItems = _.uniq(cart.concat((savedCartObj && savedCartObj.items) || []));
         } else {
+            // Just show the saved cart contents for the shared cart.
             cartItems = context.items || [];
         }
 
-        // Perform the search if the cart isn't empty.
+        // Perform the search of cart contents if the cart isn't empty, which triggers a rendering
+        // of these contents.
         if (cartItems.length > 0) {
             const cartQueryString = cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
             requestSearch(cartQueryString).then((searchResults) => {
+                // We can get no search results, in which case `searchResults` is the empty object
+                // which causes an empty cart render.
                 this.setState({ cartSearchResults: searchResults });
             });
         } else {
+            // Render an empty cart.
             this.setState({ cartSearchResults: {} });
         }
     }
@@ -147,19 +151,21 @@ class CartComponent extends React.Component {
 CartComponent.propTypes = {
     context: PropTypes.object.isRequired, // Cart object to display
     cart: PropTypes.array.isRequired, // In-memory cart contents
-    savedCart: PropTypes.array.isRequired, // Saved cart contents
+    savedCartObj: PropTypes.object, // Saved cart contents
     session: PropTypes.object, // App session info
 };
 
 CartComponent.defaultProps = {
     session: null,
+    savedCartObj: null,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
-    savedCart: state.savedCartObj.items || [],
+    savedCartObj: state.savedCartObj,
     session: ownProps.session,
 });
+
 const CartInternal = connect(mapStateToProps)(CartComponent);
 
 

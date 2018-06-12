@@ -89,8 +89,8 @@ const createCartObject = (cart, user, fetch) => {
  * @param {string} cartAtId - @id of the cart to update
  * @param {func} fetch - System fetch function; usually from <App> context
  */
-const saveCart = (cart, user, fetch) => {
-    const cartAtId = (user.carts.length > 0) ? user.carts[0] : null;
+const saveCart = (cart, savedCartObj, user, fetch) => {
+    const cartAtId = (savedCartObj && savedCartObj.items && savedCartObj.items.length > 0) ? savedCartObj['@id'] : null;
     if (cartAtId) {
         return getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
@@ -112,7 +112,7 @@ class CartSaveComponent extends React.Component {
     }
 
     saveCartClick() {
-        this.props.onSaveCartClick(this.props.cart, this.props.user, this.props.fetch).then(() => {
+        this.props.onSaveCartClick(this.props.cart, this.props.savedCartObj, this.props.user, this.props.fetch).then(() => {
             this.props.fetchSessionProperties();
         });
     }
@@ -127,6 +127,7 @@ class CartSaveComponent extends React.Component {
 
 CartSaveComponent.propTypes = {
     cart: PropTypes.array.isRequired, // In-memory cart from redux store
+    savedCartObj: PropTypes.object, // Cached saved cart items
     user: PropTypes.object, // Logged-in user object
     onSaveCartClick: PropTypes.func.isRequired, // Function to call when "Save cart" clicked
     fetch: PropTypes.func.isRequired, // fetch function from App context
@@ -134,20 +135,22 @@ CartSaveComponent.propTypes = {
 };
 
 CartSaveComponent.defaultProps = {
+    savedCartObj: null,
     user: null,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
+    savedCartObj: state.savedCartObj,
     user: ownProps.sessionProperties.user,
     fetch: ownProps.fetch,
     fetchSessionProperties: ownProps.fetchSessionProperties,
 });
 const mapDispatchToProps = dispatch => (
     {
-        onSaveCartClick: (cart, user, fetch) => (
-            saveCart(cart, user, fetch).then((savedCartObj) => {
-                cartCacheSaved(savedCartObj, dispatch);
+        onSaveCartClick: (cart, savedCartObj, user, fetch) => (
+            saveCart(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+                cartCacheSaved(updatedSavedCartObj, dispatch);
             })
         ),
     }

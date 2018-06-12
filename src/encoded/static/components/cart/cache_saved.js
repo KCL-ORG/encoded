@@ -7,8 +7,8 @@ import { cacheSavedCart } from './actions';
  * @param {array} items - Array of @ids to add to the cart
  * @param {func} dispatch - Redux dispatch function for the cart store
  */
-const cartCacheSaved = (cartObject, dispatch) => {
-    dispatch(cacheSavedCart(cartObject));
+const cartCacheSaved = (cartObj, dispatch) => {
+    dispatch(cacheSavedCart(cartObj));
 };
 
 export default cartCacheSaved;

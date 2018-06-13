@@ -366,6 +366,18 @@ div.meta-status {
 
     @at-root #{&}__data {
         flex: 1 1 auto;
+        position: relative;
+    }
+
+    @at-root #{&}__cart-overlay {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        pointer-events: none;
+        background-color: rgba(255, 255, 255, 0.5);
+        z-index: 3;
     }
 
     @at-root #{&}__cart-control {

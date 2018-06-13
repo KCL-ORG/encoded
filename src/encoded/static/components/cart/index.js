@@ -22,6 +22,7 @@ import {
 import CartAddMultiple from './add_multiple';
 import cartCacheSaved from './cache_saved';
 import CartControl, { cartAddItems } from './control';
+import CartOverlay from './overlay';
 import CartRemoveMultiple from './remove_multiple';
 import CartSearchControls from './search_controls';
 import CartShare from './share';
@@ -83,5 +84,6 @@ export {
     CartToggle,
     cartAddItems,
     CartShare,
+    CartOverlay,
     cartModule as default,
 };

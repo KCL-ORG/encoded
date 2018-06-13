@@ -7,7 +7,7 @@ import { svgIcon } from '../libs/svg-icons';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '../libs/bootstrap/modal';
 import { TabPanel, TabPanelPane } from '../libs/bootstrap/panel';
 import { auditDecor } from './audit';
-import { CartToggle, CartSearchControls } from './cart';
+import { CartToggle, CartSearchControls, CartOverlay } from './cart';
 import { FetchedData, Param } from './fetched';
 import GenomeBrowser from './genome_browser';
 import * as globals from './globals';
@@ -288,6 +288,7 @@ const ExperimentComponent = (props, reactContext) => {
             <div className="result-item">
                 <div className="result-item__data">
                     <PickerActions {...props} />
+                    <CartOverlay current={result} />
                     <div className="pull-right search-meta">
                         <p className="type meta-title">Experiment</p>
                         <p className="type">{` ${result.accession}`}</p>

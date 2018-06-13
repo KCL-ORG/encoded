@@ -183,7 +183,7 @@ class Timeout {
  * @return {object} - Promise with cart content item @ids or null if none
  */
 const initializeCartFromSessionProperties = function initializeCartFromSessionProperties(sessionProperties) {
-    return requestSearch(`type=Cart&submitted_by=${sessionProperties.user['@id']}`).then((results) => {
+    return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((results) => {
         // If the logged-in user has a cart, add it to the in-memory cart. For now just use the
         // first cart found until we support multiple carts per user.
         if (Object.keys(results).length > 0 && results['@graph'].length > 0) {

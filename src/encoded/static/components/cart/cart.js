@@ -98,6 +98,7 @@ class CartComponent extends React.Component {
     }
 
     isRetrievingCartContents() {
+        // Call to know whether we have an outstanding GET request for the cart contents search.
         return this.retrievingCartContents;
     }
 

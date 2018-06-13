@@ -78,6 +78,11 @@ const createCartObject = (cart, user, fetch) => {
             Accept: 'application/json',
             'Content-Type': 'application/json',
         },
+    }).then((response) => {
+        if (!response.ok) {
+            throw response;
+        }
+        return response.json();
     }).then(result => result['@graph'][0]);
 };
 

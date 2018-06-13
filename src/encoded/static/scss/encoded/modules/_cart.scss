@@ -31,11 +31,14 @@
 
     // Indicates if item has been saved.
     @at-root #{&}__saved-status {
-        text-align: center;
+        display: inline-block;
+        width: 10px;
+        height: 16px;
+        line-height: 16px;
 
-        @at-root #{&}-icon {
-            display: inline-block;
-            color: #cc0700;
+        svg {
+            display: block;
+            fill: #cc0700;
         }
     }
 
@@ -93,8 +96,10 @@
 
     // Checkbox used in search results
     @at-root #{&}__checkbox {
-        position: relative;
-        text-align: center;
+        display: inline-block;
+        height: 16px;
+        line-height: 16px;
+        margin-right: 3px;
 
         // Button when item not in cart
         button {
@@ -111,6 +116,7 @@
         &--in-cart {
             // Button when item in cart
             button {
+                stroke-width: 0;
                 fill-opacity: 1;
             }
         }

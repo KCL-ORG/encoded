@@ -6,7 +6,6 @@ import { DropdownMenu } from '../../libs/bootstrap/dropdown-menu';
 import { Nav, NavItem } from '../../libs/bootstrap/navbar';
 import { svgIcon } from '../../libs/svg-icons';
 import CartShare from './share';
-import { getUserCart } from './util';
 
 
 // Renders the cart icon and count in the nav bar.
@@ -41,7 +40,6 @@ class CartStatusComponent extends React.Component {
     render() {
         const { cart, savedCartObj, openDropdown, dropdownClick } = this.props;
         const loggedIn = !!(this.context.session && this.context.session['auth.userid']);
-        const userCart = getUserCart(this.context.session_properties);
         const savedCart = (savedCartObj && savedCartObj.items) || [];
 
         // Define the menu items for the Cart Status menu.
@@ -58,7 +56,7 @@ class CartStatusComponent extends React.Component {
                             {menuItems}
                         </DropdownMenu>
                     </NavItem>
-                    {this.state.shareModalOpen ? <CartShare userCart={userCart} closeShareCart={this.closeShareCart} /> : null}
+                    {this.state.shareModalOpen ? <CartShare userCart={savedCartObj} closeShareCart={this.closeShareCart} /> : null}
                 </Nav>
             : null
         );

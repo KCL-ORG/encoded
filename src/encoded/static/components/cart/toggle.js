@@ -15,16 +15,16 @@ const CartToggleComponent = ({ cart, savedItems, current, onAddToCartClick, onRe
     return (
         <div className="cart__toggle">
             <div className={`cart__checkbox${inCart ? ' cart__checkbox--in-cart' : ''}`}>
-                <button onClick={onClick}>{svgIcon('cart')}</button>
+                <button onClick={onClick} title={inCart ? 'Remove from cart' : 'Add to cart'}>{svgIcon('cart')}</button>
                 <label htmlFor={current}>
                     <span className="sr-only">{inCart ? `Remove ${current} from cart` : `Add ${current} to cart`}</span>
                 </label>
             </div>
-            {inCart !== saved ?
-                <div className="cart__saved-status">
-                    <i className="icon icon-circle cart__saved-status-icon" title="Unsaved cart item" />
-                </div>
-            : null}
+            <div className="cart__saved-status">
+                {inCart !== saved ?
+                    <div title="Unsaved cart item">{svgIcon('asterisk')}</div>
+                : null}
+            </div>
         </div>
     );
 };

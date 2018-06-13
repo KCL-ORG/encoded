@@ -35,7 +35,10 @@ class CartComponent extends React.Component {
         this.state = {
             cartSearchResults: {},
         };
+        this.retrievingCartContents = false;
         this.retrieveCartContents = this.retrieveCartContents.bind(this);
+        this.isRetrievingCartContents = this.isRetrievingCartContents.bind(this);
+        this.setRetrievingCartContents = this.setRetrievingCartContents.bind(this);
     }
 
     componentDidMount() {
@@ -44,8 +47,8 @@ class CartComponent extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        // See if we got a response to our GET request. Just allow the cart to get
-        // rendered with the new contents if that's the case.
+        // Re-render if we got a response from a search request, which can show as a change in the
+        // lengths of the search results in component state.
         const nextSearchItems = nextState.cartSearchResults['@graph'] || [];
         const currSearchItems = this.state.cartSearchResults['@graph'] || [];
         if (nextSearchItems.length !== currSearchItems.length) {
@@ -65,7 +68,9 @@ class CartComponent extends React.Component {
 
         // Rerender if login cookie information changed, usually caused by logging in or
         // impersonating.
-        if (!_.isEqual(this.props.session, nextProps.session)) {
+        const currCsfrt = this.props.session && this.props.session._csrft_;
+        const nextCsfrt = nextProps.session && nextProps.session._csrft_;
+        if (currCsfrt !== nextCsfrt) {
             return true;
         }
 
@@ -79,15 +84,21 @@ class CartComponent extends React.Component {
         return false;
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate() {
         // If the search result lengths changed, don't do anything additional on update because
         // that just means our search results returned, and they've been re-rendered already.
         // Otherwise we need to do the GET request for the @ids in the cart.
-        const prevSearchItems = prevState.cartSearchResults['@graph'] || [];
-        const currSearchItems = this.state.cartSearchResults['@graph'] || [];
-        if (prevSearchItems.length === currSearchItems.length) {
+        if (!this.isRetrievingCartContents()) {
             this.retrieveCartContents();
         }
+    }
+
+    setRetrievingCartContents(setting) {
+        this.retrievingCartContents = setting;
+    }
+
+    isRetrievingCartContents() {
+        return this.retrievingCartContents;
     }
 
     retrieveCartContents() {
@@ -111,7 +122,10 @@ class CartComponent extends React.Component {
         // of these contents.
         if (cartItems.length > 0) {
             const cartQueryString = cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
+            this.setRetrievingCartContents(true);
             requestSearch(cartQueryString).then((searchResults) => {
+                this.setRetrievingCartContents(false);
+
                 // We can get no search results, in which case `searchResults` is the empty object
                 // which causes an empty cart render.
                 this.setState({ cartSearchResults: searchResults });

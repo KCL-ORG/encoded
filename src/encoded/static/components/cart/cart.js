@@ -66,11 +66,18 @@ class CartComponent extends React.Component {
             return true;
         }
 
-        // Rerender if login cookie information changed, usually caused by logging in or
-        // impersonating.
+        // Rerender if login cookie information changed
         const currCsfrt = this.props.session && this.props.session._csrft_;
         const nextCsfrt = nextProps.session && nextProps.session._csrft_;
         if (currCsfrt !== nextCsfrt) {
+            return true;
+        }
+
+        // Rerender if user information changed, like if the user logged in or impersonated
+        // someone.
+        const currUser = !!(this.props.sessionProperties && this.props.sessionProperties.user);
+        const nextUser = !!(nextProps.sessionProperties && nextProps.sessionProperties.user);
+        if (currUser !== nextUser) {
             return true;
         }
 
@@ -138,8 +145,7 @@ class CartComponent extends React.Component {
     }
 
     render() {
-        const { context, session } = this.props;
-        const loggedIn = !!(session && session['auth.userid']);
+        const { context } = this.props;
 
         // Shared and active carts displayed slightly differently.
         const activeCart = context['@type'][0] === 'cart-view';
@@ -157,7 +163,7 @@ class CartComponent extends React.Component {
                             <div className="cart__loss-warning">
                                 Any unsaved changes to the cart are lost if you reload any page.
                             </div>
-                            {loggedIn ? <CartSave /> : null}
+                            <CartSave />
                         </PanelHeading>
                     : null}
                     <PanelBody addClasses="cart__result-table">
@@ -180,10 +186,12 @@ CartComponent.propTypes = {
     cart: PropTypes.array.isRequired, // In-memory cart contents
     savedCartObj: PropTypes.object, // Saved cart contents
     session: PropTypes.object, // App session info
+    sessionProperties: PropTypes.object, // Login session info
 };
 
 CartComponent.defaultProps = {
     session: null,
+    sessionProperties: null,
     savedCartObj: null,
 };
 
@@ -191,6 +199,7 @@ const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
     savedCartObj: state.savedCartObj,
     session: ownProps.session,
+    sessionProperties: ownProps.sessionProperties,
 });
 
 const CartInternal = connect(mapStateToProps)(CartComponent);
@@ -201,7 +210,7 @@ const CartInternal = connect(mapStateToProps)(CartComponent);
 // encoded context properties as regular props to <CartIntenral>. Passing React context directly to
 // a Redux component doesn't seem very reliable.
 const Cart = (props, reactContext) => (
-    <CartInternal context={props.context} session={reactContext.session} />
+    <CartInternal context={props.context} session={reactContext.session} sessionProperties={reactContext.session_properties} />
 );
 
 Cart.propTypes = {
@@ -210,6 +219,7 @@ Cart.propTypes = {
 
 Cart.contextTypes = {
     session: PropTypes.object,
+    session_properties: PropTypes.object,
 };
 
 contentViews.register(Cart, 'cart-view'); // /cart-view/ URI

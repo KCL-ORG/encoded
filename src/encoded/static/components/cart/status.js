@@ -51,7 +51,14 @@ class CartStatusComponent extends React.Component {
         return (
             cart.length > 0 || savedCart.length > 0 ?
                 <Nav>
-                    <NavItem dropdownId="cart-control" dropdownTitle={<CartNavTitle cart={cart} />} openDropdown={openDropdown} dropdownClick={dropdownClick} buttonCss="cart__nav-button">
+                    <NavItem
+                        dropdownId="cart-control"
+                        dropdownTitle={<CartNavTitle cart={cart} />}
+                        openDropdown={openDropdown}
+                        dropdownClick={dropdownClick}
+                        label={`Cart containing ${cart.length} ${cart.length > 1 ? 'items' : 'item'}`}
+                        buttonCss="cart__nav-button"
+                    >
                         <DropdownMenu label="cart-control">
                             {menuItems}
                         </DropdownMenu>

@@ -123,7 +123,7 @@ Nav.defaultProps = {
 
 // Controls one top-level item within a <Nav>. It can be a stand-alone item or a dropdown menu
 export const NavItem = (props) => {
-    const { dropdownId, dropdownTitle, buttonCss } = props;
+    const { dropdownId, dropdownTitle, label, buttonCss } = props;
     const dropdownOpen = dropdownId && (props.openDropdown === dropdownId);
 
     return (
@@ -134,6 +134,7 @@ export const NavItem = (props) => {
                     dropdownOpen={dropdownOpen}
                     dropdownTitle={dropdownTitle}
                     dropdownId={dropdownId}
+                    label={label}
                     css={buttonCss}
                 />
             : null}
@@ -150,6 +151,7 @@ NavItem.propTypes = {
     ]),
     openDropdown: PropTypes.string,
     dropdownClick: PropTypes.func,
+    label: PropTypes.string, // Navigation button aria label text
     buttonCss: PropTypes.string, // CSS classes to add to navigation button
     children: PropTypes.node, // Child components within one menu item, likely just text
 };
@@ -159,6 +161,7 @@ NavItem.defaultProps = {
     dropdownTitle: null,
     openDropdown: '',
     dropdownClick: null,
+    label: '',
     buttonCss: '',
     children: null,
 };
@@ -179,13 +182,14 @@ class NavItemButton extends React.Component {
     }
 
     render() {
-        const { dropdownOpen, dropdownTitle, css } = this.props;
+        const { dropdownOpen, dropdownTitle, label, css } = this.props;
         return (
             <button
                 className={`dropdown-toggle${css ? ` ${css}` : ''}`}
                 data-toggle="dropdown"
                 aria-haspopup="true"
                 aria-expanded={dropdownOpen}
+                aria-label={label}
                 onClick={this.clickHandler}
             >
                 {dropdownTitle}
@@ -202,6 +206,7 @@ NavItemButton.propTypes = {
         PropTypes.string,
         PropTypes.object,
     ]),
+    label: PropTypes.string, // aria-label text
     css: PropTypes.string, // CSS classes to add to button
 };
 
@@ -210,5 +215,6 @@ NavItemButton.defaultProps = {
     dropdownOpen: false,
     dropdownId: '',
     dropdownTitle: null,
+    label: '',
     css: '',
 };

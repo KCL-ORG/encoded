@@ -15,10 +15,14 @@ const CartToggleComponent = ({ cart, savedItems, current, onAddToCartClick, onRe
     return (
         <div className="cart__toggle">
             <div className={`cart__checkbox${inCart ? ' cart__checkbox--in-cart' : ''}`}>
-                <button onClick={onClick} title={inCart ? 'Remove from cart' : 'Add to cart'}>{svgIcon('cart')}</button>
-                <label htmlFor={current}>
-                    <span className="sr-only">{inCart ? `Remove ${current} from cart` : `Add ${current} to cart`}</span>
-                </label>
+                <button
+                    onClick={onClick}
+                    title={inCart ? 'Remove from cart' : 'Add to cart'}
+                    aria-pressed={inCart}
+                    aria-label={inCart ? `Remove ${saved ? 'saved' : 'unsaved'} item from cart` : `Add ${saved ? 'saved' : 'unsaved'} item to cart`}
+                >
+                    {svgIcon('cart')}
+                </button>
             </div>
             <div className="cart__saved-status">
                 {inCart !== saved ?

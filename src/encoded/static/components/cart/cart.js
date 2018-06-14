@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _ from 'underscore';
-import { Panel, PanelHeading, PanelBody } from '../../libs/bootstrap/panel';
+import { Panel, PanelHeading, PanelBody, PanelFooter } from '../../libs/bootstrap/panel';
 import CartSave from './save';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch } from '../objectutils';
@@ -146,9 +146,20 @@ class CartComponent extends React.Component {
 
     render() {
         const { context } = this.props;
+        const { cartSearchResults } = this.state;
+        let missingItems = [];
+        const searchResults = (cartSearchResults && cartSearchResults['@graph']) || [];
 
         // Shared and active carts displayed slightly differently.
         const activeCart = context['@type'][0] === 'cart-view';
+
+        // When viewing a shared cart, see if any searched items are missing for the current user's
+        // permissions.
+        if (!activeCart) {
+            if (context.items.length - searchResults.length > 0) {
+                missingItems = _.difference(context.items, searchResults.map(item => item['@id']));
+            }
+        }
 
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -167,14 +178,20 @@ class CartComponent extends React.Component {
                         </PanelHeading>
                     : null}
                     <PanelBody addClasses="cart__result-table">
-                        {Object.keys(this.state.cartSearchResults).length > 0 ?
-                            <CartSearchResults results={this.state.cartSearchResults} activeCart={activeCart} />
+                        {searchResults.length > 0 ?
+                            <CartSearchResults results={cartSearchResults} activeCart={activeCart} />
                         :
                             <p className="cart__empty-message">
                                 Empty cart
                             </p>
                         }
                     </PanelBody>
+                    {missingItems.length > 0 ?
+                        <PanelFooter addClasses="cart__missing-items">
+                            <p>The following items in this cart cannot be viewed with your viewing group:</p>
+                            {missingItems.map(item => <div key={item} className="cart__missing-item">{item}</div>)}
+                        </PanelFooter>
+                    : null}
                 </Panel>
             </div>
         );

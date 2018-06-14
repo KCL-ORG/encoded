@@ -137,6 +137,34 @@
             height: 28px;
         }
     }
+
+    @at-root #{&}__missing-items {
+        border-top: 1px solid #a0a0a0;
+        background-color: #f0f0f0;
+
+        @media screen and (min-width: $screen-sm-min) {
+            display: flex;
+            flex-wrap: wrap;
+
+            p {
+                flex: 0 1 100%;
+            }
+        }
+    }
+
+    @at-root #{&}__missing-item {
+        @media screen and (min-width: $screen-sm-min) {
+            flex: 0 1 50%;
+        }
+
+        @media screen and (min-width: $screen-md-min) {
+            flex: 0 1 33.33%;
+        }
+
+        @media screen and (min-width: $screen-lg-min) {
+            flex: 0 1 25%;
+        }
+    }
 }
 
 // Cart button in navigation bar

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import CartAddMultiple from './add_multiple';
-import CartRemoveMultiple from './remove_multiple';
+import CartAddAll from './add_all';
+import CartRemoveAll from './remove_all';
 import { filterAllowedItems } from './util';
 
 
@@ -11,8 +11,8 @@ const CartSearchControls = ({ items }) => {
     if (allowedItems.length > 0) {
         return (
             <div className="cart__search-controls">
-                <CartAddMultiple items={items} filtered />
-                <CartRemoveMultiple items={items} />
+                <CartAddAll items={items} filtered />
+                <CartRemoveAll items={items} />
             </div>
         );
     }

@@ -19,11 +19,11 @@ import {
     REMOVE_MULTIPLE_FROM_CART,
     CACHE_SAVED_CART,
 } from './actions';
-import CartAddMultiple from './add_multiple';
+import CartAddAll from './add_all';
 import cartCacheSaved from './cache_saved';
 import CartControl, { cartAddItems } from './control';
 import CartOverlay from './overlay';
-import CartRemoveMultiple from './remove_multiple';
+import CartRemoveAll from './remove_all';
 import CartSearchControls from './search_controls';
 import CartShare from './share';
 import CartStatus from './status';
@@ -75,8 +75,8 @@ const cartModule = (state = {}, action = {}) => {
 
 
 export {
-    CartAddMultiple,
-    CartRemoveMultiple,
+    CartAddAll,
+    CartRemoveAll,
     cartCacheSaved,
     CartControl,
     CartSearchControls,

@@ -6,18 +6,18 @@ import { removeMultipleFromCart } from './actions';
 
 
 // Button to remove mutliple items from the cart..
-const CartRemoveMultipleComponent = ({ cart, items, onClick }) => {
+const CartRemoveAllComponent = ({ cart, items, onClick }) => {
     const disabled = items.every(item => cart.indexOf(item['@id']) === -1);
     return <button className="btn btn-info btn-sm" disabled={disabled} onClick={onClick}>Remove all</button>;
 };
 
-CartRemoveMultipleComponent.propTypes = {
+CartRemoveAllComponent.propTypes = {
     cart: PropTypes.array, // Current contents of cart
     items: PropTypes.array.isRequired, // List of @ids of the items to add
-    onClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
+    onClick: PropTypes.func.isRequired, // Function to call when Remove All clicked
 };
 
-CartRemoveMultipleComponent.defaultProps = {
+CartRemoveAllComponent.defaultProps = {
     cart: [],
 };
 
@@ -31,5 +31,5 @@ const mapDispatchToProps = (dispatch, ownProps) => (
     }
 );
 
-const CartRemoveMultiple = connect(mapStateToProps, mapDispatchToProps)(CartRemoveMultipleComponent);
-export default CartRemoveMultiple;
+const CartRemoveAll = connect(mapStateToProps, mapDispatchToProps)(CartRemoveAllComponent);
+export default CartRemoveAll;

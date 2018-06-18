@@ -2,7 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { addToCart, addAllToCart, removeFromCart } from './actions';
+import { addToCart, addMultipleToCart, removeFromCart } from './actions';
 
 
 // Button to add the current object to the cart, or to remove it.
@@ -42,7 +42,7 @@ export default CartControl;
  * @param {func} dispatch - Redux dispatch function for the cart store
  */
 const cartAddItems = (items, dispatch) => {
-    dispatch(addAllToCart(items));
+    dispatch(addMultipleToCart(items));
 };
 
 export { cartAddItems };

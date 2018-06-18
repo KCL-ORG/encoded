@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { addAllToCart } from './actions';
+import { addMultipleToCart } from './actions';
 import { filterAllowedItems } from './util';
 
 
@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch, ownProps) => (
     {
         onClick: () => {
             const itemAtIds = filterAllowedItems(ownProps.items).map(item => item['@id']);
-            return dispatch(addAllToCart(itemAtIds));
+            return dispatch(addMultipleToCart(itemAtIds));
         },
     }
 );

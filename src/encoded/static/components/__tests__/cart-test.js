@@ -2,9 +2,9 @@ import _ from 'underscore';
 import cartModule from '../cart';
 import {
     ADD_TO_CART,
-    ADD_ALL_TO_CART,
+    ADD_MULTIPLE_TO_CART,
     REMOVE_FROM_CART,
-    REMOVE_ALL_FROM_CART,
+    REMOVE_MULTIPLE_FROM_CART,
     CACHE_SAVED_CART,
 } from '../cart/actions';
 
@@ -28,13 +28,13 @@ describe('Cart actions', () => {
             expect(newState).not.toEqual(state);
         });
 
-        test('ADD_ALL_TO_CART works and does not mutate state', () => {
+        test('ADD_MULTIPLE_TO_CART works and does not mutate state', () => {
             const items = [
                 '/experiment/ENCSR000AAA/',
                 '/experiment/ENCSR001AAA/',
                 '/experiment/ENCSR002AAA/',
             ];
-            const newState = cartModule(state, { type: ADD_ALL_TO_CART, items });
+            const newState = cartModule(state, { type: ADD_MULTIPLE_TO_CART, items });
             expect(_.isEqual(newState.cart, items)).toEqual(true);
             expect(newState).not.toEqual(state);
         });
@@ -64,8 +64,8 @@ describe('Cart actions', () => {
             expect(_.isEqual(state.cart, newState.cart)).toEqual(true);
         });
 
-        test('REMOVE_ALL_FROM_CART works and does not mutate state', () =>  {
-            const newState = cartModule(state, { type: REMOVE_ALL_FROM_CART, items: ['/experiment/ENCSR000AAA/', '/experiment/ENCSR002AAA/'] });
+        test('REMOVE_MULTIPLE_FROM_CART works and does not mutate state', () =>  {
+            const newState = cartModule(state, { type: REMOVE_MULTIPLE_FROM_CART, items: ['/experiment/ENCSR000AAA/', '/experiment/ENCSR002AAA/'] });
             expect(newState.cart).toHaveLength(1);
             expect(newState.cart[0]).toEqual('/experiment/ENCSR001AAA/');
             expect(newState).not.toEqual(state);

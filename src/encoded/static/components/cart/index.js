@@ -14,9 +14,9 @@
 import _ from 'underscore';
 import {
     ADD_TO_CART,
-    ADD_MULTIPLE_TO_CART,
+    ADD_ALL_TO_CART,
     REMOVE_FROM_CART,
-    REMOVE_MULTIPLE_FROM_CART,
+    REMOVE_ALL_FROM_CART,
     CACHE_SAVED_CART,
 } from './actions';
 import CartAddAll from './add_all';
@@ -42,7 +42,7 @@ const cartModule = (state = {}, action = {}) => {
         return Object.assign({}, state, {
             cart: state.cart.concat([action.current]),
         });
-    case ADD_MULTIPLE_TO_CART: {
+    case ADD_ALL_TO_CART: {
         // Merge the current cart contents with the incoming items while deduping them.
         const items = [...new Set([...state.cart, ...action.items])];
         return Object.assign({}, state, {
@@ -60,7 +60,7 @@ const cartModule = (state = {}, action = {}) => {
         }
         return state;
     }
-    case REMOVE_MULTIPLE_FROM_CART:
+    case REMOVE_ALL_FROM_CART:
         return Object.assign({}, state, {
             cart: _.difference(state.cart, action.items),
         });

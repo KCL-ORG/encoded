@@ -33,12 +33,10 @@ class CartComponent extends React.Component {
     constructor() {
         super();
         this.state = {
-            cartSearchResults: {},
+            cartSearchResults: {}, // Receives cart search result object
+            searchInProgress: false, // True if a search request is in progress
         };
-        this.retrievingCartContents = false;
         this.retrieveCartContents = this.retrieveCartContents.bind(this);
-        this.isRetrievingCartContents = this.isRetrievingCartContents.bind(this);
-        this.setRetrievingCartContents = this.setRetrievingCartContents.bind(this);
     }
 
     componentDidMount() {
@@ -47,6 +45,11 @@ class CartComponent extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        // If the spinner should be shown or hidden, force a rerender.
+        if (this.state.searchInProgress !== nextState.searchInProgress) {
+            return true;
+        }
+
         // Re-render if we got a response from a search request, which can show as a change in the
         // lengths of the search results in component state.
         const nextSearchItems = nextState.cartSearchResults['@graph'] || [];
@@ -91,22 +94,14 @@ class CartComponent extends React.Component {
         return false;
     }
 
-    componentDidUpdate() {
-        // If the search result lengths changed, don't do anything additional on update because
-        // that just means our search results returned, and they've been re-rendered already.
-        // Otherwise we need to do the GET request for the @ids in the cart.
-        if (!this.isRetrievingCartContents()) {
+    componentDidUpdate(prevProps, prevState) {
+        // Re-render if we got a response from a search request, which can show as a change in the
+        // lengths of the search results in component state.
+        const prevSearchItems = prevState.cartSearchResults['@graph'] || [];
+        const currSearchItems = this.state.cartSearchResults['@graph'] || [];
+        if (prevSearchItems.length === currSearchItems.length && prevState.searchInProgress === this.state.searchInProgress) {
             this.retrieveCartContents();
         }
-    }
-
-    setRetrievingCartContents(setting) {
-        this.retrievingCartContents = setting;
-    }
-
-    isRetrievingCartContents() {
-        // Call to know whether we have an outstanding GET request for the cart contents search.
-        return this.retrievingCartContents;
     }
 
     retrieveCartContents() {
@@ -130,13 +125,14 @@ class CartComponent extends React.Component {
         // of these contents.
         if (cartItems.length > 0) {
             const cartQueryString = cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
-            this.setRetrievingCartContents(true);
+            this.setState({ searchInProgress: true });
             requestSearch(cartQueryString).then((searchResults) => {
-                this.setRetrievingCartContents(false);
-
                 // We can get no search results, in which case `searchResults` is the empty object
                 // which causes an empty cart render.
-                this.setState({ cartSearchResults: searchResults });
+                this.setState({
+                    cartSearchResults: searchResults,
+                    searchInProgress: false,
+                });
             });
         } else {
             // Render an empty cart.
@@ -178,6 +174,11 @@ class CartComponent extends React.Component {
                         </PanelHeading>
                     : null}
                     <PanelBody addClasses="cart__result-table">
+                        {this.state.searchInProgress ?
+                            <div className="communicating">
+                                <div className="loading-spinner" />
+                            </div>
+                        : null}
                         {searchResults.length > 0 ?
                             <CartSearchResults results={cartSearchResults} activeCart={activeCart} />
                         :

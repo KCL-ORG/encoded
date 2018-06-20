@@ -11,6 +11,7 @@
 // "active" carts hold both saved and unsaved items. "shared" carts hold saved items. Users who
 // aren't logged in can only have an "active" cart. "shared" carts, when displayed with the cart's
 // uuid, can be shared with others.
+import { createStore } from 'redux';
 import _ from 'underscore';
 import {
     ADD_TO_CART,
@@ -24,6 +25,7 @@ import cartCacheSaved from './cache_saved';
 import CartControl, { cartAddItems } from './control';
 import CartOverlay from './overlay';
 import CartRemoveAll from './remove_multiple';
+import { saveCart } from './save';
 import CartSearchControls from './search_controls';
 import CartShare from './share';
 import CartStatus from './status';
@@ -74,6 +76,42 @@ const cartModule = (state = {}, action = {}) => {
 };
 
 
+// Once the contents of the cart Redux store changes, save those changes to the database for
+// logged-in users.
+//
+// This mechanism for tracking the current and next state of the store is highly reliant on a
+// closure, but this is the mechanism recommended by Dan Abramov for exactly this situation.
+// https://github.com/reduxjs/redux/issues/303#issuecomment-125184409
+const cartObserveChanges = (store, user, fetch) => {
+    let currState = {};
+
+    const handleChange = () => {
+        const nextState = store.getState();
+        const nextCart = nextState.cart || [];
+        const currCart = currState.cart || [];
+        if (nextCart.length !== currCart.length || !_.isEqual(nextCart, currCart)) {
+            currState = Object.assign({}, nextState);
+            saveCart(currState.cart, currState.savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+                cartCacheSaved(updatedSavedCartObj, store.dispatch);
+            });
+        }
+    };
+
+    return store.subscribe(handleChange);
+};
+
+
+const initializeCart = () => {
+    const initialCart = {
+        cart: [], // Active cart contents as array of @ids
+        name: 'Untitled',
+        savedCart: [], // Cache of saved cart
+    };
+    const cartStore = createStore(cartModule, initialCart);
+    return cartStore;
+};
+
+
 export {
     CartAddAll,
     CartRemoveAll,
@@ -85,5 +123,6 @@ export {
     cartAddItems,
     CartShare,
     CartOverlay,
-    cartModule as default,
+    cartObserveChanges,
+    initializeCart as default,
 };

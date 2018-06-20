@@ -4,12 +4,11 @@ import Auth0Lock from 'auth0-lock';
 import serialize from 'form-serialize';
 import ga from 'google-analytics';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
 import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import cartModule, { cartAddItems, cartCacheSaved } from './cart';
+import initializeCart, { cartAddItems, cartCacheSaved, cartObserveChanges } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import { requestSearch } from './objectutils';
@@ -79,15 +78,6 @@ const portal = {
         },
     ],
 };
-
-
-// Create the initial cart on page load.
-const initialCart = {
-    cart: [], // Active cart contents as array of @ids
-    name: 'Untitled',
-    savedCart: [], // Cache of saved cart
-};
-const cartStore = createStore(cartModule, initialCart);
 
 
 // See https://github.com/facebook/react/issues/2323 for an IE8 fix removed for Redmine #4755.
@@ -175,28 +165,6 @@ class Timeout {
 }
 
 
-/**
- * Retrieve the cart contents as a list of item @ids for the current logged-in user and initialize
- * the active cart with this list.
- *
- * @param {object} sessionProperties - encoded session_properties object for logged-in user
- * @return {object} - Promise with cart content item @ids or null if none
- */
-const initializeCartFromSessionProperties = function initializeCartFromSessionProperties(sessionProperties) {
-    return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((results) => {
-        // If the logged-in user has a cart, add it to the in-memory cart. For now just use the
-        // first cart found until we support multiple carts per user.
-        if (Object.keys(results).length > 0 && results['@graph'].length > 0) {
-            const cart = results['@graph'][0].items;
-            cartAddItems(cart, cartStore.dispatch);
-            cartCacheSaved(results['@graph'][0], cartStore.dispatch);
-            return Promise.resolve(cart);
-        }
-        return Promise.resolve(null);
-    });
-};
-
-
 // App is the root component, mounted on document.body.
 // It lives for the entire duration the page is loaded.
 // App maintains state for the
@@ -229,6 +197,8 @@ class App extends React.Component {
             unsavedChanges: [],
             promisePending: false,
         };
+
+        this.cartStore = initializeCart();
 
         this.triggers = {
             login: 'triggerLogin',
@@ -478,7 +448,7 @@ class App extends React.Component {
             return response.json();
         }).then((sessionProperties) => {
             this.setState({ session_properties: sessionProperties });
-            return initializeCartFromSessionProperties(sessionProperties);
+            return this.initializeCartFromSessionProperties(sessionProperties);
         });
     }
 
@@ -504,7 +474,7 @@ class App extends React.Component {
         }).then((sessionProperties) => {
             this.setState({ session_properties: sessionProperties });
             this.sessionPropertiesRequest = null;
-            return initializeCartFromSessionProperties(sessionProperties);
+            return this.initializeCartFromSessionProperties(sessionProperties);
         }).then(() => {
             let nextUrl = window.location.href;
             if (window.location.hash === '#logged-out') {
@@ -589,6 +559,23 @@ class App extends React.Component {
             exDescription: `${mutatableUri}@${line},${column}: ${msg}`,
             exFatal: true,
             location: window.location.href,
+        });
+    }
+
+    // Retrieve the cart contents as a list of item @ids for the current logged-in user and initialize
+    // the active cart with this list.
+    initializeCartFromSessionProperties(sessionProperties) {
+        return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((results) => {
+            // If the logged-in user has a cart, add it to the in-memory cart. For now just use the
+            // first cart found until we support multiple carts per user.
+            if (Object.keys(results).length > 0 && results['@graph'].length > 0) {
+                const cart = results['@graph'][0].items;
+                cartAddItems(cart, this.cartStore.dispatch);
+                cartCacheSaved(results['@graph'][0], this.cartStore.dispatch);
+                return Promise.resolve(cart);
+            }
+            cartObserveChanges(this.cartStore, sessionProperties.user, this.fetch);
+            return Promise.resolve(null);
         });
     }
 
@@ -1027,7 +1014,7 @@ class App extends React.Component {
                         <div id="application" className={appClass}>
                             <div className="loading-spinner" />
                             <div id="layout">
-                                <Provider store={cartStore}>
+                                <Provider store={this.cartStore}>
                                     <div>
                                         <Navigation isHomePage={isHomePage} />
                                         <div id="content" className={containerClass} key={key}>

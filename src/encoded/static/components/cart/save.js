@@ -94,7 +94,7 @@ const createCartObject = (cart, user, fetch) => {
  * @param {string} cartAtId - @id of the cart to update
  * @param {func} fetch - System fetch function; usually from <App> context
  */
-const saveCart = (cart, savedCartObj, user, fetch) => {
+export const saveCart = (cart, savedCartObj, user, fetch) => {
     const cartAtId = (savedCartObj && savedCartObj.items && savedCartObj.items.length > 0) ? savedCartObj['@id'] : null;
     if (cartAtId) {
         return getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {

@@ -24,11 +24,6 @@ const CartToggleComponent = ({ cart, savedItems, current, onAddToCartClick, onRe
                     {svgIcon('cart')}
                 </button>
             </div>
-            <div className="cart__saved-status">
-                {inCart !== saved ?
-                    <div title="Unsaved cart item">{svgIcon('asterisk')}</div>
-                : null}
-            </div>
         </div>
     );
 };

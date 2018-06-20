@@ -568,14 +568,15 @@ class App extends React.Component {
         return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((results) => {
             // If the logged-in user has a cart, add it to the in-memory cart. For now just use the
             // first cart found until we support multiple carts per user.
+            let cartPromise = null;
             if (Object.keys(results).length > 0 && results['@graph'].length > 0) {
                 const cart = results['@graph'][0].items;
                 cartAddItems(cart, this.cartStore.dispatch);
                 cartCacheSaved(results['@graph'][0], this.cartStore.dispatch);
-                return Promise.resolve(cart);
+                cartPromise = Promise.resolve(cart);
             }
             cartObserveChanges(this.cartStore, sessionProperties.user, this.fetch);
-            return Promise.resolve(null);
+            return Promise.resolve(cartPromise);
         });
     }
 

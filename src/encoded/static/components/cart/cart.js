@@ -165,14 +165,6 @@ class CartComponent extends React.Component {
                     </div>
                 </header>
                 <Panel>
-                    {activeCart ?
-                        <PanelHeading addClasses="cart__heading">
-                            <div className="cart__loss-warning">
-                                Any unsaved changes to the cart are lost if you reload any page.
-                            </div>
-                            <CartSave />
-                        </PanelHeading>
-                    : null}
                     <PanelBody addClasses="cart__result-table">
                         {this.state.searchInProgress ?
                             <div className="communicating">

@@ -381,7 +381,7 @@ div.meta-status {
     }
 
     @at-root #{&}__cart-control {
-        flex: 0 0 32px;
+        flex: 0 0 16px;
 
         @at-root #{&}--unsaved {
             background-color: #ffc0c0;

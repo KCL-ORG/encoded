@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import cartModule from '../cart';
+import { cartModule } from '../cart';
 import {
     ADD_TO_CART,
     ADD_MULTIPLE_TO_CART,
@@ -17,7 +17,7 @@ describe('Cart actions', () => {
             state = {
                 cart: [],
                 name: 'Untitled',
-                savedCart: {},
+                savedCartObj: {},
             };
         });
 
@@ -47,7 +47,7 @@ describe('Cart actions', () => {
             state = {
                 cart: ['/experiment/ENCSR000AAA/', '/experiment/ENCSR001AAA/', '/experiment/ENCSR002AAA/'],
                 name: 'Untitled',
-                savedCart: {}, // Cache of saved cart
+                savedCartObj: {}, // Cache of saved cart
             };
         });
 
@@ -76,9 +76,9 @@ describe('Cart actions', () => {
         const state = {
             cart: ['/experiment/ENCSR000AAA/', '/experiment/ENCSR001AAA/', '/experiment/ENCSR002AAA/'],
             name: 'Untitled',
-            savedCart: {}, // Cache of saved cart
+            savedCartObj: {}, // Cache of saved cart
         };
-        const savedCart = {
+        const savedCartObj = {
             '@id': '/carts/eb0cf599-6a8d-44fd-8bab-227c35f0d9a8/',
             '@type': ['Cart', 'Item'],
             date_created: '2018-06-18T16:17:46.291603+00:00',
@@ -89,8 +89,8 @@ describe('Cart actions', () => {
             submitted_by: '/users/627eedbc-7cb3-4de3-9743-a86266e435a6/',
             uuid: 'eb0cf599-6a8d-44fd-8bab-227c35f0d9a8',
         };
-        const newState = cartModule(state, { type: CACHE_SAVED_CART, cartObj: savedCart });
-        expect(_.isEqual(savedCart, newState.savedCartObj)).toEqual(true);
+        const newState = cartModule(state, { type: CACHE_SAVED_CART, cartObj: savedCartObj });
+        expect(_.isEqual(savedCartObj, newState.savedCartObj)).toEqual(true);
         expect(newState).not.toEqual(state);
     });
 });

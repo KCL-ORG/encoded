@@ -105,7 +105,7 @@ const initializeCart = () => {
     const initialCart = {
         cart: [], // Active cart contents as array of @ids
         name: 'Untitled',
-        savedCart: [], // Cache of saved cart
+        savedCartObj: {}, // Cache of saved cart
     };
     const cartStore = createStore(cartModule, initialCart);
     return cartStore;
@@ -124,5 +124,6 @@ export {
     CartShare,
     CartOverlay,
     cartObserveChanges,
+    cartModule, // Exported for Jest tests
     initializeCart as default,
 };

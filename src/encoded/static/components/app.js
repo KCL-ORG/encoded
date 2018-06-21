@@ -565,18 +565,20 @@ class App extends React.Component {
     // Retrieve the cart contents as a list of item @ids for the current logged-in user and initialize
     // the active cart with this list.
     initializeCartFromSessionProperties(sessionProperties) {
-        return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((results) => {
-            // If the logged-in user has a cart, add it to the in-memory cart. For now just use the
-            // first cart found until we support multiple carts per user.
-            let cartPromise = null;
-            if (Object.keys(results).length > 0 && results['@graph'].length > 0) {
-                const cart = results['@graph'][0].items;
-                cartAddItems(cart, this.cartStore.dispatch);
-                cartCacheSaved(results['@graph'][0], this.cartStore.dispatch);
-                cartPromise = Promise.resolve(cart);
+        // Have any modifications to the cart trigger a call to save the change to the database.
+        cartObserveChanges(this.cartStore, sessionProperties.user, this.fetch);
+
+        // If the newly logged-in user has a saved cart, update the in-memory cart with its
+        // contents.
+        return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((savedCartObj) => {
+            // For now just use the first cart in @graph until we support multiple carts per user.
+            const savedCart = savedCartObj['@graph'] && savedCartObj['@graph'].length ? savedCartObj['@graph'][0].items : [];
+            const currState = this.cartStore.getState();
+            if (!_.isEqual(currState.cart, savedCart)) {
+                // Saved cart and in-memory cart contents are different, so sync them up in memory.
+                cartAddItems(savedCart, this.cartStore.dispatch);
             }
-            cartObserveChanges(this.cartStore, sessionProperties.user, this.fetch);
-            return Promise.resolve(cartPromise);
+            return Promise.resolve(savedCartObj);
         });
     }
 

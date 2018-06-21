@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import CartAddAll from './add_multiple';
 import CartRemoveAll from './remove_multiple';
-import { filterAllowedItems } from './util';
+import filterAllowedItems from './util';
 
 
 // Controls at the top of search result lists.

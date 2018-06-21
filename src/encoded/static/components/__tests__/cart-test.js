@@ -7,6 +7,7 @@ import {
     REMOVE_MULTIPLE_FROM_CART,
     CACHE_SAVED_CART,
 } from '../cart/actions';
+import filterAllowedItems from '../cart/util';
 
 
 describe('Cart actions', () => {
@@ -92,5 +93,30 @@ describe('Cart actions', () => {
         const newState = cartModule(state, { type: CACHE_SAVED_CART, cartObj: savedCartObj });
         expect(_.isEqual(savedCartObj, newState.savedCartObj)).toEqual(true);
         expect(newState).not.toEqual(state);
+    });
+});
+
+
+describe('Utility functions', () => {
+    let items;
+
+    beforeAll(() => {
+        items = [
+            { '@type': ['Experiment', 'Dataset', 'Item'], uuid: 'aca3295c-755b-4495-91cf-8a4c00a0db00' },
+            { '@type': ['File', 'Item'], uuid: '46e82a90-49e5-4c33-afab-9ec90d65faf3' },
+            { '@type': ['Experiment', 'Dataset', 'Item'], uuid: 'a357b33b-cdaa-4312-91c0-086bfec24181' },
+            { '@type': ['PublicationData', 'FileSet', 'Dataset', 'Item'], uuid: '4eafdd35-40ea-463a-9e05-c85fb91d25d0' },
+            { '@type': ['Publication', 'Item'], uuid: '52e85c70-fe2d-11e3-9191-0800200c9a66' },
+        ];
+    });
+
+    test('filterAllowedItems properly filters items', () => {
+        const filteredItems = filterAllowedItems(items);
+        expect(filteredItems).toHaveLength(3);
+        expect(filteredItems.find(item => item.uuid === 'aca3295c-755b-4495-91cf-8a4c00a0db00')).not.toBeUndefined();
+        expect(filteredItems.find(item => item.uuid === 'a357b33b-cdaa-4312-91c0-086bfec24181')).not.toBeUndefined();
+        expect(filteredItems.find(item => item.uuid === '4eafdd35-40ea-463a-9e05-c85fb91d25d0')).not.toBeUndefined();
+        expect(filteredItems.find(item => item.uuid === '46e82a90-49e5-4c33-afab-9ec90d65faf3')).toBeUndefined();
+        expect(filteredItems.find(item => item.uuid === '52e85c70-fe2d-11e3-9191-0800200c9a66')).toBeUndefined();
     });
 });

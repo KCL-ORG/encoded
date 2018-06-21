@@ -1,6 +1,6 @@
 // List of object @type allowed in the cart.
-export const allowedTypes = [
-    'Experiment',
+const allowedTypes = [
+    'Dataset',
 ];
 
 
@@ -10,6 +10,8 @@ export const allowedTypes = [
  * @param {array} items - Object with @types to be filtered
  * @return {array} - All `items` with @types in `allowedTypes`
  */
-export const filterAllowedItems = items => (
-    items.filter(item => allowedTypes.indexOf(item['@type'][0]) > -1)
+const filterAllowedItems = items => (
+    items.filter(item => item['@type'].find(itemType => allowedTypes.indexOf(itemType) >= 0))
 );
+
+export default filterAllowedItems;

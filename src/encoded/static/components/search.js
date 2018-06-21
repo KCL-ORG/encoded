@@ -288,7 +288,6 @@ const ExperimentComponent = (props, reactContext) => {
             <div className="result-item">
                 <div className="result-item__data">
                     <PickerActions {...props} />
-                    <CartOverlay current={result} />
                     <div className="pull-right search-meta">
                         <p className="type meta-title">Experiment</p>
                         <p className="type">{` ${result.accession}`}</p>
@@ -364,67 +363,67 @@ const Experiment = auditDecor(ExperimentComponent);
 globals.listingViews.register(Experiment, 'Experiment');
 
 
-/* eslint-disable react/prefer-stateless-function */
-class DatasetComponent extends React.Component {
-    render() {
-        const result = this.props.context;
-        let biosampleTerm;
-        let organism;
-        let lifeSpec;
-        let targets;
-        let lifeStages = [];
-        let ages = [];
+const DatasetComponent = (props, reactContext) => {
+    const { activeCart } = props;
+    const result = props.context;
+    let biosampleTerm;
+    let organism;
+    let lifeSpec;
+    let targets;
+    let lifeStages = [];
+    let ages = [];
 
-        // Determine whether the dataset is a series or not
-        const seriesDataset = result['@type'].indexOf('Series') >= 0;
+    // Determine whether the dataset is a series or not
+    const seriesDataset = result['@type'].indexOf('Series') >= 0;
 
-        // Get the biosample info for Series types if any. Can be string or array. If array, only use iff 1 term name exists
-        if (seriesDataset) {
-            biosampleTerm = (result.biosample_term_name && typeof result.biosample_term_name === 'object' && result.biosample_term_name.length === 1) ? result.biosample_term_name[0] :
-                ((result.biosample_term_name && typeof result.biosample_term_name === 'string') ? result.biosample_term_name : '');
-            const organisms = (result.organism && result.organism.length) ? _.uniq(result.organism.map(resultOrganism => resultOrganism.scientific_name)) : [];
-            if (organisms.length === 1) {
-                organism = organisms[0];
-            }
-
-            // Dig through the biosample life stages and ages
-            if (result.related_datasets && result.related_datasets.length) {
-                result.related_datasets.forEach((dataset) => {
-                    if (dataset.replicates && dataset.replicates.length) {
-                        dataset.replicates.forEach((replicate) => {
-                            if (replicate.library && replicate.library.biosample) {
-                                const biosample = replicate.library.biosample;
-                                const lifeStage = (biosample.life_stage && biosample.life_stage !== 'unknown') ? biosample.life_stage : '';
-
-                                if (lifeStage) { lifeStages.push(lifeStage); }
-                                if (biosample.age_display) { ages.push(biosample.age_display); }
-                            }
-                        });
-                    }
-                });
-                lifeStages = _.uniq(lifeStages);
-                ages = _.uniq(ages);
-            }
-            lifeSpec = _.compact([lifeStages.length === 1 ? lifeStages[0] : null, ages.length === 1 ? ages[0] : null]);
-
-            // Get list of target labels
-            if (result.target) {
-                targets = _.uniq(result.target.map(target => target.label));
-            }
+    // Get the biosample info for Series types if any. Can be string or array. If array, only use iff 1 term name exists
+    if (seriesDataset) {
+        biosampleTerm = (result.biosample_term_name && typeof result.biosample_term_name === 'object' && result.biosample_term_name.length === 1) ? result.biosample_term_name[0] :
+            ((result.biosample_term_name && typeof result.biosample_term_name === 'string') ? result.biosample_term_name : '');
+        const organisms = (result.organism && result.organism.length) ? _.uniq(result.organism.map(resultOrganism => resultOrganism.scientific_name)) : [];
+        if (organisms.length === 1) {
+            organism = organisms[0];
         }
 
-        const haveSeries = result['@type'].indexOf('Series') >= 0;
-        const haveFileSet = result['@type'].indexOf('FileSet') >= 0;
+        // Dig through the biosample life stages and ages
+        if (result.related_datasets && result.related_datasets.length) {
+            result.related_datasets.forEach((dataset) => {
+                if (dataset.replicates && dataset.replicates.length) {
+                    dataset.replicates.forEach((replicate) => {
+                        if (replicate.library && replicate.library.biosample) {
+                            const biosample = replicate.library.biosample;
+                            const lifeStage = (biosample.life_stage && biosample.life_stage !== 'unknown') ? biosample.life_stage : '';
 
-        return (
-            <li>
-                <div className="clearfix">
-                    <PickerActions {...this.props} />
+                            if (lifeStage) { lifeStages.push(lifeStage); }
+                            if (biosample.age_display) { ages.push(biosample.age_display); }
+                        }
+                    });
+                }
+            });
+            lifeStages = _.uniq(lifeStages);
+            ages = _.uniq(ages);
+        }
+        lifeSpec = _.compact([lifeStages.length === 1 ? lifeStages[0] : null, ages.length === 1 ? ages[0] : null]);
+
+        // Get list of target labels
+        if (result.target) {
+            targets = _.uniq(result.target.map(target => target.label));
+        }
+    }
+
+    const haveSeries = result['@type'].indexOf('Series') >= 0;
+    const haveFileSet = result['@type'].indexOf('FileSet') >= 0;
+
+    return (
+        <li>
+            <div className="result-item">
+                <div className="result-item__data">
+                    <PickerActions {...props} />
                     <div className="pull-right search-meta">
                         <p className="type meta-title">{haveSeries ? 'Series' : (haveFileSet ? 'FileSet' : 'Dataset')}</p>
                         <p className="type">{` ${result.accession}`}</p>
                         <Status item={result.status} badgeSize="small" css="result-table__status" />
-                        {this.props.auditIndicators(result.audit, result['@id'], { session: this.context.session, search: true })}
+                        {props.auditIndicators(result.audit, result['@id'], { session: reactContext.session, search: true })}
                     </div>
                     <div className="accession">
                         <a href={result['@id']}>
@@ -453,17 +452,26 @@ class DatasetComponent extends React.Component {
                         <div><strong>Project: </strong>{result.award.project}</div>
                     </div>
                 </div>
-                {this.props.auditDetail(result.audit, result['@id'], { session: this.context.session, except: result['@id'], forcedEditLink: true })}
-            </li>
-        );
-    }
-}
-/* eslint-enable react/prefer-stateless-function */
+                {activeCart ?
+                    <div className="result-item__cart-control">
+                        <CartToggle current={result} />
+                    </div>
+                : null}
+            </div>
+            {props.auditDetail(result.audit, result['@id'], { session: reactContext.session, except: result['@id'], forcedEditLink: true })}
+        </li>
+    );
+};
 
 DatasetComponent.propTypes = {
     context: PropTypes.object.isRequired, // Dataset search results
+    activeCart: PropTypes.bool, // True if displayed in active cart
     auditIndicators: PropTypes.func.isRequired, // Audit decorator function
     auditDetail: PropTypes.func.isRequired, // Audit decorator function
+};
+
+DatasetComponent.defaultProps = {
+    activeCart: false,
 };
 
 DatasetComponent.contextTypes = {

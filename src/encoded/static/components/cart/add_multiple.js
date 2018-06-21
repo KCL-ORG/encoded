@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { addMultipleToCart } from './actions';
-import { filterAllowedItems } from './util';
+import filterAllowedItems from './util';
 
 
 const CartAddAllComponent = ({ cart, items, preFiltered, onClick }) => {

@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _ from 'underscore';
-import { Panel, PanelBody, PanelFooter } from '../../libs/bootstrap/panel';
+import { Panel, PanelBody, PanelFooter, TabPanel, TabPanelPane } from '../../libs/bootstrap/panel';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch } from '../objectutils';
 import { ResultTableList } from '../search';
@@ -25,6 +25,19 @@ CartSearchResults.defaultProps = {
 };
 
 
+const FileSearchResults = ({ results }) => (
+    <ResultTableList results={results['@graph']} columns={results.columns} />
+);
+
+FileSearchResults.propTypes = {
+    results: PropTypes.object, // Array of cart item objects from search
+};
+
+FileSearchResults.defaultProps = {
+    results: {},
+};
+
+
 // Renders the cart search results page. Display either:
 // 1. Shared cart (/carts/<uuid>) containing a user's saved items
 // 2. Active cart (/cart-view/) containing saved and in-memory items
@@ -33,6 +46,7 @@ class CartComponent extends React.Component {
         super();
         this.state = {
             cartSearchResults: {}, // Receives cart search result object
+            cartFileResults: {}, // All files in all carted datasets
             searchInProgress: false, // True if a search request is in progress
         };
         this.retrieveCartContents = this.retrieveCartContents.bind(this);
@@ -132,6 +146,26 @@ class CartComponent extends React.Component {
                     cartSearchResults: searchResults,
                     searchInProgress: false,
                 });
+
+                // Gather all the files in all the returned datasets and do a search on them.
+                if (searchResults['@graph'] && searchResults['@graph'].length > 0) {
+                    const allDatasetFiles = [];
+                    searchResults['@graph'].forEach((dataset) => {
+                        if (dataset.files && dataset.files.length > 0) {
+                            allDatasetFiles.push(...dataset.files.map(file => file['@id']));
+                        }
+                    });
+                    if (allDatasetFiles.length > 0) {
+                        const fileQueryString = allDatasetFiles.map(file => `${encodedURIComponent('@id')}=${encodedURIComponent(file)}`).join('&');
+                        return requestSearch(`type=File&${fileQueryString}`);
+                    }
+                }
+                return Promise.resolve(null);
+            }).then((fileResults) => {
+                if (fileResults && fileResults['@graph'] && fileResults['@graph'].length > 0) {
+                    this.setState({ cartFileResults: fileResults });
+                }
+                return Promise.resolve(fileResults);
             });
         } else {
             // Render an empty cart.
@@ -163,21 +197,36 @@ class CartComponent extends React.Component {
                         <h2>Cart</h2>
                     </div>
                 </header>
-                <Panel>
-                    <PanelBody addClasses="cart__result-table">
-                        {this.state.searchInProgress ?
-                            <div className="communicating">
-                                <div className="loading-spinner" />
-                            </div>
-                        : null}
-                        {searchResults.length > 0 ?
-                            <CartSearchResults results={cartSearchResults} activeCart={activeCart} />
-                        :
-                            <p className="cart__empty-message">
-                                Empty cart
-                            </p>
-                        }
-                    </PanelBody>
+                <Panel addClasses="cart__result-table">
+                    {this.state.searchInProgress ?
+                        <div className="communicating">
+                            <div className="loading-spinner" />
+                        </div>
+                    : null}
+                    <TabPanel tabs={{ datasets: 'Datasets', files: 'Files '}}>
+                        <TabPanelPane key="datasets">
+                            <PanelBody>
+                                {searchResults.length > 0 ?
+                                    <CartSearchResults results={cartSearchResults} activeCart={activeCart} />
+                                :
+                                    <p className="cart__empty-message">
+                                        Empty cart
+                                    </p>
+                                }
+                            </PanelBody>
+                        </TabPanelPane>
+                        <TabPanelPane key="files">
+                            <PanelBody>
+                                {this.state.cartFileResults['@graph'] && this.state.cartFileResults['@graph'].length > 0 ?
+                                    <FileSearchResults results={this.state.cartFileResults} />
+                                :
+                                    <p className="cart__empty-message">
+                                        Empty cart
+                                    </p>
+                                }
+                            </PanelBody>
+                        </TabPanelPane>
+                    </TabPanel>
                     {missingItems.length > 0 ?
                         <PanelFooter addClasses="cart__missing-items">
                             <p>The following items in this cart cannot be viewed with your viewing group:</p>

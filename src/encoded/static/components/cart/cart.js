@@ -45,7 +45,7 @@ class CartComponent extends React.Component {
     constructor() {
         super();
         this.state = {
-            cartSearchResults: {}, // Receives cart search result object
+            cartSearchResults: {}, // Cart dataset search result object
             cartFileResults: {}, // All files in all carted datasets
             searchInProgress: false, // True if a search request is in progress
         };
@@ -73,12 +73,21 @@ class CartComponent extends React.Component {
 
         // Rerender if the in-memory, shared, or saved cart lengths have changed.
         const nextSharedCart = nextProps.context.items || [];
-        const currentSharedCart = this.props.context.items || [];
+        const currSharedCart = this.props.context.items || [];
         const nextSavedCartItems = (nextProps.savedCartObj && nextProps.savedCartObj.items) || [];
         const currSavedCartItems = (this.props.savedCartObj && this.props.savedCartObj.items) || [];
         if ((nextProps.cart.length !== this.props.cart.length) ||
-            (nextSharedCart.length !== currentSharedCart.length) ||
+            (nextSharedCart.length !== currSharedCart.length) ||
             (nextSavedCartItems.length !== currSavedCartItems.length)) {
+            return true;
+        }
+
+        // Rerender if the carted dataset files lists have changed.
+        const nextFilesResults = nextState.cartFileResults['@graph'] || [];
+        const currFilesResults = this.state.cartFileResults['@graph'] || [];
+        const nextFiles = nextFilesResults.map(result => result['@id']);
+        const currFiles = currFilesResults.map(result => result['@id']);
+        if (nextFiles.length !== currFiles.length || !_.isEqual(nextFiles, currFiles)) {
             return true;
         }
 
@@ -99,7 +108,7 @@ class CartComponent extends React.Component {
 
         // Redraw if the in-memory, shared, or saved cart contents have changed.
         if (!_.isEqual(nextProps.cart, this.props.cart) ||
-            !_.isEqual(nextSharedCart, currentSharedCart)) {
+            !_.isEqual(nextSharedCart, currSharedCart)) {
             return true;
         }
 
@@ -221,7 +230,7 @@ class CartComponent extends React.Component {
                                     <FileSearchResults results={this.state.cartFileResults} />
                                 :
                                     <p className="cart__empty-message">
-                                        Empty cart
+                                        No relevant files
                                     </p>
                                 }
                             </PanelBody>

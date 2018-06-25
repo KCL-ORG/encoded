@@ -8,7 +8,7 @@ import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import initializeCart, { cartAddItems, cartCacheSaved, cartObserveChanges } from './cart';
+import initializeCart, { cartAddItems, cartCacheSaved, cartSave, cartObserveChanges } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import { requestSearch } from './objectutils';
@@ -562,22 +562,30 @@ class App extends React.Component {
         });
     }
 
-    // Retrieve the cart contents as a list of item @ids for the current logged-in user and initialize
-    // the active cart with this list.
+    // Retrieve the cart contents for the current logged-in user and add them to the in-memory cart.
     initializeCartFromSessionProperties(sessionProperties) {
-        // Have any modifications to the cart trigger a call to save the change to the database.
-        cartObserveChanges(this.cartStore, sessionProperties.user, this.fetch);
-
-        // If the newly logged-in user has a saved cart, update the in-memory cart with its
-        // contents.
-        return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((savedCartObj) => {
-            // For now just use the first cart in @graph until we support multiple carts per user.
-            const savedCart = savedCartObj['@graph'] && savedCartObj['@graph'].length ? savedCartObj['@graph'][0].items : [];
-            const currState = this.cartStore.getState();
-            if (!_.isEqual(currState.cart, savedCart)) {
-                // Saved cart and in-memory cart contents are different, so sync them up in memory.
+        // Get the newly logged-in user's saved cart, if any.
+        return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((savedCartResults) => {
+            // For now just use the first cart in the cart search results until we support multiple
+            // carts per user.
+            const savedCartObj = (savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'][0] : null;
+            const savedCart = (savedCartObj && savedCartObj.items) || [];
+            let memoryCart = this.cartStore.getState().cart;
+            if (memoryCart.length !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {
+                // The in-memory cart has different contents from saved cart. Add saved cart items
+                // to in-memory cart.
                 cartAddItems(savedCart, this.cartStore.dispatch);
+
+                // Save the updated in-memory cart.
+                memoryCart = this.cartStore.getState().cart;
+                return cartSave(memoryCart, savedCartObj, sessionProperties.user, this.fetch).then((updatedSavedCartObj) => {
+                    cartCacheSaved(updatedSavedCartObj, this.cartStore.dispatch);
+                });
             }
+
+            return Promise.resolve(savedCartObj);
+        }).then((savedCartObj) => {
+            cartObserveChanges(this.cartStore, savedCartObj, sessionProperties.user, this.fetch);
             return Promise.resolve(savedCartObj);
         });
     }

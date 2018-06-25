@@ -203,7 +203,7 @@ class CartComponent extends React.Component {
                             <div className="loading-spinner" />
                         </div>
                     : null}
-                    <TabPanel tabs={{ datasets: 'Datasets', files: 'Files '}}>
+                    <TabPanel tabs={{ datasets: 'Datasets', files: 'Files ' }}>
                         <TabPanelPane key="datasets">
                             <PanelBody>
                                 {searchResults.length > 0 ?

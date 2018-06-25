@@ -88,14 +88,16 @@ const createCartObject = (cart, user, fetch) => {
 
 
 /**
- * Save the in-memory cart to the database.
+ * Save the in-memory cart to the database. The user object has the @id of the user's cart, but not
+ * the cart object itself which must be provided in `savedCartObj`.
  *
  * @param {array} cart - Array of @ids contained with the in-memory cart to be saved
- * @param {string} cartAtId - @id of the cart to update
+ * @param {object} savedCartObj - User's saved cart object
+ * @param {user} user - User object normally retrieved from session_properties
  * @param {func} fetch - System fetch function; usually from <App> context
  */
-export const saveCart = (cart, savedCartObj, user, fetch) => {
-    const cartAtId = (savedCartObj && savedCartObj.items && savedCartObj.items.length > 0) ? savedCartObj['@id'] : null;
+export const cartSave = (cart, savedCartObj, user, fetch) => {
+    const cartAtId = savedCartObj && savedCartObj['@id'];
     if (cartAtId) {
         return getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
@@ -151,7 +153,7 @@ const mapStateToProps = (state, ownProps) => ({
 const mapDispatchToProps = dispatch => (
     {
         onSaveCartClick: (cart, savedCartObj, user, fetch) => (
-            saveCart(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+            cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
             })
         ),

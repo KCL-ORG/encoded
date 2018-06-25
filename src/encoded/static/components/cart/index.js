@@ -25,7 +25,7 @@ import cartCacheSaved from './cache_saved';
 import CartControl, { cartAddItems } from './control';
 import CartOverlay from './overlay';
 import CartRemoveAll from './remove_multiple';
-import { saveCart } from './save';
+import { cartSave } from './save';
 import CartSearchControls from './search_controls';
 import CartShare from './share';
 import CartStatus from './status';
@@ -82,8 +82,8 @@ const cartModule = (state = {}, action = {}) => {
 // This mechanism for tracking the current and next state of the store is highly reliant on a
 // closure, but this is the mechanism recommended by Dan Abramov for exactly this situation.
 // https://github.com/reduxjs/redux/issues/303#issuecomment-125184409
-const cartObserveChanges = (store, user, fetch) => {
-    let currState = {};
+const cartObserveChanges = (store, savedCartObj, user, fetch) => {
+    let currState = { savedCartObj };
 
     const handleChange = () => {
         const nextState = store.getState();
@@ -91,7 +91,7 @@ const cartObserveChanges = (store, user, fetch) => {
         const currCart = currState.cart || [];
         if (nextCart.length !== currCart.length || !_.isEqual(nextCart, currCart)) {
             currState = Object.assign({}, nextState);
-            saveCart(currState.cart, currState.savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+            cartSave(currState.cart, currState.savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, store.dispatch);
             });
         }
@@ -124,6 +124,7 @@ export {
     CartShare,
     CartOverlay,
     cartObserveChanges,
+    cartSave,
     cartModule, // Exported for Jest tests
     initializeCart as default,
 };

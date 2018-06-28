@@ -571,22 +571,26 @@ class App extends React.Component {
             const savedCartObj = (savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'][0] : null;
             const savedCart = (savedCartObj && savedCartObj.items) || [];
             let memoryCart = this.cartStore.getState().cart;
-            if (memoryCart.length !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {
+            const memoryCartLength = memoryCart.length;
+            if (memoryCartLength !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {
                 // The in-memory cart has different contents from saved cart. Add saved cart items
                 // to in-memory cart.
                 cartAddItems(savedCart, this.cartStore.dispatch);
 
-                // Save the updated in-memory cart.
-                memoryCart = this.cartStore.getState().cart;
-                return cartSave(memoryCart, savedCartObj, sessionProperties.user, this.fetch).then((updatedSavedCartObj) => {
-                    cartCacheSaved(updatedSavedCartObj, this.cartStore.dispatch);
-                });
+                // Save the updated in-memory cart if it had something in it before we loaded the
+                // saved cart.
+                if (memoryCartLength > 0) {
+                    memoryCart = this.cartStore.getState().cart;
+                    return cartSave(memoryCart, savedCartObj, sessionProperties.user, this.fetch).then((updatedSavedCartObj) => {
+                        cartCacheSaved(updatedSavedCartObj, this.cartStore.dispatch);
+                    });
+                }
             }
 
-            return Promise.resolve(savedCartObj);
+            return savedCartObj;
         }).then((savedCartObj) => {
             cartObserveChanges(this.cartStore, savedCartObj, sessionProperties.user, this.fetch);
-            return Promise.resolve(savedCartObj);
+            return savedCartObj;
         });
     }
 

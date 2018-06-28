@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import _ from 'underscore';
 import { Panel, PanelBody, PanelFooter, TabPanel, TabPanelPane } from '../../libs/bootstrap/panel';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
-import { requestSearch } from '../objectutils';
+import { requestSearch, requestObjects } from '../objectutils';
 import { ResultTableList } from '../search';
 
 
@@ -26,11 +26,11 @@ CartSearchResults.defaultProps = {
 
 
 const FileSearchResults = ({ results }) => (
-    <ResultTableList results={results['@graph']} columns={results.columns} />
+    <ResultTableList results={results} />
 );
 
 FileSearchResults.propTypes = {
-    results: PropTypes.object, // Array of cart item objects from search
+    results: PropTypes.array, // Array of cart item objects from search
 };
 
 FileSearchResults.defaultProps = {
@@ -46,7 +46,7 @@ class CartComponent extends React.Component {
         super();
         this.state = {
             cartSearchResults: {}, // Cart dataset search result object
-            cartFileResults: {}, // All files in all carted datasets
+            cartFileResults: [], // All files in all carted datasets
             searchInProgress: false, // True if a search request is in progress
         };
         this.retrieveCartContents = this.retrieveCartContents.bind(this);
@@ -83,8 +83,8 @@ class CartComponent extends React.Component {
         }
 
         // Rerender if the carted dataset files lists have changed.
-        const nextFilesResults = nextState.cartFileResults['@graph'] || [];
-        const currFilesResults = this.state.cartFileResults['@graph'] || [];
+        const nextFilesResults = nextState.cartFileResults || [];
+        const currFilesResults = this.state.cartFileResults || [];
         const nextFiles = nextFilesResults.map(result => result['@id']);
         const currFiles = currFilesResults.map(result => result['@id']);
         if (nextFiles.length !== currFiles.length || !_.isEqual(nextFiles, currFiles)) {
@@ -130,6 +130,7 @@ class CartComponent extends React.Component {
         // Get search results for cart contents so it can be displayed as search results.
         const { context, cart, savedCartObj } = this.props;
         let cartItems = [];
+        let datasetResults = {};
 
         // Shared and active carts displayed slightly differently.
         const activeCart = context['@type'][0] === 'cart-view';
@@ -149,32 +150,25 @@ class CartComponent extends React.Component {
             const cartQueryString = cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
             this.setState({ searchInProgress: true });
             requestSearch(cartQueryString).then((searchResults) => {
-                // We can get no search results, in which case `searchResults` is the empty object
-                // which causes an empty cart render.
-                this.setState({
-                    cartSearchResults: searchResults,
-                    searchInProgress: false,
-                });
+                datasetResults = searchResults;
 
                 // Gather all the files in all the returned datasets and do a search on them.
-                if (searchResults['@graph'] && searchResults['@graph'].length > 0) {
+                if (datasetResults['@graph'] && datasetResults['@graph'].length > 0) {
                     const allDatasetFiles = [];
-                    searchResults['@graph'].forEach((dataset) => {
+                    datasetResults['@graph'].forEach((dataset) => {
                         if (dataset.files && dataset.files.length > 0) {
                             allDatasetFiles.push(...dataset.files.map(file => file['@id']));
                         }
                     });
                     if (allDatasetFiles.length > 0) {
-                        const fileQueryString = allDatasetFiles.map(file => `${encodedURIComponent('@id')}=${encodedURIComponent(file)}`).join('&');
-                        return requestSearch(`type=File&${fileQueryString}`);
+                        return requestObjects(allDatasetFiles, '/search/?type=File');
                     }
                 }
-                return Promise.resolve(null);
+                return null;
             }).then((fileResults) => {
-                if (fileResults && fileResults['@graph'] && fileResults['@graph'].length > 0) {
-                    this.setState({ cartFileResults: fileResults });
-                }
-                return Promise.resolve(fileResults);
+                // All files in all datasets retrieved as array of file @ids in `fileResults`.
+                this.setState({ cartSearchResults: datasetResults, cartFileResults: fileResults || [], searchInProgress: false });
+                return fileResults;
             });
         } else {
             // Render an empty cart.
@@ -226,7 +220,7 @@ class CartComponent extends React.Component {
                         </TabPanelPane>
                         <TabPanelPane key="files">
                             <PanelBody>
-                                {this.state.cartFileResults['@graph'] && this.state.cartFileResults['@graph'].length > 0 ?
+                                {this.state.cartFileResults && this.state.cartFileResults.length > 0 ?
                                     <FileSearchResults results={this.state.cartFileResults} />
                                 :
                                     <p className="cart__empty-message">

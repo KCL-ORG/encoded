@@ -1357,12 +1357,13 @@ export const ResultTableList = ({ results, columns, tabbed, activeCart }) => (
 
 ResultTableList.propTypes = {
     results: PropTypes.array.isRequired, // Array of search results to display
-    columns: PropTypes.object.isRequired, // Columns from search results
+    columns: PropTypes.object, // Columns from search results
     tabbed: PropTypes.bool, // True if table is in a tab
     activeCart: PropTypes.bool, // True if items displayed in active cart
 };
 
 ResultTableList.defaultProps = {
+    columns: null,
     tabbed: false,
     activeCart: false,
 };

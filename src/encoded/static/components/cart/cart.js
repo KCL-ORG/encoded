@@ -25,41 +25,108 @@ CartSearchResults.defaultProps = {
 };
 
 
-const FileSearchFacet = ({ files }) => {
-    const filesByFormat = _.groupBy(files, 'file_format');
-    const totalTermCount = Object.keys(filesByFormat).reduce((runningTotal, fileFormat) => runningTotal + filesByFormat[fileFormat].length, 0);
-    return (
-        <div className="cart-files__facet box facets">
-            <div className="facet">
-                <h5>File format</h5>
-                <ul className="facet-list nav">
-                    {Object.keys(filesByFormat).map((fileFormat) => {
-                        const termCount = filesByFormat[fileFormat].length;
-                        const barStyle = {
-                            width: `${Math.ceil((termCount / totalTermCount) * 100)}%`,
-                        };
-                        return (
-                            <div key={fileFormat}>
-                                <li className="facet-term">
-                                    <button>
-                                        <div className="facet-term__item">
-                                            <div className="facet-term__text"><span>{fileFormat}</span></div>
-                                            <div className="facet-term__count">{termCount}</div>
-                                        </div>
-                                    </button>
-                                    <div className="facet-term__negator">
-                                        <button><i className="icon icon-minus-circle" /></button>
-                                    </div>
-                                    <div className="facet-term__bar" style={barStyle} />
-                                </li>
-                            </div>
-                        );
-                    })}
-                </ul>
-            </div>
-        </div>
-    );
+class FileSearchButton extends React.Component {
+    constructor() {
+        super();
+        this.handleInclusionClick = this.handleInclusionClick.bind(this);
+        this.handleExclusionClick = this.handleExclusionClick.bind(this);
+    }
+
+    handleInclusionClick() {
+        this.props.inclusionClickHandler(this.props.fileFormat);
+    }
+
+    handleExclusionClick() {
+        this.props.exclusionClickHandler(this.props.fileFormat);
+    }
+
+    render() {
+        const { fileFormat, termCount, totalTermCount } = this.props;
+        const barStyle = {
+            width: `${Math.ceil((termCount / totalTermCount) * 100)}%`,
+        };
+        return (
+            <li className="facet-term">
+                <button onClick={this.handleInclusionClick}>
+                    <div className="facet-term__item">
+                        <div className="facet-term__text"><span>{fileFormat}</span></div>
+                        <div className="facet-term__count">{termCount}</div>
+                    </div>
+                </button>
+                <div className="facet-term__negator">
+                    <button onClick={this.handleExclusionClick}><i className="icon icon-minus-circle" /></button>
+                </div>
+                <div className="facet-term__bar" style={barStyle} />
+            </li>
+        );
+    }
+}
+
+FileSearchButton.propTypes = {
+    fileFormat: PropTypes.string.isRequired, // File format this button displays
+    termCount: PropTypes.number.isRequired, // Number of files matching this item's format
+    totalTermCount: PropTypes.number.isRequired, // Total number of files in the item's facet
+    inclusionClickHandler: PropTypes.func.isRequired, // Callback for handling clicks in a file format button
+    exclusionClickHandler: PropTypes.func.isRequired, // Callback for handling clicks in the file format negator button
 };
+
+
+class FileSearchFacet extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            includedFileFormats: [],
+            excludedFileFormats: [],
+        };
+        this.handleInclusionClick = this.handleInclusionClick.bind(this);
+        this.handleExclusionClick = this.handleExclusionClick.bind(this);
+    }
+
+    handleInclusionClick(fileFormat) {
+        if (this.state.includedFileFormats.indexOf(fileFormat) === -1) {
+            this.setState(prevState => ({
+                includedFileFormats: [...prevState.includedFileFormats, fileFormat],
+            }));
+        }
+    }
+
+    handleExclusionClick(fileFormat) {
+        if (this.state.excludedFileFormats.indexOf(fileFormat) === -1) {
+            this.setState(prevState => ({
+                excludedFileFormats: [...prevState.excludedFileFormats, fileFormat],
+            }));
+        }
+    }
+
+    render() {
+        const { files } = this.props;
+        const filesByFormat = _.groupBy(files, 'file_format');
+        const totalTermCount = Object.keys(filesByFormat).reduce((runningTotal, fileFormat) => runningTotal + filesByFormat[fileFormat].length, 0);
+        return (
+            <div className="cart-files__facet box facets">
+                <div className="facet">
+                    <h5>File format</h5>
+                    <ul className="facet-list nav">
+                        {Object.keys(filesByFormat).map((fileFormat) => {
+                            const termCount = filesByFormat[fileFormat].length;
+                            return (
+                                <div key={fileFormat}>
+                                    <FileSearchButton
+                                        fileFormat={fileFormat}
+                                        termCount={termCount}
+                                        totalTermCount={totalTermCount}
+                                        inclusionClickHandler={this.handleInclusionClick}
+                                        exclusionClickHandler={this.handleExclusionClick}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </ul>
+                </div>
+            </div>
+        );
+    }
+}
 
 FileSearchFacet.propTypes = {
     files: PropTypes.array.isRequired, // Array of files whose facets we display

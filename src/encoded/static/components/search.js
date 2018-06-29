@@ -772,7 +772,7 @@ class Facet extends React.Component {
         const moreTermSelected = selectedTermCount > 0;
         const canDeselect = (!facet.restrictions || selectedTermCount >= 2);
         const moreSecClass = `collapse${(moreTermSelected || this.state.facetOpen) ? ' in' : ''}`;
-        const seeMoreClass = `btn btn-link${(moreTermSelected || this.state.facetOpen) ? '' : ' collapsed'}`;
+        const seeMoreClass = `btn btn-link facet-list__expander${(moreTermSelected || this.state.facetOpen) ? '' : ' collapsed'}`;
         const statusFacet = field === 'status' || field === 'lot_reviews.status';
 
         // Audit facet titles get mapped to a corresponding icon.

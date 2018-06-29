@@ -172,3 +172,33 @@
     padding-top: 8px;
     padding-bottom: 8px;
 }
+
+
+// Search-result-like file facet and results display.
+.cart-files {
+    display: flex;
+
+    @at-root #{&}__facet {
+        flex: 1 1 auto;
+        position: relative;
+        margin-right: 20px;
+        z-index: 0;
+    }
+
+    // <button> specific to cart file facets
+    button {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: none;
+        background-color: transparent;
+    }
+
+    .facet-term__item {
+        display: flex;
+    }
+
+    @at-root #{&}__result-table {
+        flex: 0 1 75%;
+    }
+}

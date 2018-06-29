@@ -194,20 +194,20 @@
     max-width: 200px;
 }
 
-.facet-list button {
+.facet-list__expander {
     padding: 0;
-}
 
-.facet-list button.btn.collapsed:before {
-    content:'+ See more...' ;
-    text-decoration: none;
-    font-size: 0.85rem;
-}
+    &.collapsed:before {
+        content:'+ See more...' ;
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
 
-.facet-list button.btn:before {
-    content:'- See fewer';
-    text-decoration: none;
-    font-size: 0.85rem;
+    &:before {
+        content:'- See fewer';
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
 }
 
 .facet-list label {

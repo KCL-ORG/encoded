@@ -25,8 +25,54 @@ CartSearchResults.defaultProps = {
 };
 
 
+const FileSearchFacet = ({ files }) => {
+    const filesByFormat = _.groupBy(files, 'file_format');
+    const totalTermCount = Object.keys(filesByFormat).reduce((runningTotal, fileFormat) => runningTotal + filesByFormat[fileFormat].length, 0);
+    return (
+        <div className="cart-files__facet box facets">
+            <div className="facet">
+                <h5>File format</h5>
+                <ul className="facet-list nav">
+                    {Object.keys(filesByFormat).map((fileFormat) => {
+                        const termCount = filesByFormat[fileFormat].length;
+                        const barStyle = {
+                            width: `${Math.ceil((termCount / totalTermCount) * 100)}%`,
+                        };
+                        return (
+                            <div key={fileFormat}>
+                                <li className="facet-term">
+                                    <button>
+                                        <div className="facet-term__item">
+                                            <div className="facet-term__text"><span>{fileFormat}</span></div>
+                                            <div className="facet-term__count">{termCount}</div>
+                                        </div>
+                                    </button>
+                                    <div className="facet-term__negator">
+                                        <button><i className="icon icon-minus-circle" /></button>
+                                    </div>
+                                    <div className="facet-term__bar" style={barStyle} />
+                                </li>
+                            </div>
+                        );
+                    })}
+                </ul>
+            </div>
+        </div>
+    );
+};
+
+FileSearchFacet.propTypes = {
+    files: PropTypes.array.isRequired, // Array of files whose facets we display
+};
+
+
 const FileSearchResults = ({ results }) => (
-    <ResultTableList results={results} />
+    <div className="cart-files">
+        <FileSearchFacet files={results} />
+        <div className="cart-files__result-table">
+            <ResultTableList results={results} />
+        </div>
+    </div>
 );
 
 FileSearchResults.propTypes = {
@@ -57,6 +103,8 @@ class CartComponent extends React.Component {
         this.retrieveCartContents();
     }
 
+    // Because updates can cause us to need a GET request, we have to be very careful to rerender
+    // when we really need to.
     shouldComponentUpdate(nextProps, nextState) {
         // If the spinner should be shown or hidden, force a rerender.
         if (this.state.searchInProgress !== nextState.searchInProgress) {
@@ -127,20 +175,17 @@ class CartComponent extends React.Component {
     }
 
     retrieveCartContents() {
-        // Get search results for cart contents so it can be displayed as search results.
-        const { context, cart, savedCartObj } = this.props;
+        // Perform search for cart contents so it can be displayed as search results.
+        const { context, cart } = this.props;
         let cartItems = [];
         let datasetResults = {};
 
-        // Shared and active carts displayed slightly differently.
-        const activeCart = context['@type'][0] === 'cart-view';
-
-        // Retrieve active or shared cart item @ids and build a search query string out of them.
-        if (activeCart) {
-            // Combine in-memory and saved carts to show the active cart.
-            cartItems = _.uniq(cart.concat((savedCartObj && savedCartObj.items) || []));
+        // Retrieve active or shared cart item @ids.
+        if (context['@type'][0] === 'cart-view') {
+            // Show in-memory cart for active cart display.
+            cartItems = cart;
         } else {
-            // Just show the saved cart contents for the shared cart.
+            // Show the cart object contents for the shared cart.
             cartItems = context.items || [];
         }
 
@@ -172,7 +217,7 @@ class CartComponent extends React.Component {
             });
         } else {
             // Render an empty cart.
-            this.setState({ cartSearchResults: {} });
+            this.setState({ cartSearchResults: {}, cartFileResults: [], searchInProgress: false });
         }
     }
 

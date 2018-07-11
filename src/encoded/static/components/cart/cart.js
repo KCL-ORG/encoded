@@ -29,15 +29,10 @@ class FileSearchButton extends React.Component {
     constructor() {
         super();
         this.handleInclusionClick = this.handleInclusionClick.bind(this);
-        this.handleExclusionClick = this.handleExclusionClick.bind(this);
     }
 
     handleInclusionClick() {
         this.props.inclusionClickHandler(this.props.fileFormat);
-    }
-
-    handleExclusionClick() {
-        this.props.exclusionClickHandler(this.props.fileFormat);
     }
 
     render() {
@@ -53,9 +48,6 @@ class FileSearchButton extends React.Component {
                         <div className="facet-term__count">{termCount}</div>
                     </div>
                 </button>
-                <div className="facet-term__negator">
-                    <button onClick={this.handleExclusionClick}><i className="icon icon-minus-circle" /></button>
-                </div>
                 <div className="facet-term__bar" style={barStyle} />
             </li>
         );
@@ -67,7 +59,6 @@ FileSearchButton.propTypes = {
     termCount: PropTypes.number.isRequired, // Number of files matching this item's format
     totalTermCount: PropTypes.number.isRequired, // Total number of files in the item's facet
     inclusionClickHandler: PropTypes.func.isRequired, // Callback for handling clicks in a file format button
-    exclusionClickHandler: PropTypes.func.isRequired, // Callback for handling clicks in the file format negator button
 };
 
 
@@ -76,10 +67,8 @@ class FileSearchFacet extends React.Component {
         super();
         this.state = {
             includedFileFormats: [],
-            excludedFileFormats: [],
         };
         this.handleInclusionClick = this.handleInclusionClick.bind(this);
-        this.handleExclusionClick = this.handleExclusionClick.bind(this);
     }
 
     handleInclusionClick(fileFormat) {
@@ -90,24 +79,26 @@ class FileSearchFacet extends React.Component {
         }
     }
 
-    handleExclusionClick(fileFormat) {
-        if (this.state.excludedFileFormats.indexOf(fileFormat) === -1) {
-            this.setState(prevState => ({
-                excludedFileFormats: [...prevState.excludedFileFormats, fileFormat],
-            }));
-        }
-    }
-
     render() {
         const { files } = this.props;
         const filesByFormat = _.groupBy(files, 'file_format');
-        const totalTermCount = Object.keys(filesByFormat).reduce((runningTotal, fileFormat) => runningTotal + filesByFormat[fileFormat].length, 0);
+        const fileFormats = Object.keys(filesByFormat);
+        let filteredFilesByFormat = filesByFormat;
+        let filteredFileFormats = fileFormats;
+        if (this.state.includedFileFormats.length > 0) {
+            filteredFileFormats = fileFormats.filter(fileFormat => this.state.includedFileFormats.indexOf(fileFormat));
+            filteredFilesByFormat = [];
+            filteredFileFormats.forEach((format) => {
+                filteredFilesByFormat[format] = filesByFormat[format];
+            });
+        }
+        const totalTermCount = filteredFileFormats.reduce((runningTotal, fileFormat) => runningTotal + filesByFormat[fileFormat].length, 0);
         return (
             <div className="cart-files__facet box facets">
                 <div className="facet">
                     <h5>File format</h5>
                     <ul className="facet-list nav">
-                        {Object.keys(filesByFormat).map((fileFormat) => {
+                        {fileFormats.map((fileFormat) => {
                             const termCount = filesByFormat[fileFormat].length;
                             return (
                                 <div key={fileFormat}>
@@ -116,7 +107,6 @@ class FileSearchFacet extends React.Component {
                                         termCount={termCount}
                                         totalTermCount={totalTermCount}
                                         inclusionClickHandler={this.handleInclusionClick}
-                                        exclusionClickHandler={this.handleExclusionClick}
                                     />
                                 </div>
                             );
@@ -133,14 +123,43 @@ FileSearchFacet.propTypes = {
 };
 
 
-const FileSearchResults = ({ results }) => (
-    <div className="cart-files">
-        <FileSearchFacet files={results} />
-        <div className="cart-files__result-table">
-            <ResultTableList results={results} />
-        </div>
-    </div>
-);
+class FileSearchResults extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            includedFormats: [], // Files formats selected to be included in results; all formats if empty array
+        };
+        this.handleFormatsChange = this.handleFormatsChange.bind(this);
+    }
+
+    handleFormatsSelect(format) {
+        // The given file format was selected or deselected in the facet.
+        const matchingIndex = this.state.includedFormats.indexOf(format);
+        if (matchingIndex === -1) {
+            // Selected file format not in the list of included formats, so add it.
+            this.setState(prevState => ({
+                includedFileFormats: [...prevState.includedFormats, format],
+            }));
+        } else {
+            // Selected file format is in the list of included formats, so remove it.
+            this.setState(prevState => ({
+                includedFileFormats: [...prevState.includedFormats.slice(0, matchingIndex), ...prevState.includedFormats.slice(matchingIndex + 1)],
+            }));
+        }
+    }
+
+    render() {
+        const { results } = this.props;
+        return (
+            <div className="cart-files">
+                <FileSearchFacet files={results} includedFormats={this.state.includedFormats} />
+                <div className="cart-files__result-table">
+                    <ResultTableList results={results} />
+                </div>
+            </div>
+        );
+    }
+}
 
 FileSearchResults.propTypes = {
     results: PropTypes.array, // Array of cart item objects from search

@@ -675,11 +675,11 @@ const Term = (props) => {
                     {em ? <em>{title}</em> : <span>{title}</span>}
                 </div>
                 {negated ? null : <div className="facet-term__count">{count}</div>}
+                {(selected || negated) ? null : <div className="facet-term__bar" style={barStyle} />}
             </a>
             <div className="facet-term__negator">
                 {(selected || negated || exists) ? null : <a href={negationHref} title={'Do not include items with this term'}><i className="icon icon-minus-circle" /></a>}
             </div>
-            {(selected || negated) ? null : <div className="facet-term__bar" style={barStyle} />}
         </li>
     );
 };

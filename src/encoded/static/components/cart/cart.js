@@ -25,6 +25,7 @@ CartSearchResults.defaultProps = {
 };
 
 
+// Display one item of the File Format facet.
 class FileFormatItem extends React.Component {
     constructor() {
         super();
@@ -42,13 +43,15 @@ class FileFormatItem extends React.Component {
         };
         return (
             <li className={`facet-term${selected ? ' selected' : ''}`}>
-                <button onClick={this.handleFormatSelect}>
+                <button onClick={this.handleFormatSelect} aria-label={`${format} with count ${termCount}`}>
                     <div className="facet-term__item">
                         <div className="facet-term__text"><span>{format}</span></div>
-                        <div className="facet-term__count">{termCount}</div>
+                        <div className="facet-term__count">
+                            {termCount}
+                        </div>
+                        <div className="facet-term__bar" style={barStyle} />
                     </div>
                 </button>
-                <div className="facet-term__bar" style={barStyle} />
             </li>
         );
     }
@@ -67,48 +70,40 @@ FileFormatItem.defaultProps = {
 };
 
 
-class FileFormatFacet extends React.Component {
-    constructor() {
-        super();
-        this.handleFormatSelect = this.handleFormatSelect.bind(this);
-    }
+const FileFormatFacet = ({ files, selectedFormats, formatSelectHandler }) => {
+    // Get and sort by count (with file_format as second sorting key) the file_format of
+    // everything in `files`.
+    const filesByFormat = _.groupBy(files, 'file_format');
+    const formats = Object.keys(filesByFormat).sort((formatA, formatB) => {
+        const aLower = formatA.toLowerCase();
+        const bLower = formatB.toLowerCase();
+        return (aLower > bLower) ? 1 : ((aLower < bLower) ? -1 : 0);
+    }).sort((formatA, formatB) => filesByFormat[formatB].length - filesByFormat[formatA].length);
 
-    handleFormatSelect(format) {
-        this.props.formatSelectHandler(format);
-    }
-
-    render() {
-        const { files, selectedFormats } = this.props;
-
-        // Get and sort by count the file_format of everything in `files`.
-        const filesByFormat = _.groupBy(files, 'file_format');
-        const formats = Object.keys(filesByFormat).sort((formatA, formatB) => filesByFormat[formatB].length - filesByFormat[formatA].length);
-
-        return (
-            <div className="cart-files__facet box facets">
-                <div className="facet">
-                    <h5>File format</h5>
-                    <ul className="facet-list nav">
-                        {formats.map((format) => {
-                            const termCount = filesByFormat[format].length;
-                            return (
-                                <div key={format}>
-                                    <FileFormatItem
-                                        format={format}
-                                        termCount={termCount}
-                                        totalTermCount={files.length}
-                                        selected={selectedFormats.indexOf(format) > -1}
-                                        formatSelectHandler={this.handleFormatSelect}
-                                    />
-                                </div>
-                            );
-                        })}
-                    </ul>
-                </div>
+    return (
+        <div className="cart-files__facet box facets">
+            <div className="facet">
+                <h5>File format</h5>
+                <ul className="facet-list nav">
+                    {formats.map((format) => {
+                        const termCount = filesByFormat[format].length;
+                        return (
+                            <div key={format}>
+                                <FileFormatItem
+                                    format={format}
+                                    termCount={termCount}
+                                    totalTermCount={files.length}
+                                    selected={selectedFormats.indexOf(format) > -1}
+                                    formatSelectHandler={formatSelectHandler}
+                                />
+                            </div>
+                        );
+                    })}
+                </ul>
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 FileFormatFacet.propTypes = {
     files: PropTypes.array.isRequired, // Array of files whose facets we display

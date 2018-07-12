@@ -25,26 +25,26 @@ CartSearchResults.defaultProps = {
 };
 
 
-class FileSearchButton extends React.Component {
+class FileFormatItem extends React.Component {
     constructor() {
         super();
-        this.handleInclusionClick = this.handleInclusionClick.bind(this);
+        this.handleFormatSelect = this.handleFormatSelect.bind(this);
     }
 
-    handleInclusionClick() {
-        this.props.inclusionClickHandler(this.props.fileFormat);
+    handleFormatSelect() {
+        this.props.formatSelectHandler(this.props.format);
     }
 
     render() {
-        const { fileFormat, termCount, totalTermCount } = this.props;
+        const { format, termCount, totalTermCount, selected } = this.props;
         const barStyle = {
             width: `${Math.ceil((termCount / totalTermCount) * 100)}%`,
         };
         return (
-            <li className="facet-term">
-                <button onClick={this.handleInclusionClick}>
+            <li className={`facet-term${selected ? ' selected' : ''}`}>
+                <button onClick={this.handleFormatSelect}>
                     <div className="facet-term__item">
-                        <div className="facet-term__text"><span>{fileFormat}</span></div>
+                        <div className="facet-term__text"><span>{format}</span></div>
                         <div className="facet-term__count">{termCount}</div>
                     </div>
                 </button>
@@ -54,59 +54,51 @@ class FileSearchButton extends React.Component {
     }
 }
 
-FileSearchButton.propTypes = {
-    fileFormat: PropTypes.string.isRequired, // File format this button displays
+FileFormatItem.propTypes = {
+    format: PropTypes.string.isRequired, // File format this button displays
     termCount: PropTypes.number.isRequired, // Number of files matching this item's format
     totalTermCount: PropTypes.number.isRequired, // Total number of files in the item's facet
-    inclusionClickHandler: PropTypes.func.isRequired, // Callback for handling clicks in a file format button
+    selected: PropTypes.bool, // True if this term should appear selected
+    formatSelectHandler: PropTypes.func.isRequired, // Callback for handling clicks in a file format button
+};
+
+FileFormatItem.defaultProps = {
+    selected: false,
 };
 
 
-class FileSearchFacet extends React.Component {
+class FileFormatFacet extends React.Component {
     constructor() {
         super();
-        this.state = {
-            includedFileFormats: [],
-        };
-        this.handleInclusionClick = this.handleInclusionClick.bind(this);
+        this.handleFormatSelect = this.handleFormatSelect.bind(this);
     }
 
-    handleInclusionClick(fileFormat) {
-        if (this.state.includedFileFormats.indexOf(fileFormat) === -1) {
-            this.setState(prevState => ({
-                includedFileFormats: [...prevState.includedFileFormats, fileFormat],
-            }));
-        }
+    handleFormatSelect(format) {
+        this.props.formatSelectHandler(format);
     }
 
     render() {
-        const { files } = this.props;
+        const { files, selectedFormats } = this.props;
+
+        // Get and sort by count the file_format of everything in `files`.
         const filesByFormat = _.groupBy(files, 'file_format');
-        const fileFormats = Object.keys(filesByFormat);
-        let filteredFilesByFormat = filesByFormat;
-        let filteredFileFormats = fileFormats;
-        if (this.state.includedFileFormats.length > 0) {
-            filteredFileFormats = fileFormats.filter(fileFormat => this.state.includedFileFormats.indexOf(fileFormat));
-            filteredFilesByFormat = [];
-            filteredFileFormats.forEach((format) => {
-                filteredFilesByFormat[format] = filesByFormat[format];
-            });
-        }
-        const totalTermCount = filteredFileFormats.reduce((runningTotal, fileFormat) => runningTotal + filesByFormat[fileFormat].length, 0);
+        const formats = Object.keys(filesByFormat).sort((formatA, formatB) => filesByFormat[formatB].length - filesByFormat[formatA].length);
+
         return (
             <div className="cart-files__facet box facets">
                 <div className="facet">
                     <h5>File format</h5>
                     <ul className="facet-list nav">
-                        {fileFormats.map((fileFormat) => {
-                            const termCount = filesByFormat[fileFormat].length;
+                        {formats.map((format) => {
+                            const termCount = filesByFormat[format].length;
                             return (
-                                <div key={fileFormat}>
-                                    <FileSearchButton
-                                        fileFormat={fileFormat}
+                                <div key={format}>
+                                    <FileFormatItem
+                                        format={format}
                                         termCount={termCount}
-                                        totalTermCount={totalTermCount}
-                                        inclusionClickHandler={this.handleInclusionClick}
+                                        totalTermCount={files.length}
+                                        selected={selectedFormats.indexOf(format) > -1}
+                                        formatSelectHandler={this.handleFormatSelect}
                                     />
                                 </div>
                             );
@@ -118,8 +110,14 @@ class FileSearchFacet extends React.Component {
     }
 }
 
-FileSearchFacet.propTypes = {
+FileFormatFacet.propTypes = {
     files: PropTypes.array.isRequired, // Array of files whose facets we display
+    selectedFormats: PropTypes.array, // Array of file formats to include in rendered lists, or [] to render all
+    formatSelectHandler: PropTypes.func.isRequired, // Callback when the user clicks on a file format facet item
+};
+
+FileFormatFacet.defaultProps = {
+    selectedFormats: [],
 };
 
 
@@ -127,34 +125,41 @@ class FileSearchResults extends React.Component {
     constructor() {
         super();
         this.state = {
-            includedFormats: [], // Files formats selected to be included in results; all formats if empty array
+            selectedFormats: [], // Files formats selected to be included in results; all formats if empty array
         };
-        this.handleFormatsChange = this.handleFormatsChange.bind(this);
+        this.handleFormatSelect = this.handleFormatSelect.bind(this);
     }
 
-    handleFormatsSelect(format) {
+    handleFormatSelect(format) {
         // The given file format was selected or deselected in the facet.
-        const matchingIndex = this.state.includedFormats.indexOf(format);
+        const matchingIndex = this.state.selectedFormats.indexOf(format);
         if (matchingIndex === -1) {
             // Selected file format not in the list of included formats, so add it.
             this.setState(prevState => ({
-                includedFileFormats: [...prevState.includedFormats, format],
+                selectedFormats: prevState.selectedFormats.concat([format]),
             }));
         } else {
             // Selected file format is in the list of included formats, so remove it.
             this.setState(prevState => ({
-                includedFileFormats: [...prevState.includedFormats.slice(0, matchingIndex), ...prevState.includedFormats.slice(matchingIndex + 1)],
+                selectedFormats: prevState.selectedFormats.filter(includedFormat => includedFormat !== format),
             }));
         }
     }
 
     render() {
         const { results } = this.props;
+
+        // Filter file results by what's in selectedFormats.
+        let filteredFiles = results;
+        if (this.state.selectedFormats.length) {
+            filteredFiles = results.filter(file => this.state.selectedFormats.indexOf(file.file_format) !== -1);
+        }
+
         return (
             <div className="cart-files">
-                <FileSearchFacet files={results} includedFormats={this.state.includedFormats} />
+                <FileFormatFacet files={results} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
                 <div className="cart-files__result-table">
-                    <ResultTableList results={results} />
+                    <ResultTableList results={filteredFiles} />
                 </div>
             </div>
         );

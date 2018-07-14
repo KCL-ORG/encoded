@@ -183,15 +183,15 @@
         position: relative;
         margin-right: 20px;
         z-index: 0;
-    }
 
-    // <button> specific to cart file facets
-    button {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        border: none;
-        background-color: transparent;
+        // <button> specific to cart file facets
+        button {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            background-color: transparent;
+        }
     }
 
     .facet-term__item {

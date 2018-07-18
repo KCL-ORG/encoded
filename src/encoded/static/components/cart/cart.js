@@ -6,7 +6,7 @@ import _ from 'underscore';
 import { Panel, PanelBody, PanelFooter, TabPanel, TabPanelPane } from '../../libs/bootstrap/panel';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch, requestObjects } from '../objectutils';
-import { ResultTableList } from '../search';
+import { ResultTableList, BatchDownload } from '../search';
 
 
 // Called from <FetcheData> to render search results for all items in the current cart.
@@ -278,7 +278,8 @@ class CartComponent extends React.Component {
         // Perform the search of cart contents if the cart isn't empty, which triggers a rendering
         // of these contents.
         if (cartItems.length > 0) {
-            const cartQueryString = cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&');
+            const experimentTypeQuery = cartItems.every(cartItem => cartItem.match(/^\/experiments\/.*?\/$/) !== null);
+            const cartQueryString = `${experimentTypeQuery ? 'type=Experiment&' : ''}${cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&')}`;
             this.setState({ searchInProgress: true });
             requestSearch(cartQueryString).then((searchResults) => {
                 datasetResults = searchResults;
@@ -324,6 +325,8 @@ class CartComponent extends React.Component {
             }
         }
 
+        const batchDownloadControl = Object.keys(this.state.cartSearchResults).length > 0 ? <BatchDownload context={this.state.cartSearchResults} /> : null;
+
         return (
             <div className={itemClass(context, 'view-item')}>
                 <header className="row">
@@ -337,7 +340,10 @@ class CartComponent extends React.Component {
                             <div className="loading-spinner" />
                         </div>
                     : null}
-                    <TabPanel tabs={{ datasets: 'Datasets', files: 'Files ' }}>
+                    <TabPanel
+                        tabs={{ datasets: 'Datasets', files: 'Files ' }}
+                        decoration={batchDownloadControl}
+                    >
                         <TabPanelPane key="datasets">
                             <PanelBody>
                                 {searchResults.length > 0 ?

@@ -7,6 +7,7 @@ import { Panel, PanelBody, PanelFooter, TabPanel, TabPanelPane } from '../../lib
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch, requestObjects } from '../objectutils';
 import { ResultTableList, BatchDownload } from '../search';
+import CartClear from './clear';
 
 
 // Called from <FetcheData> to render search results for all items in the current cart.
@@ -116,6 +117,7 @@ FileFormatFacet.defaultProps = {
 };
 
 
+// Display pane displaying a list of files.
 class FileSearchResults extends React.Component {
     constructor() {
         super();
@@ -167,6 +169,27 @@ FileSearchResults.propTypes = {
 
 FileSearchResults.defaultProps = {
     results: {},
+};
+
+
+// Display controls in the tab area of the cart view.
+const CartControls = ({ cartSearchResults }) => {
+    const batchDownloadControl = Object.keys(cartSearchResults).length > 0 ? <BatchDownload context={cartSearchResults} /> : null;
+
+    return (
+        <span>
+            {batchDownloadControl}
+            <CartClear />
+        </span>
+    );
+};
+
+CartControls.propTypes = {
+    cartSearchResults: PropTypes.object, // Search result object for current cart contents
+};
+
+CartControls.defaultProps = {
+    cartSearchResults: {},
 };
 
 
@@ -325,8 +348,6 @@ class CartComponent extends React.Component {
             }
         }
 
-        const batchDownloadControl = Object.keys(this.state.cartSearchResults).length > 0 ? <BatchDownload context={this.state.cartSearchResults} /> : null;
-
         return (
             <div className={itemClass(context, 'view-item')}>
                 <header className="row">
@@ -342,7 +363,8 @@ class CartComponent extends React.Component {
                     : null}
                     <TabPanel
                         tabs={{ datasets: 'Datasets', files: 'Files ' }}
-                        decoration={batchDownloadControl}
+                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} />}
+                        decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">
                             <PanelBody>

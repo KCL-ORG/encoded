@@ -22,6 +22,7 @@ import {
 } from './actions';
 import CartAddAll from './add_multiple';
 import cartCacheSaved from './cache_saved';
+import CartClear from './clear';
 import CartControl, { cartAddItems } from './control';
 import CartOverlay from './overlay';
 import CartRemoveAll from './remove_multiple';
@@ -123,6 +124,7 @@ export {
     CartAddAll,
     CartRemoveAll,
     cartCacheSaved,
+    CartClear,
     CartControl,
     CartSearchControls,
     CartStatus,

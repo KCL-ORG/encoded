@@ -8,6 +8,7 @@ import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch, requestObjects } from '../objectutils';
 import { ResultTableList, BatchDownload } from '../search';
 import CartClear from './clear';
+import CartMergeShared from './merge_shared';
 
 
 // Called from <FetcheData> to render search results for all items in the current cart.
@@ -173,12 +174,13 @@ FileSearchResults.defaultProps = {
 
 
 // Display controls in the tab area of the cart view.
-const CartControls = ({ cartSearchResults }) => {
+const CartControls = ({ cartSearchResults, sharedCartItems }) => {
     const batchDownloadControl = Object.keys(cartSearchResults).length > 0 ? <BatchDownload context={cartSearchResults} /> : null;
 
     return (
         <span>
             {batchDownloadControl}
+            <CartMergeShared sharedCartItems={sharedCartItems} />
             <CartClear />
         </span>
     );
@@ -186,10 +188,12 @@ const CartControls = ({ cartSearchResults }) => {
 
 CartControls.propTypes = {
     cartSearchResults: PropTypes.object, // Search result object for current cart contents
+    sharedCartItems: PropTypes.array, // Items in the shared cart, if that's being displayed
 };
 
 CartControls.defaultProps = {
     cartSearchResults: {},
+    sharedCartItems: [],
 };
 
 
@@ -363,7 +367,7 @@ class CartComponent extends React.Component {
                     : null}
                     <TabPanel
                         tabs={{ datasets: 'Datasets', files: 'Files ' }}
-                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} />}
+                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} sharedCartItems={context.items} />}
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">

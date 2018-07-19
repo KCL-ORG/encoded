@@ -576,6 +576,7 @@ class App extends React.Component {
                 // The in-memory cart has different contents from saved cart. Add saved cart items
                 // to in-memory cart.
                 cartAddItems(savedCart, this.cartStore.dispatch);
+                cartCacheSaved(savedCartObj, this.cartStore.dispatch);
 
                 // Save the updated in-memory cart if it had something in it before we loaded the
                 // saved cart.

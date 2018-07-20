@@ -26,7 +26,8 @@ class CartClearComponent extends React.Component {
                     </ModalBody>
                     <ModalFooter
                         closeModal={<button className="btn btn-info">Close</button>}
-                        submitBtn={<button className="btn btn-info" onClick={this.handleClick}>Clear cart</button>}
+                        submitBtn={this.handleClick}
+                        submitTitle="Clear cart"
                     />
                 </Modal>
             );

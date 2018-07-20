@@ -92,7 +92,7 @@ const cartModule = (state = {}, action = {}) => {
  * @param {func} fetch - fetch() from <App>
  */
 const cartObserveChanges = (store, savedCartObj, user, fetch) => {
-    let currState = { savedCartObj };
+    let currState = {};
 
     const handleChange = () => {
         const nextState = store.getState();

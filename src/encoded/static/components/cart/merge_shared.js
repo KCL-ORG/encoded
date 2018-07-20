@@ -12,22 +12,23 @@ class CartMergeSharedComponent extends React.Component {
     }
 
     handleClick() {
-        this.props.onMergeCartClick(this.props.sharedCartItems);
+        this.props.onMergeCartClick(this.props.sharedCartObj.items);
     }
 
     render() {
-        const { sharedCartItems } = this.props;
+        const { sharedCartObj, savedCartObj } = this.props;
 
-        if (sharedCartItems.length > 0) {
+        if (sharedCartObj.items && (sharedCartObj.items.length > 0 && sharedCartObj['@id'] !== savedCartObj['@id'])) {
             return (
                 <Modal actuator={<button className="btn btn-info btn-sm">Add to my cart</button>}>
-                    <ModalHeader title="Clear entire cart contents" closeModal />
+                    <ModalHeader title="Add shared cart items to my cart" closeModal />
                     <ModalBody>
-                        <p>Add the contents of this shared cart to your cart. Any items already in your cart won&.</p>
+                        <p>Add the contents of this shared cart to your cart. Any items already in your cart won&rsquo;t be affected.</p>
                     </ModalBody>
                     <ModalFooter
                         closeModal={<button className="btn btn-info">Close</button>}
-                        submitBtn={<button className="btn btn-info" onClick={this.handleClick}>Add to my cart</button>}
+                        submitBtn={this.handleClick}
+                        submitTitle="Add items to my cart"
                     />
                 </Modal>
             );
@@ -37,15 +38,17 @@ class CartMergeSharedComponent extends React.Component {
 }
 
 CartMergeSharedComponent.propTypes = {
-    sharedCartItems: PropTypes.array, // Item @ids in shared cart
+    sharedCartObj: PropTypes.object, // Shared cart object
+    savedCartObj: PropTypes.object, // Current user's saved cart object
     onMergeCartClick: PropTypes.func.isRequired, // Called to merge shared cart with own cart
 };
 
 CartMergeSharedComponent.defaultProps = {
-    sharedCartItems: [],
+    sharedCartObj: {},
+    savedCartObj: null,
 };
 
-const mapStateToProps = (state, ownProps) => ({ cart: state.cart, sharedCartItems: ownProps.sharedCartItems });
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, savedCartObj: state.savedCartObj, sharedCartObj: ownProps.sharedCartObj });
 const mapDispatchToProps = dispatch => ({
     onMergeCartClick: itemAtIds => dispatch(addMultipleToCart(itemAtIds)),
 });

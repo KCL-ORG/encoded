@@ -174,13 +174,13 @@ FileSearchResults.defaultProps = {
 
 
 // Display controls in the tab area of the cart view.
-const CartControls = ({ cartSearchResults, sharedCartItems }) => {
+const CartControls = ({ cartSearchResults, sharedCart }) => {
     const batchDownloadControl = Object.keys(cartSearchResults).length > 0 ? <BatchDownload context={cartSearchResults} /> : null;
 
     return (
         <span>
             {batchDownloadControl}
-            <CartMergeShared sharedCartItems={sharedCartItems} />
+            <CartMergeShared sharedCartObj={sharedCart} />
             <CartClear />
         </span>
     );
@@ -188,12 +188,12 @@ const CartControls = ({ cartSearchResults, sharedCartItems }) => {
 
 CartControls.propTypes = {
     cartSearchResults: PropTypes.object, // Search result object for current cart contents
-    sharedCartItems: PropTypes.array, // Items in the shared cart, if that's being displayed
+    sharedCart: PropTypes.object, // Items in the shared cart, if that's being displayed
 };
 
 CartControls.defaultProps = {
     cartSearchResults: {},
-    sharedCartItems: [],
+    sharedCart: null,
 };
 
 
@@ -367,7 +367,7 @@ class CartComponent extends React.Component {
                     : null}
                     <TabPanel
                         tabs={{ datasets: 'Datasets', files: 'Files ' }}
-                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} sharedCartItems={context.items} />}
+                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} sharedCart={context} />}
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">

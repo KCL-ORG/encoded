@@ -45,11 +45,22 @@ CartClearComponent.defaultProps = {
     cart: [],
 };
 
-const mapStateToProps = state => ({ cart: state.cart });
+const mapStateToProps = (state, ownProps) => ({
+    cart: state.cart,
+    user: ownProps.sessionProperties,
+});
 const mapDispatchToProps = dispatch => ({
     onClearCartClick: itemAtIds => dispatch(removeMultipleFromCart(itemAtIds)),
 });
 
-const CartClear = connect(mapStateToProps, mapDispatchToProps)(CartClearComponent);
+const CartClearInternal = connect(mapStateToProps, mapDispatchToProps)(CartClearComponent);
+
+const CartClear = (props, reactContext) => (
+    <CartClearInternal sessionProperties={reactContext.session_properties} />
+);
+
+CartClear.contextTypes = {
+    session_properties: PropTypes.object,
+};
 
 export default CartClear;

@@ -8,7 +8,7 @@ import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import initializeCart, { cartAddItems, cartCacheSaved, cartSave, cartObserveChanges } from './cart';
+import initializeCart, { cartAddItems, cartCacheSaved, cartSave } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import { requestSearch } from './objectutils';
@@ -588,9 +588,6 @@ class App extends React.Component {
                 }
             }
 
-            return savedCartObj;
-        }).then((savedCartObj) => {
-            cartObserveChanges(this.cartStore, savedCartObj, sessionProperties.user, this.fetch);
             return savedCartObj;
         });
     }

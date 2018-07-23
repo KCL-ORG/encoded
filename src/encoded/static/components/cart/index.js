@@ -11,7 +11,8 @@
 // "active" carts hold both saved and unsaved items. "shared" carts hold saved items. Users who
 // aren't logged in can only have an "active" cart. "shared" carts, when displayed with the cart's
 // uuid, can be shared with others.
-import { createStore } from 'redux';
+import { createStore, applyMiddleware } from 'redux'
+import thunk from 'redux-thunk'
 import _ from 'underscore';
 import {
     ADD_TO_CART,
@@ -78,46 +79,13 @@ const cartModule = (state = {}, action = {}) => {
 };
 
 
-/**
- * Once the contents of the cart Redux store changes, save those changes to the database for
- * logged-in users.
- *
- * This mechanism for tracking the current and next state of the store is highly reliant on a
- * closure. This is the mechanism recommended by Dan Abramov for exactly this situation.
- * https://github.com/reduxjs/redux/issues/303#issuecomment-125184409
- *
- * @param {object} store - Redux store for carts
- * @param {object} savedCartObj - Cart object for current user's saved cart
- * @param {object} user - Currently logged-in user object
- * @param {func} fetch - fetch() from <App>
- */
-const cartObserveChanges = (store, savedCartObj, user, fetch) => {
-    let currState = {};
-
-    const handleChange = () => {
-        const nextState = store.getState();
-        const nextCart = nextState.cart || [];
-        const currCart = currState.cart || [];
-        if (nextCart.length !== currCart.length || !_.isEqual(nextCart, currCart)) {
-            currState = Object.assign({}, nextState);
-            cartSave(currState.cart, currState.savedCartObj, user, fetch).then((updatedSavedCartObj) => {
-                cartCacheSaved(updatedSavedCartObj, store.dispatch);
-            });
-        }
-    };
-
-    return store.subscribe(handleChange);
-};
-
-
 const initializeCart = () => {
     const initialCart = {
         cart: [], // Active cart contents as array of @ids
         name: 'Untitled',
         savedCartObj: {}, // Cache of saved cart
     };
-    const cartStore = createStore(cartModule, initialCart);
-    return cartStore;
+    return createStore(cartModule, initialCart, applyMiddleware(thunk));
 };
 
 
@@ -134,7 +102,6 @@ export {
     cartAddItems,
     CartShare,
     CartOverlay,
-    cartObserveChanges,
     cartSave,
     cartModule, // Exported for Jest tests
     initializeCart as default,

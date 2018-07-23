@@ -575,8 +575,10 @@ class App extends React.Component {
             if (memoryCartLength !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {
                 // The in-memory cart has different contents from saved cart. Add saved cart items
                 // to in-memory cart.
-                cartAddItems(savedCart, this.cartStore.dispatch);
-                cartCacheSaved(savedCartObj, this.cartStore.dispatch);
+                if (savedCart.length) {
+                    cartAddItems(savedCart, this.cartStore.dispatch);
+                    cartCacheSaved(savedCartObj, this.cartStore.dispatch);
+                }
 
                 // Save the updated in-memory cart if it had something in it before we loaded the
                 // saved cart.

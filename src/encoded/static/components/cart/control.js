@@ -2,7 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { addToCart, addMultipleToCart, removeFromCart } from './actions';
+import { addToCartAndSave, addMultipleToCart, removeFromCartAndSave } from './actions';
 
 
 // Button to add the current object to the cart, or to remove it.
@@ -26,12 +26,26 @@ CartControlComponent.defaultProps = {
 const mapStateToProps = (state, ownProps) => ({ cart: state.cart, current: ownProps.current['@id'] });
 const mapDispatchToProps = (dispatch, ownProps) => (
     {
-        onAddToCartClick: () => dispatch(addToCart(ownProps.current['@id'])),
-        onRemoveFromCartClick: () => dispatch(removeFromCart(ownProps.current['@id'])),
+        onAddToCartClick: () => dispatch(addToCartAndSave(ownProps.current['@id'], ownProps.sessionProperties.user, ownProps.fetch)),
+        onRemoveFromCartClick: () => dispatch(removeFromCartAndSave(ownProps.current['@id'], ownProps.sessionProperties.user, ownProps.fetch)),
     }
 );
 
-const CartControl = connect(mapStateToProps, mapDispatchToProps)(CartControlComponent);
+const CartControlInternal = connect(mapStateToProps, mapDispatchToProps)(CartControlComponent);
+
+const CartControl = (props, reactContext) => (
+    <CartControlInternal current={props.current} sessionProperties={reactContext.session_properties} fetch={reactContext.fetch} />
+);
+
+CartControl.propTypes = {
+    current: PropTypes.object.isRequired, // @id of current object being added
+};
+
+CartControl.contextTypes = {
+    session_properties: PropTypes.object,
+    fetch: PropTypes.func,
+};
+
 export default CartControl;
 
 

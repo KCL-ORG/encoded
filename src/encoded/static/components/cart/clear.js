@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { removeMultipleFromCart } from './actions';
+import { removeMultipleFromCartAndSave } from './actions';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../libs/bootstrap/modal';
 
 
@@ -49,18 +49,19 @@ const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
     user: ownProps.sessionProperties,
 });
-const mapDispatchToProps = dispatch => ({
-    onClearCartClick: itemAtIds => dispatch(removeMultipleFromCart(itemAtIds)),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+    onClearCartClick: itemAtIds => dispatch(removeMultipleFromCartAndSave(itemAtIds, ownProps.sessionProperties.user, ownProps.fetch)),
 });
 
 const CartClearInternal = connect(mapStateToProps, mapDispatchToProps)(CartClearComponent);
 
 const CartClear = (props, reactContext) => (
-    <CartClearInternal sessionProperties={reactContext.session_properties} />
+    <CartClearInternal sessionProperties={reactContext.session_properties} fetch={reactContext.fetch} />
 );
 
 CartClear.contextTypes = {
     session_properties: PropTypes.object,
+    fetch: PropTypes.func,
 };
 
 export default CartClear;

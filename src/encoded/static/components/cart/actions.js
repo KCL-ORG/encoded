@@ -39,6 +39,19 @@ export const addMultipleToCart = items => (
     { type: ADD_MULTIPLE_TO_CART, items }
 );
 
+export const addMultipleToCartAndSave = (items, user, fetch) => (
+    (dispatch, getState) => {
+        dispatch(addMultipleToCart(items));
+        if (user) {
+            const { cart, savedCartObj } = getState();
+            return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+                cartCacheSaved(updatedSavedCartObj, dispatch);
+            });
+        }
+        return null;
+    }
+);
+
 export const removeFromCart = current => (
     { type: REMOVE_FROM_CART, current }
 );

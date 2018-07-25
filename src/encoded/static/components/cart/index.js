@@ -11,8 +11,8 @@
 // "active" carts hold both saved and unsaved items. "shared" carts hold saved items. Users who
 // aren't logged in can only have an "active" cart. "shared" carts, when displayed with the cart's
 // uuid, can be shared with others.
-import { createStore, applyMiddleware } from 'redux'
-import thunk from 'redux-thunk'
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
 import _ from 'underscore';
 import {
     ADD_TO_CART,

@@ -1291,7 +1291,7 @@ export class ResultTable extends React.Component {
                                     : null}
                                 </div>
                                 <hr />
-                                <CartSearchControls items={results} />
+                                <CartSearchControls searchResults={context} />
                                 {browserAvail ?
                                     <TabPanel tabs={{ listpane: 'List', browserpane: <BrowserTabQuickView /> }} selectedTab={this.state.selectedTab} handleTabClick={this.handleTabClick} addClasses="browser-tab-bg" tabFlange>
                                         <TabPanelPane key="listpane">

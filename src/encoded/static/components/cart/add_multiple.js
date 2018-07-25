@@ -2,36 +2,54 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { addMultipleToCart } from './actions';
-import filterAllowedItems from './util';
+import getAllowedResultFilters from './util';
+import { encodedURIComponent } from '../globals';
+import { requestSearch } from '../objectutils';
 
 
-const CartAddAllComponent = ({ cart, items, preFiltered, onClick }) => {
-    const allowedItems = preFiltered ? items : filterAllowedItems(items);
-    const disabled = allowedItems.every(item => cart.indexOf(item['@id']) > -1);
-    return <button className="btn btn-info btn-sm" disabled={disabled} onClick={onClick}>Add all</button>;
+class CartAddAllComponent extends React.Component {
+    constructor() {
+        super();
+        this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleClick() {
+        const searchQuery = `${this.props.searchFilterElements.map(element => (
+            `${element.field}=${encodedURIComponent(element.term)}`
+        )).join('&')}&limit=all&field=%40id`;
+        requestSearch(searchQuery).then((results) => {
+            if (Object.keys(results).length > 0 && results['@graph'].length > 0) {
+                const itemsForCart = results['@graph'].map(result => result['@id']);
+                this.props.addAllResults(itemsForCart);
+            }
+        });
+    }
+
+    render() {
+        const { cart, onClick } = this.props;
+        return <button className="btn btn-info btn-sm" onClick={this.handleClick}>Add all</button>;
+    }
 };
 
 CartAddAllComponent.propTypes = {
     cart: PropTypes.array, // Current contents of cart
-    items: PropTypes.array.isRequired, // List of @ids of the items to add
-    preFiltered: PropTypes.bool, // True if items have already been filtered for cartable items
-    onClick: PropTypes.func.isRequired, // Function to call when Add All clicked
+    searchFilterElements: PropTypes.array.isRequired, // Array of elements making a search of items to add to the cart
+    addAllResults: PropTypes.func.isRequired, // Function to call when Add All clicked
 };
 
 CartAddAllComponent.defaultProps = {
     cart: [],
-    preFiltered: false,
 };
 
-const mapStateToProps = (state, ownProps) => ({ cart: state.cart, items: ownProps.items, filtered: ownProps.filtered });
-const mapDispatchToProps = (dispatch, ownProps) => (
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, searchFilterElements: ownProps.searchFilterElements });
+const mapDispatchToProps = dispatch => (
     {
-        onClick: () => {
-            const itemAtIds = filterAllowedItems(ownProps.items).map(item => item['@id']);
-            return dispatch(addMultipleToCart(itemAtIds));
+        addAllResults: (itemsForCart) => {
+            return dispatch(addMultipleToCart(itemsForCart));
         },
     }
 );
 
 const CartAddAll = connect(mapStateToProps, mapDispatchToProps)(CartAddAllComponent);
+
 export default CartAddAll;

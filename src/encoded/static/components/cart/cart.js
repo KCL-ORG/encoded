@@ -119,57 +119,32 @@ FileFormatFacet.defaultProps = {
 
 
 // Display pane displaying a list of files.
-class FileSearchResults extends React.Component {
-    constructor() {
-        super();
-        this.state = {
-            selectedFormats: [], // Files formats selected to be included in results; all formats if empty array
-        };
-        this.handleFormatSelect = this.handleFormatSelect.bind(this);
+const FileSearchResults = ({ results, selectedFormats, formatSelectHandler }) => {
+    // Filter file results by what's in selectedFormats.
+    let filteredFiles = results;
+    if (selectedFormats.length) {
+        filteredFiles = results.filter(file => selectedFormats.indexOf(file.file_format) !== -1);
     }
 
-    handleFormatSelect(format) {
-        // The given file format was selected or deselected in the facet.
-        const matchingIndex = this.state.selectedFormats.indexOf(format);
-        if (matchingIndex === -1) {
-            // Selected file format not in the list of included formats, so add it.
-            this.setState(prevState => ({
-                selectedFormats: prevState.selectedFormats.concat([format]),
-            }));
-        } else {
-            // Selected file format is in the list of included formats, so remove it.
-            this.setState(prevState => ({
-                selectedFormats: prevState.selectedFormats.filter(includedFormat => includedFormat !== format),
-            }));
-        }
-    }
-
-    render() {
-        const { results } = this.props;
-
-        // Filter file results by what's in selectedFormats.
-        let filteredFiles = results;
-        if (this.state.selectedFormats.length) {
-            filteredFiles = results.filter(file => this.state.selectedFormats.indexOf(file.file_format) !== -1);
-        }
-
-        return (
-            <div className="cart-files">
-                <FileFormatFacet files={results} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
-                <div className="cart-files__result-table">
-                    <ResultTableList results={filteredFiles} />
-                </div>
+    return (
+        <div className="cart-files">
+            <FileFormatFacet files={results} selectedFormats={selectedFormats} formatSelectHandler={formatSelectHandler} />
+            <div className="cart-files__result-table">
+                <ResultTableList results={filteredFiles} />
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 FileSearchResults.propTypes = {
     results: PropTypes.array, // Array of cart item objects from search
+    selectedFormats: PropTypes.array, // Array of selected file formats
+    formatSelectHandler: PropTypes.func.isRequired, // Function to call when user selects/deselects a file format
 };
 
 FileSearchResults.defaultProps = {
     results: {},
+    selectedFormats: [],
 };
 
 
@@ -207,83 +182,37 @@ class CartComponent extends React.Component {
             cartSearchResults: {}, // Cart dataset search result object
             cartFileResults: [], // All files in all carted datasets
             searchInProgress: false, // True if a search request is in progress
+            selectedFormats: [], // Files formats selected to be included in results; all formats if empty array
         };
+        this.handleFormatSelect = this.handleFormatSelect.bind(this);
         this.retrieveCartContents = this.retrieveCartContents.bind(this);
     }
 
     componentDidMount() {
-        // The cart only has object @ids, so first thing is to get search results for each of them.
+        // The cart only has object @ids, so first thing is to get search results for each of them
+        // as well as all their file objects.
         this.retrieveCartContents();
     }
 
-    // Because updates can cause us to need a GET request, we have to be very careful to rerender
-    // when we really need to.
-    shouldComponentUpdate(nextProps, nextState) {
-        // If the spinner should be shown or hidden, force a rerender.
-        if (this.state.searchInProgress !== nextState.searchInProgress) {
-            return true;
+    componentDidUpdate(prevProps) {
+        if (prevProps.cart.length !== this.props.cart.length || !_.isEqual(prevProps.cart, this.props.cart)) {
+            this.retrieveCartContents();
         }
-
-        // Re-render if we got a response from a search request, which can show as a change in the
-        // lengths of the search results in component state.
-        const nextSearchItems = nextState.cartSearchResults['@graph'] || [];
-        const currSearchItems = this.state.cartSearchResults['@graph'] || [];
-        if (nextSearchItems.length !== currSearchItems.length) {
-            return true;
-        }
-
-        // Rerender if the in-memory, shared, or saved cart lengths have changed.
-        const nextSharedCart = nextProps.context.items || [];
-        const currSharedCart = this.props.context.items || [];
-        const nextSavedCartItems = (nextProps.savedCartObj && nextProps.savedCartObj.items) || [];
-        const currSavedCartItems = (this.props.savedCartObj && this.props.savedCartObj.items) || [];
-        if ((nextProps.cart.length !== this.props.cart.length) ||
-            (nextSharedCart.length !== currSharedCart.length) ||
-            (nextSavedCartItems.length !== currSavedCartItems.length)) {
-            return true;
-        }
-
-        // Rerender if the carted dataset files lists have changed.
-        const nextFilesResults = nextState.cartFileResults || [];
-        const currFilesResults = this.state.cartFileResults || [];
-        const nextFiles = nextFilesResults.map(result => result['@id']);
-        const currFiles = currFilesResults.map(result => result['@id']);
-        if (nextFiles.length !== currFiles.length || !_.isEqual(nextFiles, currFiles)) {
-            return true;
-        }
-
-        // Rerender if login cookie information changed
-        const currCsfrt = this.props.session && this.props.session._csrft_;
-        const nextCsfrt = nextProps.session && nextProps.session._csrft_;
-        if (currCsfrt !== nextCsfrt) {
-            return true;
-        }
-
-        // Rerender if user information changed, like if the user logged in or impersonated
-        // someone.
-        const currUser = !!(this.props.sessionProperties && this.props.sessionProperties.user);
-        const nextUser = !!(nextProps.sessionProperties && nextProps.sessionProperties.user);
-        if (currUser !== nextUser) {
-            return true;
-        }
-
-        // Redraw if the in-memory, shared, or saved cart contents have changed.
-        if (!_.isEqual(nextProps.cart, this.props.cart) ||
-            !_.isEqual(nextSharedCart, currSharedCart)) {
-            return true;
-        }
-
-        // Nothing relevant to re-rendering has changed.
-        return false;
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        // Re-render if we got a response from a search request, which can show as a change in the
-        // lengths of the search results in component state.
-        const prevSearchItems = prevState.cartSearchResults['@graph'] || [];
-        const currSearchItems = this.state.cartSearchResults['@graph'] || [];
-        if (prevSearchItems.length === currSearchItems.length && prevState.searchInProgress === this.state.searchInProgress) {
-            this.retrieveCartContents();
+    handleFormatSelect(format) {
+        // The given file format was selected or deselected in the facet.
+        const matchingIndex = this.state.selectedFormats.indexOf(format);
+        if (matchingIndex === -1) {
+            // Selected file format not in the list of included formats, so add it.
+            this.setState(prevState => ({
+                selectedFormats: prevState.selectedFormats.concat([format]),
+            }));
+        } else {
+            // Selected file format is in the list of included formats, so remove it.
+            this.setState(prevState => ({
+                selectedFormats: prevState.selectedFormats.filter(includedFormat => includedFormat !== format),
+            }));
         }
     }
 
@@ -320,13 +249,14 @@ class CartComponent extends React.Component {
                         }
                     });
                     if (allDatasetFiles.length > 0) {
-                        return requestObjects(allDatasetFiles, '/search/?type=File');
+                        return requestObjects(allDatasetFiles, '/search/?type=File&limit=all');
                     }
                 }
                 return null;
             }).then((fileResults) => {
                 // All files in all datasets retrieved as array of file @ids in `fileResults`.
-                this.setState({ cartSearchResults: datasetResults, cartFileResults: fileResults || [], searchInProgress: false });
+                const filteredFileResults = fileResults.filter(file => !file.restricted && (this.state.selectedFormats.length === 0 || this.state.selectedFormats.indexOf(file.file_format)));
+                this.setState({ cartSearchResults: datasetResults, cartFileResults: filteredFileResults, searchInProgress: false });
                 return fileResults;
             });
         } else {
@@ -384,7 +314,7 @@ class CartComponent extends React.Component {
                         <TabPanelPane key="files">
                             <PanelBody>
                                 {this.state.cartFileResults && this.state.cartFileResults.length > 0 ?
-                                    <FileSearchResults results={this.state.cartFileResults} />
+                                    <FileSearchResults results={this.state.cartFileResults} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
                                 :
                                     <p className="cart__empty-message">
                                         No relevant files

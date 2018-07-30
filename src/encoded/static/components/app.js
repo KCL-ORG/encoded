@@ -788,7 +788,7 @@ class App extends React.Component {
         } catch (exc) {
             decodedHref = mutatableHref;
         }
-        const isDownload = decodedHref.includes('/@@download');
+        const isDownload = decodedHref.includes('/@@download') || decodedHref.includes('/batch_download/');
         if (!this.constructor.historyEnabled() || isDownload) {
             this.fallbackNavigate(mutatableHref, fragment, mutatableOptions);
             return null;

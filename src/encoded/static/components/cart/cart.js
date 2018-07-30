@@ -149,8 +149,14 @@ FileSearchResults.defaultProps = {
 
 
 // Display controls in the tab area of the cart view.
-const CartControls = ({ cartSearchResults, sharedCart }) => {
-    const batchDownloadControl = Object.keys(cartSearchResults).length > 0 ? <BatchDownload context={cartSearchResults} /> : null;
+const CartControls = ({ cartSearchResults, selectedFormats, sharedCart }) => {
+    let batchDownloadControl;
+    if (selectedFormats.length === 0) {
+        batchDownloadControl = Object.keys(cartSearchResults).length > 0 ? <BatchDownload context={cartSearchResults} /> : null;
+    } else {
+        const query = `${cartSearchResults['@id']}&${selectedFormats.map(format => `files.file_type=${encodedURIComponent(format)}`).join('&')}`.substr(9);
+        batchDownloadControl = <BatchDownload query={query} />;
+    }
 
     return (
         <span>
@@ -163,11 +169,13 @@ const CartControls = ({ cartSearchResults, sharedCart }) => {
 
 CartControls.propTypes = {
     cartSearchResults: PropTypes.object, // Search result object for current cart contents
+    selectedFormats: PropTypes.array, // Selected file formats
     sharedCart: PropTypes.object, // Items in the shared cart, if that's being displayed
 };
 
 CartControls.defaultProps = {
     cartSearchResults: {},
+    selectedFormats: [],
     sharedCart: null,
 };
 
@@ -297,7 +305,7 @@ class CartComponent extends React.Component {
                     : null}
                     <TabPanel
                         tabs={{ datasets: 'Datasets', files: 'Files ' }}
-                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} sharedCart={context} />}
+                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} selectedFormats={this.state.selectedFormats} sharedCart={context} />}
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">

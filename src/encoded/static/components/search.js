@@ -7,12 +7,12 @@ import { svgIcon } from '../libs/svg-icons';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '../libs/bootstrap/modal';
 import { TabPanel, TabPanelPane } from '../libs/bootstrap/panel';
 import { auditDecor } from './audit';
-import { CartToggle, CartSearchControls, CartOverlay } from './cart';
+import { CartToggle, CartSearchControls } from './cart';
 import { FetchedData, Param } from './fetched';
 import GenomeBrowser from './genome_browser';
 import * as globals from './globals';
 import { Attachment } from './image';
-import { BrowserSelector } from './objectutils';
+import { BrowserSelector, requestSearch } from './objectutils';
 import { DbxrefList } from './dbxref';
 import Status from './status';
 import { BiosampleSummaryString, BiosampleOrganismNames } from './typeutils';
@@ -1014,36 +1014,62 @@ FacetList.contextTypes = {
 };
 
 
-export const BatchDownload = (props) => {
-    const link = props.context.batch_download;
-    /* eslint-disable jsx-a11y/anchor-is-valid */
-    return (
-        <Modal actuator={<button className="btn btn-info btn-sm">Download</button>}>
-            <ModalHeader title="Using batch download" closeModal />
-            <ModalBody>
-                <p>
-                    Click the &ldquo;Download&rdquo; button below to download a &ldquo;files.txt&rdquo; file that contains a list of URLs to a file containing all the experimental metadata and links to download the file.
-                    The first line of the file will always be the URL to download the metadata file. <br />
-                    Further description of the contents of the metadata file are described in the <a href="/help/batch-download/">Batch Download help doc</a>.
-                </p><br />
-                <p>
-                    The &ldquo;files.txt&rdquo; file can be copied to any server.<br />
-                    The following command using cURL can be used to download all the files in the list:
-                </p><br />
-                <code>xargs -n 1 curl -O -L &lt; files.txt</code><br />
-            </ModalBody>
-            <ModalFooter
-                closeModal={<a className="btn btn-info btn-sm">Close</a>}
-                submitBtn={<a data-bypass="true" target="_self" className="btn btn-info btn-sm" href={link}>{'Download'}</a>}
-                dontClose
-            />
-        </Modal>
-    );
-    /* eslint-enable jsx-a11y/anchor-is-valid */
-};
+export class BatchDownload extends React.Component {
+    constructor() {
+        super();
+        this.handleDownloadClick = this.handleDownloadClick.bind(this);
+    }
+
+    handleDownloadClick() {
+        if (!this.props.context) {
+            requestSearch(this.props.query).then((results) => {
+                this.context.navigate(results.batch_download);
+            });
+        } else {
+            this.context.navigate(this.props.context.batch_download);
+        }
+    }
+
+    render() {
+        /* eslint-disable jsx-a11y/anchor-is-valid */
+        return (
+            <Modal actuator={<button className="btn btn-info btn-sm">Download</button>}>
+                <ModalHeader title="Using batch download" closeModal />
+                <ModalBody>
+                    <p>
+                        Click the &ldquo;Download&rdquo; button below to download a &ldquo;files.txt&rdquo; file that contains a list of URLs to a file containing all the experimental metadata and links to download the file.
+                        The first line of the file will always be the URL to download the metadata file. <br />
+                        Further description of the contents of the metadata file are described in the <a href="/help/batch-download/">Batch Download help doc</a>.
+                    </p><br />
+                    <p>
+                        The &ldquo;files.txt&rdquo; file can be copied to any server.<br />
+                        The following command using cURL can be used to download all the files in the list:
+                    </p><br />
+                    <code>xargs -n 1 curl -O -L &lt; files.txt</code><br />
+                </ModalBody>
+                <ModalFooter
+                    closeModal={<a className="btn btn-info btn-sm">Close</a>}
+                    submitBtn={<button className="btn btn-info btn-sm" onClick={this.handleDownloadClick}>Download</button>}
+                    dontClose
+                />
+            </Modal>
+        );
+        /* eslint-enable jsx-a11y/anchor-is-valid */
+    }
+}
 
 BatchDownload.propTypes = {
-    context: PropTypes.object.isRequired,
+    context: PropTypes.object, // Search result object whose batch_download we're using
+    query: PropTypes.string, // Without `context`, perform a search using this query string
+};
+
+BatchDownload.defaultProps = {
+    context: null,
+    query: '',
+};
+
+BatchDownload.contextTypes = {
+    navigate: PropTypes.func,
 };
 
 

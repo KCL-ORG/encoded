@@ -11,14 +11,18 @@ import CartClear from './clear';
 import CartMergeShared from './merge_shared';
 
 
-// Called from <FetcheData> to render search results for all items in the current cart.
+/**
+ * Called from <FetcheData> to render search results for all items in the current cart.
+ */
 const CartSearchResults = ({ results, activeCart }) => (
     <ResultTableList results={results['@graph']} columns={results.columns} activeCart={activeCart} />
 );
 
 CartSearchResults.propTypes = {
-    results: PropTypes.object, // Array of cart item objects from search
-    activeCart: PropTypes.bool, // True if displaying an active cart
+    /** Array of cart item objects from search */
+    results: PropTypes.object,
+    /** True if displaying an active cart */
+    activeCart: PropTypes.bool,
 };
 
 CartSearchResults.defaultProps = {
@@ -27,13 +31,18 @@ CartSearchResults.defaultProps = {
 };
 
 
-// Display one item of the File Format facet.
+/**
+ * Display one item of the File Format facet.
+ */
 class FileFormatItem extends React.Component {
     constructor() {
         super();
         this.handleFormatSelect = this.handleFormatSelect.bind(this);
     }
 
+    /**
+     * Called when a file format is selected from the facet.
+     */
     handleFormatSelect() {
         this.props.formatSelectHandler(this.props.format);
     }
@@ -60,11 +69,16 @@ class FileFormatItem extends React.Component {
 }
 
 FileFormatItem.propTypes = {
-    format: PropTypes.string.isRequired, // File format this button displays
-    termCount: PropTypes.number.isRequired, // Number of files matching this item's format
-    totalTermCount: PropTypes.number.isRequired, // Total number of files in the item's facet
-    selected: PropTypes.bool, // True if this term should appear selected
-    formatSelectHandler: PropTypes.func.isRequired, // Callback for handling clicks in a file format button
+    /** File format this button displays */
+    format: PropTypes.string.isRequired,
+    /** Number of files matching this item's format */
+    termCount: PropTypes.number.isRequired,
+    /** Total number of files in the item's facet */
+    totalTermCount: PropTypes.number.isRequired,
+    /** True if this term should appear selected */
+    selected: PropTypes.bool,
+    /** Callback for handling clicks in a file format button */
+    formatSelectHandler: PropTypes.func.isRequired,
 };
 
 FileFormatItem.defaultProps = {
@@ -72,6 +86,9 @@ FileFormatItem.defaultProps = {
 };
 
 
+/**
+ * Display the file format facet.
+ */
 const FileFormatFacet = ({ files, selectedFormats, formatSelectHandler }) => {
     // Get and sort by count (with file_format as second sorting key) the file_format of
     // everything in `files`.
@@ -108,9 +125,12 @@ const FileFormatFacet = ({ files, selectedFormats, formatSelectHandler }) => {
 };
 
 FileFormatFacet.propTypes = {
-    files: PropTypes.array.isRequired, // Array of files whose facets we display
-    selectedFormats: PropTypes.array, // Array of file formats to include in rendered lists, or [] to render all
-    formatSelectHandler: PropTypes.func.isRequired, // Callback when the user clicks on a file format facet item
+    /** Array of files whose facets we display */
+    files: PropTypes.array.isRequired,
+    /** Array of file formats to include in rendered lists, or [] to render all */
+    selectedFormats: PropTypes.array,
+    /** Callback when the user clicks on a file format facet item */
+    formatSelectHandler: PropTypes.func.isRequired,
 };
 
 FileFormatFacet.defaultProps = {
@@ -118,7 +138,9 @@ FileFormatFacet.defaultProps = {
 };
 
 
-// Display pane displaying a list of files.
+/**
+ *  Display a tabbed pane displaying a list of files.
+ */
 const FileSearchResults = ({ results, selectedFormats, formatSelectHandler }) => {
     // Filter file results by what's in selectedFormats.
     let filteredFiles = results;
@@ -137,9 +159,12 @@ const FileSearchResults = ({ results, selectedFormats, formatSelectHandler }) =>
 };
 
 FileSearchResults.propTypes = {
-    results: PropTypes.array, // Array of cart item objects from search
-    selectedFormats: PropTypes.array, // Array of selected file formats
-    formatSelectHandler: PropTypes.func.isRequired, // Function to call when user selects/deselects a file format
+    /** Array of cart item objects from search */
+    results: PropTypes.array,
+    /** Array of selected file formats */
+    selectedFormats: PropTypes.array,
+    /** Function to call when user selects/deselects a file format */
+    formatSelectHandler: PropTypes.func.isRequired,
 };
 
 FileSearchResults.defaultProps = {
@@ -148,7 +173,9 @@ FileSearchResults.defaultProps = {
 };
 
 
-// Display controls in the tab area of the cart view.
+/**
+ * Display controls in the tab area of the cart view.
+ */
 const CartControls = ({ cartSearchResults, selectedFormats, sharedCart }) => {
     let batchDownloadControl;
     if (selectedFormats.length === 0) {
@@ -168,9 +195,12 @@ const CartControls = ({ cartSearchResults, selectedFormats, sharedCart }) => {
 };
 
 CartControls.propTypes = {
-    cartSearchResults: PropTypes.object, // Search result object for current cart contents
-    selectedFormats: PropTypes.array, // Selected file formats
-    sharedCart: PropTypes.object, // Items in the shared cart, if that's being displayed
+    /** Search result object for current cart contents */
+    cartSearchResults: PropTypes.object,
+    /** Selected file formats */
+    selectedFormats: PropTypes.array,
+    /** Items in the shared cart, if that's being displayed */
+    sharedCart: PropTypes.object,
 };
 
 CartControls.defaultProps = {
@@ -180,17 +210,23 @@ CartControls.defaultProps = {
 };
 
 
-// Renders the cart search results page. Display either:
-// 1. Shared cart (/carts/<uuid>) containing a user's saved items
-// 2. Active cart (/cart-view/) containing saved and in-memory items
+/**
+ * Renders the cart search results page. Display either:
+ * 1. Shared cart (/carts/<uuid>) containing a user's saved items
+ * 2. Active cart (/cart-view/) containing saved and in-memory items
+ */
 class CartComponent extends React.Component {
     constructor() {
         super();
         this.state = {
-            cartSearchResults: {}, // Cart dataset search result object
-            cartFileResults: [], // All files in all carted datasets
-            searchInProgress: false, // True if a search request is in progress
-            selectedFormats: [], // Files formats selected to be included in results; all formats if empty array
+            /** Cart dataset search result object */
+            cartSearchResults: {},
+            /** All files in all carted datasets */
+            cartFileResults: [],
+            /** True if a search request is in progress */
+            searchInProgress: false,
+            /** Files formats selected to be included in results; all formats if empty array */
+            selectedFormats: [],
         };
         this.handleFormatSelect = this.handleFormatSelect.bind(this);
         this.retrieveCartContents = this.retrieveCartContents.bind(this);
@@ -203,13 +239,16 @@ class CartComponent extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // Only request new file objects from search if the cart contents have changed.
         if (prevProps.cart.length !== this.props.cart.length || !_.isEqual(prevProps.cart, this.props.cart)) {
             this.retrieveCartContents();
         }
     }
 
+    /**
+     * Called when the given file format was selected or deselected in the facet.
+     */
     handleFormatSelect(format) {
-        // The given file format was selected or deselected in the facet.
         const matchingIndex = this.state.selectedFormats.indexOf(format);
         if (matchingIndex === -1) {
             // Selected file format not in the list of included formats, so add it.
@@ -224,8 +263,10 @@ class CartComponent extends React.Component {
         }
     }
 
+    /**
+     * Perform search for cart contents so it can be displayed as search results.
+     */
     retrieveCartContents() {
-        // Perform search for cart contents so it can be displayed as search results.
         const { context, cart } = this.props;
         let cartItems = [];
         let datasetResults = {};
@@ -243,7 +284,7 @@ class CartComponent extends React.Component {
         // of these contents.
         if (cartItems.length > 0) {
             const experimentTypeQuery = cartItems.every(cartItem => cartItem.match(/^\/experiments\/.*?\/$/) !== null);
-            const cartQueryString = `${experimentTypeQuery ? 'type=Experiment&' : ''}${cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&')}`;
+            const cartQueryString = `${experimentTypeQuery ? 'type=Experiment&' : ''}${cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&')}&limit=all`;
             this.setState({ searchInProgress: true });
             requestSearch(cartQueryString).then((searchResults) => {
                 datasetResults = searchResults;
@@ -344,45 +385,19 @@ class CartComponent extends React.Component {
 }
 
 CartComponent.propTypes = {
-    context: PropTypes.object.isRequired, // Cart object to display
-    cart: PropTypes.array.isRequired, // In-memory cart contents
-    savedCartObj: PropTypes.object, // Saved cart contents
-    session: PropTypes.object, // App session info
-    sessionProperties: PropTypes.object, // Login session info
-};
-
-CartComponent.defaultProps = {
-    session: null,
-    sessionProperties: null,
-    savedCartObj: null,
+    /** Cart object to display */
+    context: PropTypes.object.isRequired,
+    /** In-memory cart contents */
+    cart: PropTypes.array.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
-    savedCartObj: state.savedCartObj,
-    session: ownProps.session,
-    sessionProperties: ownProps.sessionProperties,
+    context: ownProps.context,
 });
 
-const CartInternal = connect(mapStateToProps)(CartComponent);
+const Cart = connect(mapStateToProps)(CartComponent);
 
-
-// Called when a "Cart" object is requested to be rendered. This is a standard React component
-// that's sort of a wrapper around <CartInternal> which is a Redux component. This lets us pass the
-// encoded context properties as regular props to <CartIntenral>. Passing React context directly to
-// a Redux component doesn't seem very reliable.
-const Cart = (props, reactContext) => (
-    <CartInternal context={props.context} session={reactContext.session} sessionProperties={reactContext.session_properties} />
-);
-
-Cart.propTypes = {
-    context: PropTypes.object.isRequired, // Cart object to render
-};
-
-Cart.contextTypes = {
-    session: PropTypes.object,
-    session_properties: PropTypes.object,
-};
 
 contentViews.register(Cart, 'cart-view'); // /cart-view/ URI
 contentViews.register(Cart, 'Cart'); // /carts/<uuid> URI

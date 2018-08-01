@@ -371,9 +371,12 @@ class CartComponent extends React.Component {
                 }
                 return null;
             }).then((fileResults) => {
-                // All files in all datasets retrieved as array of file @ids in `fileResults`.
-                const filteredFileResults = fileResults.filter(file => !file.restricted && (this.state.selectedFormats.length === 0 || this.state.selectedFormats.indexOf(file.file_format)));
-                this.setState({ cartSearchResults: datasetResults, cartFileResults: filteredFileResults, searchInProgress: false });
+                if (fileResults) {
+                    // All files in all datasets retrieved as array of file @ids in `fileResults`.
+                    const filteredFileResults = fileResults.filter(file => !file.restricted && (this.state.selectedFormats.length === 0 || this.state.selectedFormats.indexOf(file.file_format)));
+                    this.setState({ cartSearchResults: datasetResults, cartFileResults: filteredFileResults });
+                }
+                this.setState({ searchInProgress: false });
                 return fileResults;
             });
         } else {

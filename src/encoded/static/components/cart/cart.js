@@ -371,14 +371,19 @@ class CartComponent extends React.Component {
                 }
                 return null;
             }).then((fileResults) => {
-                if (datasetResults && datasetResults['@graph'].length) {
+                // With any new dataset search results, rerender for the cart display.
+                if (datasetResults['@graph'] && datasetResults['@graph'].length) {
                     this.setState({ cartSearchResults: datasetResults });
                 }
+
+                // With any new file search results, rerender for the cart display.
                 if (fileResults) {
                     // All files in all datasets retrieved as array of file @ids in `fileResults`.
                     const filteredFileResults = fileResults.filter(file => !file.restricted && (this.state.selectedFormats.length === 0 || this.state.selectedFormats.indexOf(file.file_format)));
                     this.setState({ cartFileResults: filteredFileResults });
                 }
+
+                // Clear the spinner.
                 this.setState({ searchInProgress: false });
                 return fileResults;
             });

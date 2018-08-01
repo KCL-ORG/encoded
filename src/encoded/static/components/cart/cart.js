@@ -106,30 +106,21 @@ FileFormatItem.defaultProps = {
 /**
  * Display the file format facet.
  */
-const FileFormatFacet = ({ files, selectedFormats, formatSelectHandler }) => {
-    // Get and sort by count (with file_format as second sorting key) the file_format of
-    // everything in `files`.
-    const filesByFormat = _.groupBy(files, 'file_format');
-    const formats = Object.keys(filesByFormat).sort((formatA, formatB) => {
-        const aLower = formatA.toLowerCase();
-        const bLower = formatB.toLowerCase();
-        return (aLower > bLower) ? 1 : ((aLower < bLower) ? -1 : 0);
-    }).sort((formatA, formatB) => filesByFormat[formatB].length - filesByFormat[formatA].length);
-
+const FileFormatFacet = ({ fileFormats, totalFileCount, selectedFormats, formatSelectHandler }) => {
     return (
         <div className="cart-files__facet box facets">
             <div className="facet">
                 <h5>File format</h5>
                 <ul className="facet-list nav">
-                    {formats.map((format) => {
-                        const termCount = filesByFormat[format].length;
+                    {fileFormats.map((formatAndCount) => {
+                        const termCount = formatAndCount.count;
                         return (
-                            <div key={format}>
+                            <div key={formatAndCount.format}>
                                 <FileFormatItem
-                                    format={format}
+                                    format={formatAndCount.format}
                                     termCount={termCount}
-                                    totalTermCount={files.length}
-                                    selected={selectedFormats.indexOf(format) > -1}
+                                    totalTermCount={totalFileCount}
+                                    selected={selectedFormats.indexOf(formatAndCount.format) > -1}
                                     formatSelectHandler={formatSelectHandler}
                                 />
                             </div>
@@ -142,8 +133,10 @@ const FileFormatFacet = ({ files, selectedFormats, formatSelectHandler }) => {
 };
 
 FileFormatFacet.propTypes = {
-    /** Array of files whose facets we display */
-    files: PropTypes.array.isRequired,
+    /** Array of all file formats and their counts [{format: 'format', count: number}, ...] */
+    fileFormats: PropTypes.array.isRequired,
+    /** Total number of files collected, displayed or not */
+    totalFileCount: PropTypes.number.isRequired,
     /** Array of file formats to include in rendered lists, or [] to render all */
     selectedFormats: PropTypes.array,
     /** Callback when the user clicks on a file format facet item */
@@ -158,23 +151,18 @@ FileFormatFacet.defaultProps = {
 /**
  *  Display a tabbed pane displaying a list of files.
  */
-const FileSearchResults = ({ items, currentPage, selectedFormats, formatSelectHandler }) => {
-    // Filter file results by what's in selectedFormats.
-    let filteredFiles = items;
-    if (selectedFormats.length) {
-        filteredFiles = items.filter(file => selectedFormats.indexOf(file.file_format) !== -1);
-    }
-
-    if (filteredFiles.length > PAGE_FILE_COUNT) {
+const FileSearchResults = ({ items, currentPage, fileFormats, selectedFormats, formatSelectHandler }) => {
+    let files = items;
+    if (files.length > PAGE_FILE_COUNT) {
         const pageFirstIndex = currentPage * PAGE_FILE_COUNT;
-        filteredFiles = filteredFiles.slice(pageFirstIndex, pageFirstIndex + PAGE_FILE_COUNT);
+        files = files.slice(pageFirstIndex, pageFirstIndex + PAGE_FILE_COUNT);
     }
 
     return (
         <div className="cart-files">
-            <FileFormatFacet files={items} selectedFormats={selectedFormats} formatSelectHandler={formatSelectHandler} />
+            <FileFormatFacet fileFormats={fileFormats} selectedFormats={selectedFormats} totalFileCount={items.length} formatSelectHandler={formatSelectHandler} />
             <div className="cart-files__result-table">
-                <ResultTableList results={filteredFiles} />
+                <ResultTableList results={files} />
             </div>
         </div>
     );
@@ -185,6 +173,8 @@ FileSearchResults.propTypes = {
     items: PropTypes.array,
     /** Page of results to display */
     currentPage: PropTypes.number.isRequired,
+    /** Array of all file formats and their counts [{format: 'format', count: number}, ...] */
+    fileFormats: PropTypes.array.isRequired,
     /** Array of selected file formats */
     selectedFormats: PropTypes.array,
     /** Function to call when user selects/deselects a file format */
@@ -406,7 +396,6 @@ class CartComponent extends React.Component {
         let missingItems = [];
         const datasets = (cartSearchResults && cartSearchResults['@graph']) || [];
         const totalDatasetPages = Math.floor(datasets.length / PAGE_DATASET_COUNT) + (datasets.length % PAGE_DATASET_COUNT !== 0 ? 1 : 0);
-        const totalFilePages = Math.floor(this.state.cartFileResults.length / PAGE_FILE_COUNT) + (this.state.cartFileResults.length % PAGE_FILE_COUNT !== 0 ? 1 : 0);
 
         // Shared and active carts displayed slightly differently.
         const activeCart = context['@type'][0] === 'cart-view';
@@ -418,6 +407,22 @@ class CartComponent extends React.Component {
                 missingItems = _.difference(context.items, datasets.map(item => item['@id']));
             }
         }
+
+        // Filter files by the selected facets.
+        let filteredFiles = this.state.cartFileResults;
+        if (this.state.selectedFormats.length) {
+            filteredFiles = filteredFiles.filter(file => this.state.selectedFormats.indexOf(file.file_format) !== -1);
+        }
+        const totalFilePages = Math.floor(filteredFiles.length / PAGE_FILE_COUNT) + (filteredFiles.length % PAGE_FILE_COUNT !== 0 ? 1 : 0);
+
+        // Get and sort by count (with file_format as second sorting key) the file_format of
+        // every file whose format is selected or not, for facet display.
+        const filesByFormat = _.groupBy(this.state.cartFileResults, 'file_format');
+        const fileFormats = Object.keys(filesByFormat).sort((formatA, formatB) => {
+            const aLower = formatA.toLowerCase();
+            const bLower = formatB.toLowerCase();
+            return (aLower > bLower) ? 1 : ((aLower < bLower) ? -1 : 0);
+        }).sort((formatA, formatB) => filesByFormat[formatB].length - filesByFormat[formatA].length).map(format => ({ format, count: filesByFormat[format].length }));
 
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -451,11 +456,11 @@ class CartComponent extends React.Component {
                             </PanelBody>
                         </TabPanelPane>
                         <TabPanelPane key="files">
-                            <ItemCountArea itemCount={this.state.cartFileResults.length} itemName="file" itemNamePlural="files" />
+                            <ItemCountArea itemCount={filteredFiles.length} itemName="file" itemNamePlural="files" />
                             <PagerArea currentPage={this.state.currentFileResultsPage} totalPageCount={totalFilePages} updateCurrentPage={this.updateFileCurrentPage} />
                             <PanelBody>
-                                {this.state.cartFileResults && this.state.cartFileResults.length > 0 ?
-                                    <FileSearchResults items={this.state.cartFileResults} currentPage={this.state.currentFileResultsPage} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
+                                {filteredFiles.length > 0 ?
+                                    <FileSearchResults items={filteredFiles} currentPage={this.state.currentFileResultsPage} fileFormats={fileFormats} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
                                 :
                                     <p className="cart__empty-message">
                                         No relevant files

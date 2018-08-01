@@ -235,19 +235,45 @@ CartControls.defaultProps = {
 
 
 /**
+ * Display the total number of cart items.
+ */
+const ItemCountArea = ({ itemCount, itemName, itemNamePlural }) => {
+    if (itemCount > 0) {
+        return (
+            <div className="cart__item-count">
+                {itemCount}&nbsp;{itemCount === 1 ? itemName : itemNamePlural}
+            </div>
+        );
+    }
+    return null;
+};
+
+ItemCountArea.propTypes = {
+    itemCount: PropTypes.number.isRequired, // Number of items in cart display
+    itemName: PropTypes.string.isRequired, // Singular name of item being displayed
+    itemNamePlural: PropTypes.string.isRequired, // Plural name of item being displayed
+};
+
+
+/**
  * Display the pager control area at the bottom of the dataset and file search result panels.
  */
-const PagerArea = ({ currentPage, totalCount, updateCurrentPage }) => (
-    <div className="cart__pager">
-        <Pager total={totalCount} current={currentPage} updateCurrentPage={updateCurrentPage} />
-    </div>
-);
+const PagerArea = ({ currentPage, totalPageCount, updateCurrentPage }) => {
+    if (totalPageCount > 1) {
+        return (
+            <div className="cart__pager">
+                <Pager total={totalPageCount} current={currentPage} updateCurrentPage={updateCurrentPage} />
+            </div>
+        );
+    }
+    return null;
+};
 
 PagerArea.propTypes = {
     /** Zero-based current page to display */
     currentPage: PropTypes.number.isRequired,
     /** Total number of pages */
-    totalCount: PropTypes.number.isRequired,
+    totalPageCount: PropTypes.number.isRequired,
     /** Called when user clicks pager controls */
     updateCurrentPage: PropTypes.func.isRequired,
 };
@@ -412,7 +438,8 @@ class CartComponent extends React.Component {
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">
-                            <PagerArea currentPage={this.state.currentDatasetResultsPage} totalCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
+                            <ItemCountArea itemCount={datasets.length} itemName="dataset" itemNamePlural="datasets" />
+                            <PagerArea currentPage={this.state.currentDatasetResultsPage} totalPageCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
                             <PanelBody>
                                 {datasets.length > 0 ?
                                     <CartSearchResults items={datasets} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
@@ -424,7 +451,8 @@ class CartComponent extends React.Component {
                             </PanelBody>
                         </TabPanelPane>
                         <TabPanelPane key="files">
-                            <PagerArea currentPage={this.state.currentFileResultsPage} totalCount={totalFilePages} updateCurrentPage={this.updateFileCurrentPage} />
+                            <ItemCountArea itemCount={this.state.cartFileResults.length} itemName="file" itemNamePlural="files" />
+                            <PagerArea currentPage={this.state.currentFileResultsPage} totalPageCount={totalFilePages} updateCurrentPage={this.updateFileCurrentPage} />
                             <PanelBody>
                                 {this.state.cartFileResults && this.state.cartFileResults.length > 0 ?
                                     <FileSearchResults items={this.state.cartFileResults} currentPage={this.state.currentFileResultsPage} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />

@@ -166,11 +166,18 @@
         }
     }
 
+    // Cart result table item count
+    @at-root #{&}__item-count {
+        padding: 2px 0;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+
     // Cart result table pager control area.
     @at-root #{&}__pager {
         padding: 8px;
         background-color: #f5f5f5;
-        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
     }
 }
 

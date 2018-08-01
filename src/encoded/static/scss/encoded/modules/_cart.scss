@@ -165,6 +165,13 @@
             flex: 0 1 25%;
         }
     }
+
+    // Cart result table pager control area.
+    @at-root #{&}__pager {
+        padding: 8px;
+        background-color: #f5f5f5;
+        border-top: 1px solid #ddd;
+    }
 }
 
 // Cart button in navigation bar

@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _ from 'underscore';
+import Pager from '../../libs/bootstrap/pager';
 import { Panel, PanelBody, PanelFooter, TabPanel, TabPanelPane } from '../../libs/bootstrap/panel';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch, requestObjects } from '../objectutils';
@@ -11,22 +12,38 @@ import CartClear from './clear';
 import CartMergeShared from './merge_shared';
 
 
+/** Number of dataset items to display per page */
+const PAGE_DATASET_COUNT = 25;
+/** Number of file items to display per page */
+const PAGE_FILE_COUNT = 25;
+
+
 /**
  * Called from <FetcheData> to render search results for all items in the current cart.
  */
-const CartSearchResults = ({ results, activeCart }) => (
-    <ResultTableList results={results['@graph']} columns={results.columns} activeCart={activeCart} />
-);
+const CartSearchResults = ({ items, currentPage, activeCart }) => {
+    let pagedItems;
+    if (items.length > PAGE_DATASET_COUNT) {
+        const pageFirstIndex = currentPage * PAGE_DATASET_COUNT;
+        pagedItems = items.slice(pageFirstIndex, pageFirstIndex + PAGE_DATASET_COUNT);
+    } else {
+        pagedItems = items;
+    }
+    return <ResultTableList results={pagedItems} activeCart={activeCart} />;
+};
 
 CartSearchResults.propTypes = {
     /** Array of cart item objects from search */
-    results: PropTypes.object,
+    items: PropTypes.array,
+    /** Page of results to display */
+    currentPage: PropTypes.number,
     /** True if displaying an active cart */
     activeCart: PropTypes.bool,
 };
 
 CartSearchResults.defaultProps = {
-    results: {},
+    items: [],
+    currentPage: 0,
     activeCart: false,
 };
 
@@ -141,16 +158,21 @@ FileFormatFacet.defaultProps = {
 /**
  *  Display a tabbed pane displaying a list of files.
  */
-const FileSearchResults = ({ results, selectedFormats, formatSelectHandler }) => {
+const FileSearchResults = ({ items, currentPage, selectedFormats, formatSelectHandler }) => {
     // Filter file results by what's in selectedFormats.
-    let filteredFiles = results;
+    let filteredFiles = items;
     if (selectedFormats.length) {
-        filteredFiles = results.filter(file => selectedFormats.indexOf(file.file_format) !== -1);
+        filteredFiles = items.filter(file => selectedFormats.indexOf(file.file_format) !== -1);
+    }
+
+    if (filteredFiles.length > PAGE_FILE_COUNT) {
+        const pageFirstIndex = currentPage * PAGE_FILE_COUNT;
+        filteredFiles = filteredFiles.slice(pageFirstIndex, pageFirstIndex + PAGE_FILE_COUNT);
     }
 
     return (
         <div className="cart-files">
-            <FileFormatFacet files={results} selectedFormats={selectedFormats} formatSelectHandler={formatSelectHandler} />
+            <FileFormatFacet files={items} selectedFormats={selectedFormats} formatSelectHandler={formatSelectHandler} />
             <div className="cart-files__result-table">
                 <ResultTableList results={filteredFiles} />
             </div>
@@ -160,7 +182,9 @@ const FileSearchResults = ({ results, selectedFormats, formatSelectHandler }) =>
 
 FileSearchResults.propTypes = {
     /** Array of cart item objects from search */
-    results: PropTypes.array,
+    items: PropTypes.array,
+    /** Page of results to display */
+    currentPage: PropTypes.number.isRequired,
     /** Array of selected file formats */
     selectedFormats: PropTypes.array,
     /** Function to call when user selects/deselects a file format */
@@ -168,7 +192,7 @@ FileSearchResults.propTypes = {
 };
 
 FileSearchResults.defaultProps = {
-    results: {},
+    items: [],
     selectedFormats: [],
 };
 
@@ -211,6 +235,25 @@ CartControls.defaultProps = {
 
 
 /**
+ * Display the pager control area at the bottom of the dataset and file search result panels.
+ */
+const PagerArea = ({ currentPage, totalCount, updateCurrentPage }) => (
+    <div className="cart__pager">
+        <Pager total={totalCount} current={currentPage} updateCurrentPage={updateCurrentPage} />
+    </div>
+);
+
+PagerArea.propTypes = {
+    /** Zero-based current page to display */
+    currentPage: PropTypes.number.isRequired,
+    /** Total number of pages */
+    totalCount: PropTypes.number.isRequired,
+    /** Called when user clicks pager controls */
+    updateCurrentPage: PropTypes.func.isRequired,
+};
+
+
+/**
  * Renders the cart search results page. Display either:
  * 1. Shared cart (/carts/<uuid>) containing a user's saved items
  * 2. Active cart (/cart-view/) containing saved and in-memory items
@@ -227,9 +270,15 @@ class CartComponent extends React.Component {
             searchInProgress: false,
             /** Files formats selected to be included in results; all formats if empty array */
             selectedFormats: [],
+            /** Currently displayed page of dataset search results */
+            currentDatasetResultsPage: 0,
+            /** Currently displayed page of file search results */
+            currentFileResultsPage: 0,
         };
         this.handleFormatSelect = this.handleFormatSelect.bind(this);
         this.retrieveCartContents = this.retrieveCartContents.bind(this);
+        this.updateDatasetCurrentPage = this.updateDatasetCurrentPage.bind(this);
+        this.updateFileCurrentPage = this.updateFileCurrentPage.bind(this);
     }
 
     componentDidMount() {
@@ -247,6 +296,7 @@ class CartComponent extends React.Component {
 
     /**
      * Called when the given file format was selected or deselected in the facet.
+     * @param {string} format File format facet item that was clicked
      */
     handleFormatSelect(format) {
         const matchingIndex = this.state.selectedFormats.indexOf(format);
@@ -254,11 +304,13 @@ class CartComponent extends React.Component {
             // Selected file format not in the list of included formats, so add it.
             this.setState(prevState => ({
                 selectedFormats: prevState.selectedFormats.concat([format]),
+                currentFileResultsPage: 0,
             }));
         } else {
             // Selected file format is in the list of included formats, so remove it.
             this.setState(prevState => ({
                 selectedFormats: prevState.selectedFormats.filter(includedFormat => includedFormat !== format),
+                currentFileResultsPage: 0,
             }));
         }
     }
@@ -314,11 +366,21 @@ class CartComponent extends React.Component {
         }
     }
 
+    updateDatasetCurrentPage(newCurrent) {
+        this.setState({ currentDatasetResultsPage: newCurrent });
+    }
+
+    updateFileCurrentPage(newCurrent) {
+        this.setState({ currentFileResultsPage: newCurrent });
+    }
+
     render() {
         const { context } = this.props;
         const { cartSearchResults } = this.state;
         let missingItems = [];
-        const searchResults = (cartSearchResults && cartSearchResults['@graph']) || [];
+        const datasets = (cartSearchResults && cartSearchResults['@graph']) || [];
+        const totalDatasetPages = Math.floor(datasets.length / PAGE_DATASET_COUNT) + (datasets.length % PAGE_DATASET_COUNT !== 0 ? 1 : 0);
+        const totalFilePages = Math.floor(this.state.cartFileResults.length / PAGE_FILE_COUNT) + (this.state.cartFileResults.length % PAGE_FILE_COUNT !== 0 ? 1 : 0);
 
         // Shared and active carts displayed slightly differently.
         const activeCart = context['@type'][0] === 'cart-view';
@@ -326,8 +388,8 @@ class CartComponent extends React.Component {
         // When viewing a shared cart, see if any searched items are missing for the current user's
         // permissions.
         if (!activeCart) {
-            if (context.items.length - searchResults.length > 0) {
-                missingItems = _.difference(context.items, searchResults.map(item => item['@id']));
+            if (context.items.length - datasets.length > 0) {
+                missingItems = _.difference(context.items, datasets.map(item => item['@id']));
             }
         }
 
@@ -346,13 +408,14 @@ class CartComponent extends React.Component {
                     : null}
                     <TabPanel
                         tabs={{ datasets: 'Datasets', files: 'Files ' }}
-                        decoration={<CartControls cartSearchResults={this.state.cartSearchResults} selectedFormats={this.state.selectedFormats} sharedCart={context} />}
+                        decoration={<CartControls cartSearchResults={cartSearchResults} selectedFormats={this.state.selectedFormats} sharedCart={context} />}
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">
+                            <PagerArea currentPage={this.state.currentDatasetResultsPage} totalCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
                             <PanelBody>
-                                {searchResults.length > 0 ?
-                                    <CartSearchResults results={cartSearchResults} activeCart={activeCart} />
+                                {datasets.length > 0 ?
+                                    <CartSearchResults items={datasets} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
                                 :
                                     <p className="cart__empty-message">
                                         Empty cart
@@ -361,9 +424,10 @@ class CartComponent extends React.Component {
                             </PanelBody>
                         </TabPanelPane>
                         <TabPanelPane key="files">
+                            <PagerArea currentPage={this.state.currentFileResultsPage} totalCount={totalFilePages} updateCurrentPage={this.updateFileCurrentPage} />
                             <PanelBody>
                                 {this.state.cartFileResults && this.state.cartFileResults.length > 0 ?
-                                    <FileSearchResults results={this.state.cartFileResults} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
+                                    <FileSearchResults items={this.state.cartFileResults} currentPage={this.state.currentFileResultsPage} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
                                 :
                                     <p className="cart__empty-message">
                                         No relevant files

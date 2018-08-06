@@ -1,4 +1,3 @@
-from pyramid.view import view_config
 from snovault.attachment import ItemWithAttachment
 from snovault import (
     calculated_property,
@@ -6,7 +5,6 @@ from snovault import (
     load_schema,
 )
 from pyramid.traversal import find_root
-from collections import OrderedDict
 from .base import (
     Item,
     paths_filtered_by_status,
@@ -19,9 +17,6 @@ def includeme(config):
     config.scan()
     config.add_request_method(lambda request: set(), '_set_status_changed_paths', reify=True)
     config.add_request_method(lambda request: set(), '_set_status_considered_paths', reify=True)
-    config.add_route('carts', '/carts{slash:/?}')
-    config.add_route('cart', '/cart-view{slash:/?}')
-    config.scan(__name__)
 
 
 @collection(
@@ -269,29 +264,3 @@ class SoftwareVersion(Item):
         root = find_root(self)
         software = root.get_by_uuid(properties['software'])
         return software.__ac_local_roles__()
-
-
-@collection(
-    name='carts',
-    properties={
-        'title': 'Cart',
-        'description': 'Listing of cart contents',
-    })
-class Cart(Item):
-    item_type = 'cart'
-    schema = load_schema('encoded:schemas/cart.json')
-
-
-@view_config(route_name='cart', request_method='GET', permission='search')
-def cart(context, request):
-    result = {
-        '@id': '/cart-view/',
-        '@type': ['cart-view'],
-        'title': 'Cart',
-        'facets': [],
-        '@graph': [],
-        'columns': OrderedDict(),
-        'notification': '',
-        'filters': []
-    }
-    return result

@@ -190,27 +190,67 @@ FileSearchResults.defaultProps = {
 /**
  * Display controls in the tab area of the cart view.
  */
-const CartControls = ({ cartSearchResults, selectedFormats, sharedCart }) => {
-    let batchDownloadControl;
-    if (selectedFormats.length === 0) {
-        batchDownloadControl = Object.keys(cartSearchResults).length > 0 ? <BatchDownload context={cartSearchResults} /> : null;
-    } else {
-        const query = `${cartSearchResults['@id']}&${selectedFormats.map(format => `files.file_type=${encodedURIComponent(format)}`).join('&')}`.substr(9);
-        batchDownloadControl = <BatchDownload query={query} />;
+class CartControls extends React.Component {
+    constructor() {
+        super();
+        this.batchDownload = this.batchDownload.bind(this);
     }
 
-    return (
-        <span>
-            {batchDownloadControl}
-            <CartMergeShared sharedCartObj={sharedCart} />
-            <CartClear />
-        </span>
-    );
-};
+    batchDownload() {
+        let contentDisposition;
+    
+        // Request search results from SCREEN.
+        this.context.fetch('/batch_download_cart', {
+            method: 'POST',
+            headers: {
+                Accept: 'text/plain',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                items: this.props.items,
+                file_formats: this.props.selectedFormats,
+            })
+        }).then((response) => {
+            if (response.ok) {
+                contentDisposition = response.headers.get('content-disposition');
+                return response.blob();
+            }
+            return Promise.reject(new Error(response.statusText));
+        }).then((blob) => {
+            // Extract filename from batch_download file response.
+            const matchResults = contentDisposition.match(/filename="(.*?)"/);
+            const filename = matchResults ? matchResults[1] : 'files.txt';
+
+            // Make a temporary link in the DOM with the URL from the response blob and then
+            // click the link to automatically download the file. Many references to the technique
+            // including https://blog.jayway.com/2017/07/13/open-pdf-downloaded-api-javascript/
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }).catch((err) => {
+            console.warn('batchDownload error %s:%s', err.name, err.message);
+        });
+    }
+
+    render() {
+        const { sharedCart } = this.props;
+
+        return (
+            <span>
+                <button onClick={this.batchDownload}>Download</button>
+                <CartMergeShared sharedCartObj={sharedCart} />
+                <CartClear />
+            </span>
+        );
+    }
+}
 
 CartControls.propTypes = {
-    /** Search result object for current cart contents */
-    cartSearchResults: PropTypes.object,
+    /** Cart items */
+    items: PropTypes.array,
     /** Selected file formats */
     selectedFormats: PropTypes.array,
     /** Items in the shared cart, if that's being displayed */
@@ -218,9 +258,13 @@ CartControls.propTypes = {
 };
 
 CartControls.defaultProps = {
-    cartSearchResults: {},
+    items: [],
     selectedFormats: [],
     sharedCart: null,
+};
+
+CartControls.contextTypes = {
+    fetch: PropTypes.func,
 };
 
 
@@ -402,7 +446,7 @@ class CartComponent extends React.Component {
     }
 
     render() {
-        const { context } = this.props;
+        const { context, cart } = this.props;
         const { cartSearchResults } = this.state;
         let missingItems = [];
         const datasets = (cartSearchResults && cartSearchResults['@graph']) || [];
@@ -450,7 +494,7 @@ class CartComponent extends React.Component {
                     : null}
                     <TabPanel
                         tabs={{ datasets: 'Datasets', files: 'Files ' }}
-                        decoration={<CartControls cartSearchResults={cartSearchResults} selectedFormats={this.state.selectedFormats} sharedCart={context} />}
+                        decoration={<CartControls items={cart} selectedFormats={this.state.selectedFormats} sharedCart={context} />}
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">
@@ -497,6 +541,7 @@ CartComponent.propTypes = {
     context: PropTypes.object.isRequired,
     /** In-memory cart contents */
     cart: PropTypes.array.isRequired,
+    /** System fetch function */
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -504,8 +549,16 @@ const mapStateToProps = (state, ownProps) => ({
     context: ownProps.context,
 });
 
-const Cart = connect(mapStateToProps)(CartComponent);
+const CartInternal = connect(mapStateToProps)(CartComponent);
 
+
+const Cart = (props, reactContext) => (
+    <CartInternal context={props.context} fetch={reactContext.fetch} />
+);
+
+Cart.propTypes = {
+    context: PropTypes.object.isRequired,
+};
 
 contentViews.register(Cart, 'cart-view'); // /cart-view/ URI
 contentViews.register(Cart, 'Cart'); // /carts/<uuid> URI

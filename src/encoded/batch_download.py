@@ -9,6 +9,9 @@ from urllib.parse import (
     parse_qs,
     urlencode,
 )
+from pyramid.security import (
+    NO_PERMISSION_REQUIRED,
+)
 from .search import iter_search_results
 from .search import list_visible_columns_for_schemas
 import csv
@@ -21,6 +24,7 @@ currenttime = datetime.datetime.now()
 
 def includeme(config):
     config.add_route('batch_download', '/batch_download/{search_params}')
+    config.add_route('batch_download_cart', '/batch_download_cart')
     config.add_route('metadata', '/metadata/{search_params}/{tsv}')
     config.add_route('peak_metadata', '/peak_metadata/{search_params}/{tsv}')
     config.add_route('report_download', '/report.tsv')
@@ -322,6 +326,51 @@ def batch_download(context, request):
         body='\n'.join(files),
         content_disposition='attachment; filename="%s"' % 'files.txt'
     )
+
+
+@view_config(route_name='batch_download_cart', request_method='POST',
+             permission=NO_PERMISSION_REQUIRED)
+def batch_download_cart(request):
+    # adding extra params to get required columns
+    items = request.json.get('items')
+    file_formats = request.json.get('files.file_type')
+    if not items is None:
+        param_list = {}
+        param_list['type'] = ['Experiment']
+        param_list['@id'] = items
+        if not file_formats is None:
+            param_list['files.file_type'] = file_formats
+        param_list['field'] = ['files.href', 'files.file_type', 'files']
+        param_list['limit'] = ['all']
+        path = '/search/?%s' % urlencode(param_list, True)
+        results = request.embed(path, as_user=True)
+
+        exp_files = (
+                exp_file
+                for exp in results['@graph']
+                for exp_file in exp.get('files', [])
+        )
+
+        files = []
+        for exp_file in exp_files:
+            if not file_type_param_list(exp_file, param_list):
+                continue
+            elif restricted_files_present(exp_file):
+                continue
+            files.append(
+                '{host_url}{href}'.format(
+                    host_url=request.host_url,
+                    href=exp_file['href'],
+                )
+            )
+
+        return Response(
+            content_type='text/plain',
+            body='\n'.join(files),
+            content_disposition='attachment; filename="%s"' % 'files.txt'
+        )
+
+    return None
 
 
 def file_type_param_list(exp_file, param_list):

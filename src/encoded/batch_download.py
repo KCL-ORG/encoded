@@ -24,7 +24,7 @@ currenttime = datetime.datetime.now()
 
 def includeme(config):
     config.add_route('batch_download', '/batch_download/{search_params}')
-    config.add_route('batch_download_cart', '/batch_download_cart')
+    config.add_route('batch_download_cart', '/batch_download_cart/{search_params}')
     config.add_route('metadata', '/metadata/{search_params}/{tsv}')
     config.add_route('peak_metadata', '/peak_metadata/{search_params}/{tsv}')
     config.add_route('report_download', '/report.tsv')
@@ -333,16 +333,14 @@ def batch_download(context, request):
 def batch_download_cart(request):
     # adding extra params to get required columns
     items = request.json.get('items')
-    file_formats = request.json.get('files.file_type')
     if not items is None:
-        param_list = {}
+        param_list = parse_qs(request.matchdict['search_params'])
         param_list['type'] = ['Experiment']
         param_list['@id'] = items
-        if not file_formats is None:
-            param_list['files.file_type'] = file_formats
         param_list['field'] = ['files.href', 'files.file_type', 'files']
         param_list['limit'] = ['all']
         path = '/search/?%s' % urlencode(param_list, True)
+        print('PATH {}'.format(path))
         results = request.embed(path, as_user=True)
 
         exp_files = (

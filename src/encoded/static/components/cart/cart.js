@@ -7,7 +7,7 @@ import Pager from '../../libs/bootstrap/pager';
 import { Panel, PanelBody, PanelFooter, TabPanel, TabPanelPane } from '../../libs/bootstrap/panel';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch, requestObjects } from '../objectutils';
-import { ResultTableList, BatchDownload } from '../search';
+import { ResultTableList } from '../search';
 import CartClear from './clear';
 import CartMergeShared from './merge_shared';
 
@@ -106,31 +106,29 @@ FileFormatItem.defaultProps = {
 /**
  * Display the file format facet.
  */
-const FileFormatFacet = ({ fileFormats, totalFileCount, selectedFormats, formatSelectHandler }) => {
-    return (
-        <div className="cart-files__facet box facets">
-            <div className="facet">
-                <h5>File format</h5>
-                <ul className="facet-list nav">
-                    {fileFormats.map((formatAndCount) => {
-                        const termCount = formatAndCount.count;
-                        return (
-                            <div key={formatAndCount.format}>
-                                <FileFormatItem
-                                    format={formatAndCount.format}
-                                    termCount={termCount}
-                                    totalTermCount={totalFileCount}
-                                    selected={selectedFormats.indexOf(formatAndCount.format) > -1}
-                                    formatSelectHandler={formatSelectHandler}
-                                />
-                            </div>
-                        );
-                    })}
-                </ul>
-            </div>
+const FileFormatFacet = ({ fileFormats, totalFileCount, selectedFormats, formatSelectHandler }) => (
+    <div className="cart-files__facet box facets">
+        <div className="facet">
+            <h5>File format</h5>
+            <ul className="facet-list nav">
+                {fileFormats.map((formatAndCount) => {
+                    const termCount = formatAndCount.count;
+                    return (
+                        <div key={formatAndCount.format}>
+                            <FileFormatItem
+                                format={formatAndCount.format}
+                                termCount={termCount}
+                                totalTermCount={totalFileCount}
+                                selected={selectedFormats.indexOf(formatAndCount.format) > -1}
+                                formatSelectHandler={formatSelectHandler}
+                            />
+                        </div>
+                    );
+                })}
+            </ul>
         </div>
-    );
-};
+    </div>
+);
 
 FileFormatFacet.propTypes = {
     /** Array of all file formats and their counts [{format: 'format', count: number}, ...] */
@@ -198,9 +196,12 @@ class CartControls extends React.Component {
 
     batchDownload() {
         let contentDisposition;
-    
+
+        // Form query string from currently selected file formats.
+        const fileFormatQuery = this.props.selectedFormats.map(format => `files.file_type=${encodedURIComponent(format)}`).join('&');
+
         // Request search results from SCREEN.
-        this.context.fetch('/batch_download_cart', {
+        this.context.fetch(`/batch_download_cart/type=Experiment&${fileFormatQuery}`, {
             method: 'POST',
             headers: {
                 Accept: 'text/plain',
@@ -208,8 +209,7 @@ class CartControls extends React.Component {
             },
             body: JSON.stringify({
                 items: this.props.items,
-                file_formats: this.props.selectedFormats,
-            })
+            }),
         }).then((response) => {
             if (response.ok) {
                 contentDisposition = response.headers.get('content-disposition');
@@ -240,7 +240,7 @@ class CartControls extends React.Component {
 
         return (
             <span>
-                <button onClick={this.batchDownload}>Download</button>
+                <button className="btn btn-info btn-sm" onClick={this.batchDownload}>Download</button>
                 <CartMergeShared sharedCartObj={sharedCart} />
                 <CartClear />
             </span>

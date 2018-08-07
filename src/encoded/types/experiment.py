@@ -509,6 +509,7 @@ class Replicate(Item):
         'library.biosample.donor',
         'library.biosample.donor.organism',
     ]
+    audit_inherit = ['*']
     set_status_up = [
         'library',
         'antibody',

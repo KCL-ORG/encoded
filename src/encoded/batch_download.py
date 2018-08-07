@@ -233,6 +233,17 @@ def metadata_tsv(context, request):
         param_list['field'] = param_list['field'] + _tsv_mapping[prop]
         if _tsv_mapping[prop][0].startswith('files'):
             file_attributes = file_attributes + [_tsv_mapping[prop][0]]
+
+    # For cart-generated metadata.tsv, get JSON payload and add "items" array of experiment @ids
+    # to query string.
+    items = None
+    try:
+        items = request.json.get('items')
+    except ValueError:
+        pass
+    else:
+        param_list['@id'] = items
+
     param_list['limit'] = ['all']
     path = '{}?{}'.format(search_path, urlencode(param_list, True))
     results = request.embed(path, as_user=True)
@@ -332,7 +343,11 @@ def batch_download(context, request):
              permission=NO_PERMISSION_REQUIRED)
 def batch_download_cart(request):
     # adding extra params to get required columns
-    items = request.json.get('items')
+    try:
+        items = request.json.get('items')
+    except ValueError:
+        items = None
+
     if not items is None:
         param_list = parse_qs(request.matchdict['search_params'])
         param_list['type'] = ['Experiment']
@@ -340,8 +355,12 @@ def batch_download_cart(request):
         param_list['field'] = ['files.href', 'files.file_type', 'files']
         param_list['limit'] = ['all']
         path = '/search/?%s' % urlencode(param_list, True)
-        print('PATH {}'.format(path))
         results = request.embed(path, as_user=True)
+        metadata_link = 'curl -X GET -H "Accept: text/tsv" -H "Content-Type: application/json" "{host_url}/metadata/{search_params}/metadata.tsv" --data \'{{"items": [{items_json}]}}\''.format(
+            host_url=request.host_url,
+            search_params=request.matchdict['search_params'],
+            items_json=','.join('"{0}"'.format(item) for item in items)
+        )
 
         exp_files = (
                 exp_file
@@ -349,7 +368,7 @@ def batch_download_cart(request):
                 for exp_file in exp.get('files', [])
         )
 
-        files = []
+        files = [metadata_link]
         for exp_file in exp_files:
             if not file_type_param_list(exp_file, param_list):
                 continue

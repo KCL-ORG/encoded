@@ -7,7 +7,7 @@ import Pager from '../../libs/bootstrap/pager';
 import { Panel, PanelBody, PanelFooter, TabPanel, TabPanelPane } from '../../libs/bootstrap/panel';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestSearch, requestObjects } from '../objectutils';
-import { ResultTableList } from '../search';
+import { ResultTableList, BatchDownloadModal } from '../search';
 import CartClear from './clear';
 import CartMergeShared from './merge_shared';
 
@@ -217,7 +217,7 @@ class CartControls extends React.Component {
             }
             return Promise.reject(new Error(response.statusText));
         }).then((blob) => {
-            // Extract filename from batch_download file response.
+            // Extract filename from batch_download response content disposition tag.
             const matchResults = contentDisposition.match(/filename="(.*?)"/);
             const filename = matchResults ? matchResults[1] : 'files.txt';
 
@@ -240,7 +240,7 @@ class CartControls extends React.Component {
 
         return (
             <span>
-                <button className="btn btn-info btn-sm" onClick={this.batchDownload}>Download</button>
+                <BatchDownloadModal handleDownloadClick={this.batchDownload} />
                 <CartMergeShared sharedCartObj={sharedCart} />
                 <CartClear />
             </span>

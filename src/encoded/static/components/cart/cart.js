@@ -399,32 +399,22 @@ class CartComponent extends React.Component {
             const cartQueryString = `${experimentTypeQuery ? 'type=Experiment&' : ''}${cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&')}&limit=all`;
             this.setState({ searchInProgress: true });
             requestSearch(cartQueryString).then((searchResults) => {
-                // Just need this to carry dataset results to next .then().
+                // Save the search result object so we can access it in the next .then().
                 datasetResults = searchResults;
 
-                // Gather all the files in all the returned datasets and do a search on them.
-                if (datasetResults['@graph'] && datasetResults['@graph'].length > 0) {
-                    const allDatasetFiles = [];
-                    datasetResults['@graph'].forEach((dataset) => {
-                        if (dataset.files && dataset.files.length > 0) {
-                            allDatasetFiles.push(...dataset.files.map(file => file['@id']));
-                        }
-                    });
-                    if (allDatasetFiles.length > 0) {
-                        return requestObjects(allDatasetFiles, '/search/?type=File&limit=all');
-                    }
-                }
-                return null;
+                // Search for all files belonging to all datasets in the cart.
+                return requestSearch(`type=File&limit=all&${cartItems.map(item => `dataset=${item}`).join('&')}`);
             }).then((fileResults) => {
-                // With any new dataset search results, rerender for the cart display.
+                // With any new dataset search results, rerender for the cart display. Do this now
+                // rather than after receiving dataset search results to avoid an extra rerender
+                // between promise resolutions.
                 if (datasetResults['@graph'] && datasetResults['@graph'].length) {
                     this.setState({ cartSearchResults: datasetResults });
                 }
 
                 // With any new file search results, rerender for the cart display.
-                if (fileResults) {
-                    // All files in all datasets retrieved as array of file @ids in `fileResults`.
-                    const filteredFileResults = fileResults.filter(file => !file.restricted && (this.state.selectedFormats.length === 0 || this.state.selectedFormats.indexOf(file.file_format)));
+                if (fileResults && fileResults['@graph'].length > 0) {
+                    const filteredFileResults = fileResults['@graph'].filter(file => !file.restricted && (this.state.selectedFormats.length === 0 || this.state.selectedFormats.indexOf(file.file_format)));
                     this.setState({ cartFileResults: filteredFileResults });
                 }
 

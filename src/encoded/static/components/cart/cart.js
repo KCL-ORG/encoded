@@ -201,7 +201,7 @@ class CartControls extends React.Component {
         const fileFormatQuery = this.props.selectedFormats.map(format => `files.file_type=${encodedURIComponent(format)}`).join('&');
 
         // Request search results from SCREEN.
-        this.context.fetch(`/batch_download_cart/type=Experiment${fileFormatQuery ? `&${fileFormatQuery}`: ''}`, {
+        this.context.fetch(`/batch_download_cart/type=Experiment${fileFormatQuery ? `&${fileFormatQuery}` : ''}`, {
             method: 'POST',
             headers: {
                 Accept: 'text/plain',
@@ -323,7 +323,7 @@ class CartComponent extends React.Component {
         super();
         this.state = {
             /** Cart dataset search result object */
-            cartDatasetResults: [],
+            cartSearchResults: {},
             /** All files in all carted datasets */
             cartFileResults: [],
             /** True if a search request is in progress */
@@ -381,7 +381,7 @@ class CartComponent extends React.Component {
     retrieveCartContents() {
         const { context, cart } = this.props;
         let cartItems = [];
-        let datasetResults = [];
+        let datasetResults = {};
 
         // Retrieve active or shared cart item @ids.
         if (context['@type'][0] === 'cart-view') {
@@ -396,15 +396,16 @@ class CartComponent extends React.Component {
         // of these contents.
         if (cartItems.length > 0) {
             const experimentTypeQuery = cartItems.every(cartItem => cartItem.match(/^\/experiments\/.*?\/$/) !== null);
+            const cartQueryString = `${experimentTypeQuery ? 'type=Experiment&' : ''}${cartItems.map(cartItem => `${encodedURIComponent('@id')}=${encodedURIComponent(cartItem)}`).join('&')}&limit=all`;
             this.setState({ searchInProgress: true });
-            requestObjects(cartItems, `/search/?limit=all${experimentTypeQuery ? '&type=Experiment' : ''}`).then((datasets) => {
+            requestSearch(cartQueryString).then((searchResults) => {
                 // Just need this to carry dataset results to next .then().
-                datasetResults = datasets;
+                datasetResults = searchResults;
 
                 // Gather all the files in all the returned datasets and do a search on them.
-                if (datasets.length > 0) {
+                if (datasetResults['@graph'] && datasetResults['@graph'].length > 0) {
                     const allDatasetFiles = [];
-                    datasets.forEach((dataset) => {
+                    datasetResults['@graph'].forEach((dataset) => {
                         if (dataset.files && dataset.files.length > 0) {
                             allDatasetFiles.push(...dataset.files.map(file => file['@id']));
                         }
@@ -416,8 +417,8 @@ class CartComponent extends React.Component {
                 return null;
             }).then((fileResults) => {
                 // With any new dataset search results, rerender for the cart display.
-                if (datasetResults.length) {
-                    this.setState({ cartDatasetResults: datasetResults });
+                if (datasetResults['@graph'] && datasetResults['@graph'].length) {
+                    this.setState({ cartSearchResults: datasetResults });
                 }
 
                 // With any new file search results, rerender for the cart display.
@@ -433,7 +434,7 @@ class CartComponent extends React.Component {
             });
         } else {
             // Render an empty cart.
-            this.setState({ cartDatasetResults: [], cartFileResults: [], searchInProgress: false });
+            this.setState({ cartSearchResults: {}, cartFileResults: [], searchInProgress: false });
         }
     }
 
@@ -447,9 +448,10 @@ class CartComponent extends React.Component {
 
     render() {
         const { context, cart } = this.props;
-        const { cartDatasetResults } = this.state;
+        const { cartSearchResults } = this.state;
         let missingItems = [];
-        const totalDatasetPages = Math.floor(cartDatasetResults.length / PAGE_DATASET_COUNT) + (cartDatasetResults.length % PAGE_DATASET_COUNT !== 0 ? 1 : 0);
+        const datasets = (cartSearchResults && cartSearchResults['@graph']) || [];
+        const totalDatasetPages = Math.floor(datasets.length / PAGE_DATASET_COUNT) + (datasets.length % PAGE_DATASET_COUNT !== 0 ? 1 : 0);
 
         // Shared and active carts displayed slightly differently.
         const activeCart = context['@type'][0] === 'cart-view';
@@ -457,8 +459,8 @@ class CartComponent extends React.Component {
         // When viewing a shared cart, see if any searched items are missing for the current user's
         // permissions.
         if (!activeCart) {
-            if (context.items.length - cartDatasetResults.length > 0) {
-                missingItems = _.difference(context.items, cartDatasetResults.map(item => item['@id']));
+            if (context.items.length - datasets.length > 0) {
+                missingItems = _.difference(context.items, datasets.map(item => item['@id']));
             }
         }
 
@@ -497,11 +499,11 @@ class CartComponent extends React.Component {
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">
-                            <ItemCountArea itemCount={cartDatasetResults.length} itemName="dataset" itemNamePlural="datasets" />
+                            <ItemCountArea itemCount={datasets.length} itemName="dataset" itemNamePlural="datasets" />
                             <PagerArea currentPage={this.state.currentDatasetResultsPage} totalPageCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
                             <PanelBody>
-                                {cartDatasetResults.length > 0 ?
-                                    <CartSearchResults items={cartDatasetResults} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
+                                {datasets.length > 0 ?
+                                    <CartSearchResults items={datasets} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
                                 :
                                     <p className="cart__empty-message">
                                         Empty cart

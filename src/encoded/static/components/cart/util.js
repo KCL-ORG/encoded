@@ -4,6 +4,10 @@ const allowedTypes = [
 ];
 
 
+/** Maximum number of items to allow in cart */
+export const MAX_CART_ITEMS = 200;
+
+
 /**
  * Given an array of search results filters, return an array with any "type" filters filtered out.
  * If no "type" filters exist after this, then return an empty array, as we need at least one

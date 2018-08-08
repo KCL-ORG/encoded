@@ -290,7 +290,7 @@ ItemCountArea.propTypes = {
 
 
 /**
- * Display the pager control area at the bottom of the dataset and file search result panels.
+ * Display the pager control area.
  */
 const PagerArea = ({ currentPage, totalPageCount, updateCurrentPage }) => {
     if (totalPageCount > 1) {

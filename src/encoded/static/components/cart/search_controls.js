@@ -4,7 +4,9 @@ import CartAddAll from './add_multiple';
 import getAllowedResultFilters from './util';
 
 
-// Controls at the top of search result lists.
+/**
+ * Controls at the top of search result lists.
+ */
 const CartSearchControls = ({ searchResults }) => {
     const allowedResultFilters = getAllowedResultFilters(searchResults.filters);
     if (allowedResultFilters.length > 0) {
@@ -12,7 +14,7 @@ const CartSearchControls = ({ searchResults }) => {
         // we can add to the cart.
         return (
             <div className="cart__search-controls">
-                <CartAddAll searchFilterElements={allowedResultFilters} />
+                <CartAddAll searchResults={searchResults} />
             </div>
         );
     }
@@ -20,7 +22,8 @@ const CartSearchControls = ({ searchResults }) => {
 };
 
 CartSearchControls.propTypes = {
-    searchResults: PropTypes.object.isRequired, // Search URI to get all searched @ids without limit
+    /** Search URI to get all searched @ids without limit */
+    searchResults: PropTypes.object.isRequired,
 };
 
 export default CartSearchControls;

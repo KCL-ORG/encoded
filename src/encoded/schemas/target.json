@@ -18,32 +18,12 @@
         "schema_version": {
             "default": "9"
         },
-        "dbxref": {
-            "title": "External identifiers",
-            "description": "Unique identifiers from external resources (e.g. HGNC, GeneID, UniProtKB or ENSEMBL).",
-	          "type": "array",
-            "default": [],
-            "uniqueItems": true,
-            "items": {
-                "title": "External identifier",
-                "description": "A unique identifier from external resource (e.g. HGNC, GeneID, UniProtKB or ENSEMBL).",
-                "comment": "Submit as database name:target name (e.g. HGNC:HMFN0395, GeneID:22809)",
-                "type":  "string"
-            }
-        },
         "organism": {
             "title": "Organism",
             "description": "Organism bearing the target.",
             "comment": "See organism.json for available identifiers.",
             "type": "string",
             "linkTo": "Organism"
-        },
-        "gene_name": {
-            "title": "Gene name",
-            "description": "HGNC or MGI identifier for the target.",
-            "comment": "Submit only the identifier (e.g. HMFN0395 or 22809).",
-            "type": "string",
-            "format": "gene_name"
         },
         "targeted_genes": {
             "title": "Targeted genes",
@@ -129,17 +109,9 @@
         },
         "organism.scientific_name": {
             "title": "Species"
-        },
-        "dbxref": {
-            "title": "External resources"
-        },
-        "gene_name": {
-            "title": "Gene name"
         }
     },
     "boost_values": {
-        "gene_name": 1.0, 
-        "dbxref": 1.0, 
         "targeted_genes.geneid": 1.0,
         "targeted_genes.symbol": 1.0,
         "modification": 1.0,

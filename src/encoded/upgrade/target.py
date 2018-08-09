@@ -162,8 +162,9 @@ def target_7_8(value, system):
 @upgrade_step('target', '8', '9')
 def target_8_9(value, system):
     # https://encodedcc.atlassian.net/browse/ENCD-3998
+    value.pop('gene_name', '')
     targeted_genes = []
-    for dbxref in value.get('dbxref', []):
+    for dbxref in value.pop('dbxref', []):
         if dbxref.startswith('GeneID:'):
             targeted_genes.append(dbxref[7:])
     if targeted_genes:

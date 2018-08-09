@@ -61,3 +61,25 @@ class Target(SharedItem):
         properties = self.upgrade_properties()
         request._linked_uuids.add(str(properties['organism']))
         return None
+
+    @calculated_property(schema={
+        "title": "Gene Symbols",
+        "type": "string",
+    })
+    def gene_name(self, request, targeted_genes):
+        symbols = []
+        for gene in targeted_genes:
+            symbols.append(request.embed(gene, '@@object')['symbol'])
+        return '+'.join(symbols)
+
+    @calculated_property(schema={
+        "title": "Gene Symbols",
+        "type": "string",
+    })
+    def dbxref(self, request, targeted_genes):
+        dbxrefs = []
+        for gene in targeted_genes:
+            gene_props = request.embed(gene, '@@object')
+            if 'dbxrefs' in gene_props:
+                dbxrefs += gene_props['dbxrefs']
+        return dbxrefs

@@ -312,7 +312,8 @@ def batch_download(context, request):
         try:
             items = request.json.get('items')
         except ValueError:
-            pass
+            msg = 'Batch download with POST requires JSON "items" key.'
+            raise HTTPBadRequest(explanation=msg)
         else:
             param_list['@id'] = items
             metadata_link = 'curl -X GET -H "Accept: text/tsv" -H "Content-Type: application/json" "{host_url}/metadata/{search_params}/metadata.tsv" --data \'{{"items": [{items_json}]}}\''.format(

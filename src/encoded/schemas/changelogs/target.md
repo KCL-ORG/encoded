@@ -3,6 +3,8 @@
 ### Schema version 8
 
 * Move status property to standard_status mixin.
+* Added "targeted_genes" property for the list of genes targeted by assay or antibody associated with the target.
+* Added "modification" property to facilitate automatic name calculation.
 
 ### Schema version 7
 

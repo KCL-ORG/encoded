@@ -157,3 +157,14 @@ def target_7_8(value, system):
     # Shouldn't be any of these.
     elif status == 'replaced':
         value['status'] = 'deleted'
+
+
+@upgrade_step('target', '8', '9')
+def target_8_9(value, system):
+    # https://encodedcc.atlassian.net/browse/ENCD-3998
+    targeted_genes = []
+    for dbxref in value.get('dbxref', []):
+        if dbxref.startswith('GeneID:'):
+            targeted_genes.append(dbxref[7:])
+    if targeted_genes:
+        value['targeted_genes'] = targeted_genes

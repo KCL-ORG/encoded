@@ -302,7 +302,6 @@ def metadata_tsv(context, request):
 @view_config(route_name='batch_download', request_method=('GET', 'POST'))
 def batch_download(context, request):
     # adding extra params to get required columns
-    print('RECEIVED')
     param_list = parse_qs(request.matchdict['search_params'])
     param_list['field'] = ['files.href', 'files.file_type', 'files']
     param_list['limit'] = ['all']

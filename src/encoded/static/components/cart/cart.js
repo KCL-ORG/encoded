@@ -201,7 +201,7 @@ class CartControls extends React.Component {
         const fileFormatQuery = this.props.selectedFormats.map(format => `files.file_type=${encodedURIComponent(format)}`).join('&');
 
         // Request search results from SCREEN.
-        this.context.fetch(`/batch_download_cart/type=Experiment${fileFormatQuery ? `&${fileFormatQuery}` : ''}`, {
+        this.context.fetch(`/batch_download/type=Experiment${fileFormatQuery ? `&${fileFormatQuery}` : ''}`, {
             method: 'POST',
             headers: {
                 Accept: 'text/plain',

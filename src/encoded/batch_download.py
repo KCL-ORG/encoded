@@ -24,7 +24,6 @@ currenttime = datetime.datetime.now()
 
 def includeme(config):
     config.add_route('batch_download', '/batch_download/{search_params}')
-    config.add_route('batch_download_cart', '/batch_download_cart/{search_params}')
     config.add_route('metadata', '/metadata/{search_params}/{tsv}')
     config.add_route('peak_metadata', '/peak_metadata/{search_params}/{tsv}')
     config.add_route('report_download', '/report.tsv')
@@ -300,18 +299,35 @@ def metadata_tsv(context, request):
     )
 
 
-@view_config(route_name='batch_download', request_method='GET')
+@view_config(route_name='batch_download', request_method=('GET', 'POST'))
 def batch_download(context, request):
     # adding extra params to get required columns
+    print('RECEIVED')
     param_list = parse_qs(request.matchdict['search_params'])
     param_list['field'] = ['files.href', 'files.file_type', 'files']
     param_list['limit'] = ['all']
+
+    # batch download from cart issues POST and includes "item" key
+    if request.method == 'POST':
+        try:
+            items = request.json.get('items')
+        except ValueError:
+            pass
+        else:
+            param_list['@id'] = items
+            metadata_link = 'curl -X GET -H "Accept: text/tsv" -H "Content-Type: application/json" "{host_url}/metadata/{search_params}/metadata.tsv" --data \'{{"items": [{items_json}]}}\''.format(
+                host_url=request.host_url,
+                search_params=request.matchdict['search_params'],
+                items_json=','.join('"{0}"'.format(item) for item in items)
+            )
+    else:
+        metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(
+            host_url=request.host_url,
+            search_params=request.matchdict['search_params']
+        )
+
     path = '/search/?%s' % urlencode(param_list, True)
     results = request.embed(path, as_user=True)
-    metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(
-        host_url=request.host_url,
-        search_params=request.matchdict['search_params']
-    )
     files = [metadata_link]
 
     exp_files = (
@@ -337,57 +353,6 @@ def batch_download(context, request):
         body='\n'.join(files),
         content_disposition='attachment; filename="%s"' % 'files.txt'
     )
-
-
-@view_config(route_name='batch_download_cart', request_method='POST',
-             permission=NO_PERMISSION_REQUIRED)
-def batch_download_cart(request):
-    # adding extra params to get required columns
-    try:
-        items = request.json.get('items')
-    except ValueError:
-        items = None
-
-    if not items is None:
-        param_list = parse_qs(request.matchdict['search_params'])
-        param_list['type'] = ['Experiment']
-        param_list['@id'] = items
-        param_list['field'] = ['files.href', 'files.file_type', 'files']
-        param_list['limit'] = ['all']
-        path = '/search/?%s' % urlencode(param_list, True)
-        results = request.embed(path, as_user=True)
-        metadata_link = 'curl -X GET -H "Accept: text/tsv" -H "Content-Type: application/json" "{host_url}/metadata/{search_params}/metadata.tsv" --data \'{{"items": [{items_json}]}}\''.format(
-            host_url=request.host_url,
-            search_params=request.matchdict['search_params'],
-            items_json=','.join('"{0}"'.format(item) for item in items)
-        )
-
-        exp_files = (
-                exp_file
-                for exp in results['@graph']
-                for exp_file in exp.get('files', [])
-        )
-
-        files = [metadata_link]
-        for exp_file in exp_files:
-            if not file_type_param_list(exp_file, param_list):
-                continue
-            elif restricted_files_present(exp_file):
-                continue
-            files.append(
-                '{host_url}{href}'.format(
-                    host_url=request.host_url,
-                    href=exp_file['href'],
-                )
-            )
-
-        return Response(
-            content_type='text/plain',
-            body='\n'.join(files),
-            content_disposition='attachment; filename="%s"' % 'files.txt'
-        )
-
-    return None
 
 
 def file_type_param_list(exp_file, param_list):

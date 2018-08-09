@@ -27,7 +27,7 @@ class CartAddAllComponent extends React.Component {
 
     render() {
         const overLimit = this.props.searchResults.total > MAX_CART_ITEMS;
-        return <button disabled={overLimit} className="btn btn-info btn-sm" onClick={this.handleClick}>{overLimit ? `Filter to ${MAX_CART_ITEMS} to add all to cart` : 'Add all to cart'}</button>;
+        return <button disabled={overLimit} className="btn btn-info btn-sm" onClick={this.handleClick}>{overLimit ? `Filter to ${MAX_CART_ITEMS} to add all to cart` : `Add ${this.props.searchResults.total} items to cart`}</button>;
     }
 }
 

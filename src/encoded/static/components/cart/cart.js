@@ -236,13 +236,13 @@ class CartControls extends React.Component {
     }
 
     render() {
-        const { sharedCart } = this.props;
+        const { items, activeCart, sharedCart } = this.props;
 
         return (
             <span>
-                <BatchDownloadModal handleDownloadClick={this.batchDownload} />
+                {items.length > 0 ? <BatchDownloadModal handleDownloadClick={this.batchDownload} /> : null}
                 <CartMergeShared sharedCartObj={sharedCart} />
-                <CartClear />
+                {activeCart ? <CartClear /> : null}
             </span>
         );
     }
@@ -253,6 +253,8 @@ CartControls.propTypes = {
     items: PropTypes.array,
     /** Selected file formats */
     selectedFormats: PropTypes.array,
+    /** True if cart is active, False if cart is shared */
+    activeCart: PropTypes.bool,
     /** Items in the shared cart, if that's being displayed */
     sharedCart: PropTypes.object,
 };
@@ -260,6 +262,7 @@ CartControls.propTypes = {
 CartControls.defaultProps = {
     items: [],
     selectedFormats: [],
+    activeCart: true,
     sharedCart: null,
 };
 
@@ -485,7 +488,7 @@ class CartComponent extends React.Component {
                     : null}
                     <TabPanel
                         tabs={{ datasets: 'Datasets', files: 'Files ' }}
-                        decoration={<CartControls items={cart} selectedFormats={this.state.selectedFormats} sharedCart={context} />}
+                        decoration={<CartControls items={cart} selectedFormats={this.state.selectedFormats} activeCart={activeCart} sharedCart={context} />}
                         decorationClasses="cart-controls"
                     >
                         <TabPanelPane key="datasets">

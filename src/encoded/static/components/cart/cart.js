@@ -158,7 +158,7 @@ class FileFormatFacet extends React.Component {
      * returned but we do get file facet information.
      */
     retrieveFileFacets() {
-        this.context.fetch('/search_items/type=File&restricted!=true&limit=0', {
+        this.context.fetch('/search_items/type=File&restricted!=true&limit=0&filterresponse=off', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -247,7 +247,7 @@ class CartTools extends React.Component {
         // Form query string from currently selected file formats.
         const fileFormatQuery = this.props.selectedFormats.map(format => `files.file_type=${encodedURIComponent(format)}`).join('&');
 
-        // Request search results from SCREEN.
+        // Initiate a batch download as a POST, passing it all dataset @ids in the payload.
         this.context.fetch(`/batch_download/type=Experiment${fileFormatQuery ? `&${fileFormatQuery}` : ''}`, {
             method: 'POST',
             headers: {

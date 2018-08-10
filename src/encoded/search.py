@@ -345,11 +345,12 @@ def set_filters(request, query, result, static_items=None):
         terms = all_terms[field]
         if field in ['type', 'limit', 'y.limit', 'x.limit', 'mode', 'annotation',
                      'format', 'frame', 'datastore', 'field', 'region', 'genome',
-                     'sort', 'from', 'referrer']:
+                     'sort', 'from', 'referrer', 'filterresponse']:
             continue
 
         # Add filter to result
-        if field in qs_fields:
+        filterresponse = request.params.get('filterresponse', 'on')
+        if field in qs_fields and filterresponse == 'on':
             for term in terms:
                 qs = urlencode([
                     (k.encode('utf-8'), v.encode('utf-8'))

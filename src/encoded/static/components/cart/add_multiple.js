@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { addMultipleToCartAndSave } from './actions';
-import { MAX_CART_ITEMS } from './util';
 import { encodedURIComponent } from '../globals';
 import { requestSearch } from '../objectutils';
 
@@ -26,8 +25,7 @@ class CartAddAllComponent extends React.Component {
     }
 
     render() {
-        const overLimit = this.props.searchResults.total > MAX_CART_ITEMS;
-        return <button disabled={overLimit} className="btn btn-info btn-sm" onClick={this.handleClick}>{overLimit ? `Filter to ${MAX_CART_ITEMS} to add all to cart` : `Add ${this.props.searchResults.total} items to cart`}</button>;
+        return <button className="btn btn-info btn-sm" onClick={this.handleClick}>{`Add ${this.props.searchResults.total} items to cart`}</button>;
     }
 }
 

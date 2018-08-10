@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _ from 'underscore';
 import Pager from '../../libs/bootstrap/pager';
-import { Panel, PanelBody, PanelFooter } from '../../libs/bootstrap/panel';
+import { Panel, PanelBody, PanelHeading } from '../../libs/bootstrap/panel';
 import { contentViews, itemClass, encodedURIComponent } from '../globals';
 import { requestObjects } from '../objectutils';
 import { ResultTableList, BatchDownloadModal } from '../search';
@@ -187,7 +187,7 @@ class FileFormatFacet extends React.Component {
         const { selectedFormats, formatSelectHandler } = this.props;
         const { fileFormatFacet } = this.state;
         return (
-            <div className="cart-files__facet box facets">
+            <div className="box facets">
                 {fileFormatFacet ?
                     <div className="facet">
                         <h5>{fileFormatFacet.title}</h5>
@@ -233,9 +233,9 @@ FileFormatFacet.contextTypes = {
 
 
 /**
- * Display controls in the tab area of the cart view.
+ * Display cart tool buttons.
  */
-class CartControls extends React.Component {
+class CartTools extends React.Component {
     constructor() {
         super();
         this.batchDownload = this.batchDownload.bind(this);
@@ -286,16 +286,16 @@ class CartControls extends React.Component {
         const { items, activeCart, sharedCart } = this.props;
 
         return (
-            <span>
+            <div className="cart__tools">
                 {items.length > 0 ? <BatchDownloadModal handleDownloadClick={this.batchDownload} /> : null}
                 <CartMergeShared sharedCartObj={sharedCart} />
                 {activeCart ? <CartClear /> : null}
-            </span>
+            </div>
         );
     }
 }
 
-CartControls.propTypes = {
+CartTools.propTypes = {
     /** Cart items */
     items: PropTypes.array,
     /** Selected file formats */
@@ -306,14 +306,14 @@ CartControls.propTypes = {
     sharedCart: PropTypes.object,
 };
 
-CartControls.defaultProps = {
+CartTools.defaultProps = {
     items: [],
     selectedFormats: [],
     activeCart: true,
     sharedCart: null,
 };
 
-CartControls.contextTypes = {
+CartTools.contextTypes = {
     fetch: PropTypes.func,
 };
 
@@ -428,12 +428,14 @@ class CartComponent extends React.Component {
                     </div>
                 </header>
                 <Panel addClasses="cart__result-table">
-                    <CartControls items={cartItems} selectedFormats={this.state.selectedFormats} activeCart={activeCart} sharedCart={context} />
+                    <PanelHeading addClasses="cart__header">
+                        <PagerArea currentPage={this.state.currentDatasetResultsPage} totalPageCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
+                        <CartTools items={cartItems} selectedFormats={this.state.selectedFormats} activeCart={activeCart} sharedCart={context} />
+                    </PanelHeading>
                     <ItemCountArea itemCount={cartItems.length} itemName="dataset" itemNamePlural="datasets" />
-                    <PagerArea currentPage={this.state.currentDatasetResultsPage} totalPageCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
                     <PanelBody>
                         {cartItems.length > 0 ?
-                            <div>
+                            <div className="cart__display">
                                 <FileFormatFacet items={cartItems} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
                                 <CartSearchResults items={cartItems} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
                             </div>

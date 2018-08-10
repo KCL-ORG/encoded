@@ -174,14 +174,27 @@
     @at-root #{&}__item-count {
         padding: 2px 0;
         text-align: center;
+        border-top: 1px solid #ddd;
         border-bottom: 1px solid #ddd;
     }
 
     // Cart result table pager control area.
     @at-root #{&}__pager {
-        padding: 8px;
-        background-color: #f5f5f5;
-        border-bottom: 1px solid #ddd;
+        flex: 0 1 auto;
+    }
+
+    @at-root #{&}__tools {
+        flex: 0 1 auto;
+    }
+
+    // Header of cart panel.
+    @at-root #{&}__header {
+        display: flex;
+        justify-content: space-between;
+
+        button {
+            margin-left: 5px;
+        }
     }
 }
 
@@ -193,10 +206,10 @@
 
 
 // Search-result-like file facet and results display.
-.cart-files {
+.cart__display {
     display: flex;
 
-    @at-root #{&}__facet {
+    .facets {
         flex: 1 1 auto;
         position: relative;
         margin-right: 20px;
@@ -212,11 +225,7 @@
         }
     }
 
-    .facet-term__item {
-        display: flex;
-    }
-
-    @at-root #{&}__result-table {
+    .result-table {
         flex: 0 1 75%;
     }
 }

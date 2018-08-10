@@ -152,6 +152,11 @@ class FileFormatFacet extends React.Component {
         }
     }
 
+    /**
+     * Perform a special search to get just the facet information for files associated with cart
+     * items. The cart items are passed in the JSON body of the POST. No search results get
+     * returned but we do get file facet information.
+     */
     retrieveFileFacets() {
         this.context.fetch('/search_items/type=File&restricted!=true&limit=0', {
             method: 'POST',
@@ -162,15 +167,18 @@ class FileFormatFacet extends React.Component {
             body: JSON.stringify({
                 dataset: this.props.items,
             }),
-        }).then((response) => {
-            if (response.ok) {
-                return response.json();
-            }
-            return Promise.reject(new Error(response.statusText));
-        }).then((results) => {
-            const fileFormatFacet = results.facets.find(facet => facet.field === 'file_format');
-            if (fileFormatFacet) {
-                this.setState({ fileFormatFacet });
+        }).then(response => (
+            response.ok ? response.json() : null
+        )).then((results) => {
+            if (results) {
+                const fileFormatFacet = results.facets.find(facet => facet.field === 'file_format');
+                if (fileFormatFacet) {
+                    this.setState({ fileFormatFacet });
+                } else {
+                    this.setState({ fileFormatFacet: null });
+                }
+            } else {
+                this.setState({ fileFormatFacet: null });
             }
         });
     }

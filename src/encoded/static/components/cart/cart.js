@@ -129,6 +129,22 @@ FileFormatItem.defaultProps = {
 };
 
 
+const requestFacet = (items, fetch) => (
+    fetch('/search_items/type=File&restricted!=true&limit=0&filterresponse=off', {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            dataset: items,
+        }),
+    }).then(response => (
+        response.ok ? response.json() : null
+    ))
+);
+
+
 /**
  * Display the file format facet.
  */
@@ -158,28 +174,26 @@ class FileFormatFacet extends React.Component {
      * returned but we do get file facet information.
      */
     retrieveFileFacets() {
-        this.context.fetch('/search_items/type=File&restricted!=true&limit=0&filterresponse=off', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                dataset: this.props.items,
-            }),
-        }).then(response => (
-            response.ok ? response.json() : null
-        )).then((results) => {
-            if (results) {
-                const fileFormatFacet = results.facets.find(facet => facet.field === 'file_format');
-                if (fileFormatFacet) {
-                    this.setState({ fileFormatFacet });
-                } else {
-                    this.setState({ fileFormatFacet: null });
-                }
-            } else {
-                this.setState({ fileFormatFacet: null });
-            }
+        // Break incoming array of experiment @ids into manageable chunks of arrays, each with
+        // CHUNK_SIZE items. Each chunk gets used in a search of files, and all the results get
+        // combined into one facet object.
+        const CHUNK_SIZE = 500;
+        const chunks = [];
+        for (let itemIndex = 0; itemIndex < this.props.items.length; itemIndex += CHUNK_SIZE) {
+            chunks.push(this.props.items.slice(itemIndex, itemIndex + CHUNK_SIZE));
+        }
+        chunks.reduce((promiseChain, currentChunk) => (
+            promiseChain.then(accumulatedResults => (
+                requestFacet(currentChunk, this.context.fetch).then((currentResults) => {
+                    if (accumulatedResults) {
+                        accumulatedResults.total += currentResults.total;
+                        return accumulatedResults;
+                    }
+                    return currentResults;
+                })
+            ))
+        ), Promise.resolve(null)).then((results) => {
+            console.log('FACET %o', results);
         });
     }
 

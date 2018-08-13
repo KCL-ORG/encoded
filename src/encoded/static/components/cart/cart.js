@@ -174,6 +174,8 @@ class FileFormatFacet extends React.Component {
         this.state = {
             /** file_format facet from search results */
             fileFormatFacet: null,
+            /** Tracks facet loading progress */
+            facetLoadProgress: -1,
         };
         this.retrieveFileFacets = this.retrieveFileFacets.bind(this);
     }
@@ -197,7 +199,7 @@ class FileFormatFacet extends React.Component {
         // Break incoming array of experiment @ids into manageable chunks of arrays, each with
         // CHUNK_SIZE items. Each chunk gets used in a search of files, and all the results get
         // combined into one facet object.
-        const CHUNK_SIZE = 500;
+        const CHUNK_SIZE = 5;
         const chunks = [];
         for (let itemIndex = 0; itemIndex < this.props.items.length; itemIndex += CHUNK_SIZE) {
             chunks.push(this.props.items.slice(itemIndex, itemIndex + CHUNK_SIZE));
@@ -205,9 +207,10 @@ class FileFormatFacet extends React.Component {
 
         // Using the arrays of dataset @id arrays, do a sequence of searches of CHUNK_SIZE datasets
         // adding the totals together to form the final facet.
-        chunks.reduce((promiseChain, currentChunk) => (
+        chunks.reduce((promiseChain, currentChunk, currentChunkIndex) => (
             promiseChain.then(accumulatedResults => (
                 requestFacet(currentChunk, this.context.fetch).then((currentResults) => {
+                    this.setState({ facetLoadProgress: Math.round(currentChunkIndex / chunks.length * 100) });
                     if (accumulatedResults) {
                         accumulatedResults.total += currentResults.total;
                         addToAccumulatedFacets(accumulatedResults, currentResults, 'file_format');
@@ -219,7 +222,7 @@ class FileFormatFacet extends React.Component {
         ), Promise.resolve(null)).then((results) => {
             const fileFormatFacet = results.facets.find(facet => facet.field === 'file_format');
             fileFormatFacet.terms = fileFormatFacet.terms.sort((a, b) => b.doc_count - a.doc_count);
-            this.setState({ fileFormatFacet });
+            this.setState({ fileFormatFacet, facetLoadProgress: -1 });
         });
     }
 
@@ -247,7 +250,9 @@ class FileFormatFacet extends React.Component {
                             ))}
                         </ul>
                     </div>
-                : null}
+                :
+                    <progress value={this.state.facetLoadProgress} max="100" />
+                }
             </div>
         );
     }

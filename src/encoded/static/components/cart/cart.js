@@ -129,6 +129,12 @@ FileFormatItem.defaultProps = {
 };
 
 
+/**
+ * Request a search of files whose datasets match those in `items`.
+ * @param {array} items `@id`s of file datasets to request for a facet
+ * @param {func} fetch System fetch function
+ * @return {object} Promise with search result object
+ */
 const requestFacet = (items, fetch) => (
     fetch('/search_items/type=File&restricted!=true&limit=0&filterresponse=off', {
         method: 'POST',
@@ -143,6 +149,20 @@ const requestFacet = (items, fetch) => (
         response.ok ? response.json() : null
     ))
 );
+
+
+const addToAccumulatedFacets = (accumulatedResults, currentResults, facetField) => {
+    const accumulatedFacet = accumulatedResults.facets.find(facet => facet.field === facetField);
+    const currentFacet = currentResults.facets.find(facet => facet.field === facetField);
+    currentFacet.terms.forEach((currentTerm) => {
+        const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
+        if (matchingAccumulatedTerm) {
+            matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
+        } else {
+            accumulatedFacet.terms.push(currentTerm);
+        }
+    });
+};
 
 
 /**
@@ -182,18 +202,24 @@ class FileFormatFacet extends React.Component {
         for (let itemIndex = 0; itemIndex < this.props.items.length; itemIndex += CHUNK_SIZE) {
             chunks.push(this.props.items.slice(itemIndex, itemIndex + CHUNK_SIZE));
         }
+
+        // Using the arrays of dataset @id arrays, do a sequence of searches of CHUNK_SIZE datasets
+        // adding the totals together to form the final facet.
         chunks.reduce((promiseChain, currentChunk) => (
             promiseChain.then(accumulatedResults => (
                 requestFacet(currentChunk, this.context.fetch).then((currentResults) => {
                     if (accumulatedResults) {
                         accumulatedResults.total += currentResults.total;
+                        addToAccumulatedFacets(accumulatedResults, currentResults, 'file_format');
                         return accumulatedResults;
                     }
                     return currentResults;
                 })
             ))
         ), Promise.resolve(null)).then((results) => {
-            console.log('FACET %o', results);
+            const fileFormatFacet = results.facets.find(facet => facet.field === 'file_format');
+            fileFormatFacet.terms = fileFormatFacet.terms.sort((a, b) => b.doc_count - a.doc_count);
+            this.setState({ fileFormatFacet });
         });
     }
 

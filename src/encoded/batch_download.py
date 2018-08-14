@@ -315,7 +315,7 @@ def batch_download(context, request):
             raise HTTPBadRequest(explanation=msg)
         else:
             param_list['@id'] = items
-            metadata_link = 'curl -X GET -H "Accept: text/tsv" -H "Content-Type: application/json" "{host_url}/metadata/{search_params}/metadata.tsv" --data \'{{"items": [{items_json}]}}\''.format(
+            metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv -H "Accept: text/tsv" -H "Content-Type: application/json" --data \'{{"items": [{items_json}]}}\''.format(
                 host_url=request.host_url,
                 search_params=request.matchdict['search_params'],
                 items_json=','.join('"{0}"'.format(item) for item in items)

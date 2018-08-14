@@ -9,27 +9,53 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../libs/bootstrap
 class CartClearComponent extends React.Component {
     constructor() {
         super();
-        this.handleClick = this.handleClick.bind(this);
+        this.state = {
+            /** True if modal about clearing the cart is visible */
+            modalOpen: false,
+            /** True if in-progress spinner visible */
+            spinnerVisible: false,
+        };
+        this.handleClearCartClick = this.handleClearCartClick.bind(this);
+        this.handleConfirmClearClick = this.handleConfirmClearClick.bind(this);
     }
 
-    handleClick() {
-        this.props.onClearCartClick(this.props.cart);
+    /**
+     * Handle a click in the Clear Cart button by showing the confirmation modal.
+     */
+    handleClearCartClick() {
+        this.setState({ modalOpen: true });
+    }
+
+    /**
+     * Handle a click on the button in the modal confirming clearing the cart.
+     */
+    handleConfirmClearClick() {
+        this.setState({ spinnerVisible: true });
+        this.props.onClearCartClick(this.props.cart).then(() => {
+            this.setState({ modalOpen: false, spinnerVisible: false });
+        });
     }
 
     render() {
         if (this.props.cart.length > 0) {
             return (
-                <Modal actuator={<button className="btn btn-info btn-sm">Clear cart</button>}>
-                    <ModalHeader title="Clear entire cart contents" closeModal />
-                    <ModalBody>
-                        <p>Clearing the cart is not undoable.</p>
-                    </ModalBody>
-                    <ModalFooter
-                        closeModal={<button className="btn btn-info">Close</button>}
-                        submitBtn={this.handleClick}
-                        submitTitle="Clear cart"
-                    />
-                </Modal>
+                <span>
+                    <button onClick={this.handleClearCartClick} className="btn btn-info btn-sm">Clear cart</button>
+                    {this.state.modalOpen ?
+                        <Modal>
+                            <ModalHeader title="Clear entire cart contents" closeModal />
+                            <ModalBody>
+                                {this.state.spinnerVisible ? <div className="loading-spinner" /> : null}
+                                <p>Clearing the cart is not undoable.</p>
+                            </ModalBody>
+                            <ModalFooter
+                                closeModal={<button className="btn btn-info">Close</button>}
+                                submitBtn={this.handleConfirmClearClick}
+                                submitTitle="Clear cart"
+                            />
+                        </Modal>
+                    : null}
+                </span>
             );
         }
         return null;

@@ -29,6 +29,7 @@ export const addToCartAndSave = (current, user, fetch) => (
             const { cart, savedCartObj } = getState();
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
+                return updatedSavedCartObj;
             });
         }
         return null;
@@ -46,6 +47,7 @@ export const addMultipleToCartAndSave = (items, user, fetch) => (
             const { cart, savedCartObj } = getState();
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
+                return updatedSavedCartObj;
             });
         }
         return null;
@@ -72,9 +74,10 @@ export const removeFromCartAndSave = (current, user, fetch) => (
             const { cart, savedCartObj } = getState();
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
+                return updatedSavedCartObj;
             });
         }
-        return null;
+        return Promise.resolve(null);
     }
 );
 
@@ -89,9 +92,10 @@ export const removeMultipleFromCartAndSave = (items, user, fetch) => (
             const { cart, savedCartObj } = getState();
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
+                return updatedSavedCartObj;
             });
         }
-        return null;
+        return Promise.resolve(null);
     }
 );
 

@@ -151,19 +151,32 @@ const requestFacet = (items, fetch) => (
 );
 
 
-const addToAccumulatedFacets = (accumulatedResults, currentResults, facetField) => {
-    const accumulatedFacet = accumulatedResults.facets.find(facet => facet.field === facetField);
+/**
+ * Adds facet term counts and totals from one facet of a search result object to the corresponding
+ * `accumulatedResults` facet.
+ * @param {object} accumulatedResults Mutated search results object that gets its facet term counts
+ *                                    updated.
+ * @param {object} currentResults Search results object to add to `accumulatedResults`.
+ * @param {string} facetField Facet field value whose term counts are to be added to
+ *                            `accumulatedResults`.
+ * @param {object} cachedAccumulatedFacet Saved facet object within accumulatedResults. Pass in the
+ *                                        value returned by this function. Saves time so calls
+ *                                        after the first don't need to search for the same object
+ *                                        over and over.
+ */
+const addToAccumulatedFacets = (accumulatedResults, currentResults, facetField, cachedAccumulatedFacet) => {
+    const accumulatedFacet = cachedAccumulatedFacet || accumulatedResults.facets.find(facet => facet.field === facetField);
     const currentFacet = currentResults.facets.find(facet => facet.field === facetField);
     accumulatedFacet.total += currentFacet.total;
     currentFacet.terms.forEach((currentTerm) => {
         const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
         if (matchingAccumulatedTerm) {
             matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
-
         } else {
             accumulatedFacet.terms.push(currentTerm);
         }
     });
+    return accumulatedFacet;
 };
 
 

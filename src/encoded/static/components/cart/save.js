@@ -91,10 +91,11 @@ const createCartObject = (cart, user, fetch) => {
  * Save the in-memory cart to the database. The user object has the @id of the user's cart, but not
  * the cart object itself which must be provided in `savedCartObj`.
  *
- * @param {array} cart - Array of @ids contained with the in-memory cart to be saved
- * @param {object} savedCartObj - User's saved cart object
- * @param {user} user - User object normally retrieved from session_properties
- * @param {func} fetch - System fetch function; usually from <App> context
+ * @param {array} cart Array of @ids contained with the in-memory cart to be saved
+ * @param {object} savedCartObj User's saved cart object
+ * @param {user} user User object normally retrieved from session_properties
+ * @param {func} fetch System fetch function; usually from <App> context
+ * @return {object} Promise for creating or updating the cart object
  */
 export const cartSave = (cart, savedCartObj, user, fetch) => {
     const cartAtId = savedCartObj && savedCartObj['@id'];

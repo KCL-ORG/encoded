@@ -154,10 +154,12 @@ const requestFacet = (items, fetch) => (
 const addToAccumulatedFacets = (accumulatedResults, currentResults, facetField) => {
     const accumulatedFacet = accumulatedResults.facets.find(facet => facet.field === facetField);
     const currentFacet = currentResults.facets.find(facet => facet.field === facetField);
+    accumulatedFacet.total += currentFacet.total;
     currentFacet.terms.forEach((currentTerm) => {
         const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
         if (matchingAccumulatedTerm) {
             matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
+
         } else {
             accumulatedFacet.terms.push(currentTerm);
         }
@@ -210,7 +212,7 @@ class FileFormatFacet extends React.Component {
         chunks.reduce((promiseChain, currentChunk, currentChunkIndex) => (
             promiseChain.then(accumulatedResults => (
                 requestFacet(currentChunk, this.context.fetch).then((currentResults) => {
-                    this.setState({ facetLoadProgress: Math.round(currentChunkIndex / chunks.length * 100) });
+                    this.setState({ facetLoadProgress: (Math.round(currentChunkIndex / chunks.length) * 100) });
                     if (accumulatedResults) {
                         accumulatedResults.total += currentResults.total;
                         addToAccumulatedFacets(accumulatedResults, currentResults, 'file_format');
@@ -220,6 +222,7 @@ class FileFormatFacet extends React.Component {
                 })
             ))
         ), Promise.resolve(null)).then((results) => {
+            // `results` holds the accumulated results of completing all facet requests.
             const fileFormatFacet = results.facets.find(facet => facet.field === 'file_format');
             fileFormatFacet.terms = fileFormatFacet.terms.sort((a, b) => b.doc_count - a.doc_count);
             this.setState({ fileFormatFacet, facetLoadProgress: -1 });

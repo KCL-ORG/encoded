@@ -41,14 +41,16 @@ class CartClearComponent extends React.Component {
      * Handle a click for closing the modal without doing anything.
      */
     handleCloseClick() {
-        this.setState({ modalOpen: false, inProgress: false });
+        if (!this.state.inProgress) {
+            this.setState({ modalOpen: false, inProgress: false });
+        }
     }
 
     render() {
         if (this.props.cart.length > 0) {
             return (
                 <span>
-                    <button onClick={this.handleClearCartClick} className="btn btn-info btn-sm">Clear cart</button>
+                    <button onClick={this.handleClearCartClick} disabled={this.state.inProgress} className="btn btn-info btn-sm">Clear cart</button>
                     {this.state.modalOpen ?
                         <Modal>
                             <ModalHeader title="Clear entire cart contents" closeModal={this.handleCloseClick} />
@@ -57,7 +59,7 @@ class CartClearComponent extends React.Component {
                                 <p>Clearing the cart is not undoable.</p>
                             </ModalBody>
                             <ModalFooter
-                                closeModal={<button onClick={this.handleCloseClick} className="btn btn-info">Close</button>}
+                                closeModal={<button onClick={this.handleCloseClick} disabled={this.state.inProgress} className="btn btn-info">Close</button>}
                                 submitBtn={this.handleConfirmClearClick}
                                 submitTitle="Clear cart"
                                 dontClose

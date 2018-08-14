@@ -212,7 +212,7 @@ class FileFormatFacet extends React.Component {
         chunks.reduce((promiseChain, currentChunk, currentChunkIndex) => (
             promiseChain.then(accumulatedResults => (
                 requestFacet(currentChunk, this.context.fetch).then((currentResults) => {
-                    this.setState({ facetLoadProgress: (Math.round(currentChunkIndex / chunks.length) * 100) });
+                    this.setState({ facetLoadProgress: Math.round((currentChunkIndex / chunks.length) * 100) });
                     if (accumulatedResults) {
                         accumulatedResults.total += currentResults.total;
                         addToAccumulatedFacets(accumulatedResults, currentResults, 'file_format');

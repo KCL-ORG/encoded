@@ -65,12 +65,10 @@ export const dbxrefPrefixMap = {
     HGNC: {
         pattern: 'http://www.genecards.org/cgi-bin/carddisp.pl?gene={0}',
         preprocessor: (context) => {
-            // For dbxrefs in targets, use target.gene_name instead of the dbxref value.
-            if (context['@type'][0] === 'Target' && context.gene_name) {
-                return { altValue: context.gene_name };
-            }
-            // If a gene displays its dbxrefs, use HGNC URL as NCBI Entrez does.
-            if (context['@type'][0] === 'Gene') {
+            // If a gene or a target displays its dbxrefs,
+            // use HGNC URL as NCBI Entrez does.
+            if (context['@type'][0] === 'Gene' ||
+                context['@type'][0] === 'Target') {
                 return { altUrlPattern: 'https://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id={0}' };
             }
             return {};
@@ -101,14 +99,7 @@ export const dbxrefPrefixMap = {
         pattern: 'https://web.expasy.org/cellosaurus/{0}',
     },
     FlyBase: {
-        pattern: 'http://flybase.org/search/symbol/{0}',
-        preprocessor: (context) => {
-            // If a target displays its dbxrefs, use the fly stock URL.
-            if (context['@type'][0] !== 'Target') {
-                return { altUrlPattern: 'http://flybase.org/reports/{0}.html' };
-            }
-            return {};
-        },
+        pattern: 'http://flybase.org/reports/{0}',
     },
     BDSC: {
         pattern: 'http://flystocks.bio.indiana.edu/Reports/{0}',

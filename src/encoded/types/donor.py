@@ -72,10 +72,12 @@ class Donor(Item):
 class MouseDonor(Donor):
     item_type = 'mouse_donor'
     schema = load_schema('encoded:schemas/mouse_donor.json')
-    embedded = Donor.embedded + ['references',
-                                 'genetic_modifications',
-                                 'genetic_modifications.modified_site_by_target_id',
-                                 'genetic_modifications.treatments']
+    embedded = Donor.embedded + [
+        'references',
+        'genetic_modifications',
+        'genetic_modifications.modified_site_by_target_id',
+        'genetic_modifications.modified_site_by_target_id.targeted_genes',
+        'genetic_modifications.treatments']
     set_status_up = [
         'characterizations',
         'source',
@@ -100,11 +102,13 @@ class MouseDonor(Donor):
 class FlyDonor(Donor):
     item_type = 'fly_donor'
     schema = load_schema('encoded:schemas/fly_donor.json')
-    embedded = Donor.embedded + ['organism', 
-                                 'genetic_modifications',
-                                 'genetic_modifications.modified_site_by_target_id',
-                                 'genetic_modifications.treatments', 
-                                 'characterizations']
+    embedded = Donor.embedded + [
+        'organism',
+        'genetic_modifications',
+        'genetic_modifications.modified_site_by_target_id',
+        'genetic_modifications.modified_site_by_target_id.targeted_genes',
+        'genetic_modifications.treatments',
+        'characterizations']
     set_status_up = [
         'characterizations',
         'source',
@@ -125,10 +129,12 @@ class FlyDonor(Donor):
 class WormDonor(Donor):
     item_type = 'worm_donor'
     schema = load_schema('encoded:schemas/worm_donor.json')
-    embedded = Donor.embedded + ['organism',
-                                 'genetic_modifications',
-                                 'genetic_modifications.modified_site_by_target_id',
-                                 'genetic_modifications.treatments']
+    embedded = Donor.embedded + [
+        'organism',
+        'genetic_modifications',
+        'genetic_modifications.modified_site_by_target_id',
+        'genetic_modifications.modified_site_by_target_id.targeted_genes',
+        'genetic_modifications.treatments']
     set_status_up = [
         'characterizations',
         'source',

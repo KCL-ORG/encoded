@@ -31,13 +31,16 @@ class AntibodyLot(SharedItem):
         'source',
         'host_organism',
         'targets',
+        'targets.targeted_genes',
         'targets.organism',
         'characterizations.award',
         'characterizations.documents',
         'characterizations.lab',
         'characterizations.submitted_by',
+        'characterizations.target.targeted_genes',
         'characterizations.target.organism',
         'lot_reviews.targets',
+        'lot_reviews.targets.targeted_genes',
         'lot_reviews.targets.organism',
         'lot_reviews.organisms'
     ]

@@ -8,6 +8,7 @@ export const ADD_MULTIPLE_TO_CART = 'ADD_MULTIPLE_TO_CART';
 export const REMOVE_FROM_CART = 'REMOVE_FROM_CART';
 export const REMOVE_MULTIPLE_FROM_CART = 'REMOVE_MULTIPLE_FROM_CART';
 export const CACHE_SAVED_CART = 'CACHE_SAVED_CART';
+export const CART_OPERATION_IN_PROGRESS = 'CART_OPERATION_IN_PROGRESS';
 
 export const addToCart = current => (
     { type: ADD_TO_CART, current }
@@ -101,4 +102,8 @@ export const removeMultipleFromCartAndSave = (items, user, fetch) => (
 
 export const cacheSavedCart = cartObj => (
     { type: CACHE_SAVED_CART, cartObj }
+);
+
+export const cartOperationInProgress = inProgress => (
+    { type: CART_OPERATION_IN_PROGRESS, inProgress }
 );

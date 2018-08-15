@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { parseAndLogError } from '../globals';
 import cartCacheSaved from './cache_saved';
+import cartSetOperationInProgress from './in_progress';
 
 
 /**
@@ -153,11 +154,13 @@ const mapStateToProps = (state, ownProps) => ({
 });
 const mapDispatchToProps = dispatch => (
     {
-        onSaveCartClick: (cart, savedCartObj, user, fetch) => (
-            cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+        onSaveCartClick: (cart, savedCartObj, user, fetch) => {
+            cartSetOperationInProgress(true);
+            return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
+                cartSetOperationInProgress(false);
             })
-        ),
+        },
     }
 );
 

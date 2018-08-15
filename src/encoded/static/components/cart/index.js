@@ -20,11 +20,13 @@ import {
     REMOVE_FROM_CART,
     REMOVE_MULTIPLE_FROM_CART,
     CACHE_SAVED_CART,
+    OPERATION_IN_PROGRESS,
 } from './actions';
 import CartAddAll from './add_multiple';
 import cartCacheSaved from './cache_saved';
 import CartClear from './clear';
 import CartControl, { cartAddItems } from './control';
+import cartSetOperationInProgress from './in_progress';
 import CartMergeShared from './merge_shared';
 import CartOverlay from './overlay';
 import CartRemoveAll from './remove_multiple';
@@ -73,6 +75,8 @@ const cartModule = (state = {}, action = {}) => {
         return Object.assign({}, state, {
             savedCartObj: action.cartObj,
         });
+    case OPERATION_IN_PROGRESS:
+        return Object.assign({}, state, { inProgress: action.inProgress });
     default:
         return state;
     }
@@ -84,6 +88,7 @@ const initializeCart = () => {
         cart: [], // Active cart contents as array of @ids
         name: 'Untitled',
         savedCartObj: {}, // Cache of saved cart
+        inProgress: false, // No long operations currently in progress
     };
     return createStore(cartModule, initialCart, applyMiddleware(thunk));
 };

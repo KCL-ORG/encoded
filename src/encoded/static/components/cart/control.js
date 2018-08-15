@@ -6,24 +6,29 @@ import { addToCartAndSave, addMultipleToCart, removeFromCartAndSave } from './ac
 
 
 // Button to add the current object to the cart, or to remove it.
-const CartControlComponent = ({ cart, current, onAddToCartClick, onRemoveFromCartClick }) => (
+const CartControlComponent = ({ cart, inProgress, current, onAddToCartClick, onRemoveFromCartClick }) => (
     cart.indexOf(current) > -1
-        ? <button className="btn btn-info btn-sm cart__control-button--inline" onClick={onRemoveFromCartClick}>Remove from cart</button>
-        : <button className="btn btn-info btn-sm cart__control-button--inline" onClick={onAddToCartClick}>Add to cart</button>
+        ? <button disabled={inProgress} className="btn btn-info btn-sm cart__control-button--inline" onClick={onRemoveFromCartClick}>Remove from cart</button>
+        : <button disabled={inProgress} className="btn btn-info btn-sm cart__control-button--inline" onClick={onAddToCartClick}>Add to cart</button>
 );
 
 CartControlComponent.propTypes = {
-    cart: PropTypes.array, // Current contents of cart
-    current: PropTypes.string.isRequired, // @id of current object being added
-    onAddToCartClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
-    onRemoveFromCartClick: PropTypes.func.isRequired, // Function to call when Remove from Cart clicked
+    /** Current contents of cart */
+    cart: PropTypes.array,
+    inProgress: PropTypes.bool,
+    /** @id of current object being added */
+    current: PropTypes.string.isRequired,
+    /** Function to call when Add to Cart clicked */
+    onAddToCartClick: PropTypes.func.isRequired,
+    /** Function to call when Remove from Cart clicked */
+    onRemoveFromCartClick: PropTypes.func.isRequired,
 };
 
 CartControlComponent.defaultProps = {
     cart: [],
 };
 
-const mapStateToProps = (state, ownProps) => ({ cart: state.cart, current: ownProps.current['@id'] });
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, inProgress: state.inProgress, current: ownProps.current['@id'] });
 const mapDispatchToProps = (dispatch, ownProps) => (
     {
         onAddToCartClick: () => dispatch(addToCartAndSave(ownProps.current['@id'], ownProps.sessionProperties.user, ownProps.fetch)),

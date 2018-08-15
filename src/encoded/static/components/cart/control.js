@@ -15,6 +15,7 @@ const CartControlComponent = ({ cart, inProgress, current, onAddToCartClick, onR
 CartControlComponent.propTypes = {
     /** Current contents of cart */
     cart: PropTypes.array,
+    /** True if cart updating operation is in progress */
     inProgress: PropTypes.bool,
     /** @id of current object being added */
     current: PropTypes.string.isRequired,
@@ -26,6 +27,7 @@ CartControlComponent.propTypes = {
 
 CartControlComponent.defaultProps = {
     cart: [],
+    inProgress: false,
 };
 
 const mapStateToProps = (state, ownProps) => ({ cart: state.cart, inProgress: state.inProgress, current: ownProps.current['@id'] });

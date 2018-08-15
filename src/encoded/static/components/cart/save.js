@@ -158,8 +158,8 @@ const mapDispatchToProps = dispatch => (
             cartSetOperationInProgress(true);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
-                cartSetOperationInProgress(false);
-            })
+                // cartSetOperationInProgress(false);
+            });
         },
     }
 );

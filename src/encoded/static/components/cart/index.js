@@ -20,7 +20,7 @@ import {
     REMOVE_FROM_CART,
     REMOVE_MULTIPLE_FROM_CART,
     CACHE_SAVED_CART,
-    OPERATION_IN_PROGRESS,
+    CART_OPERATION_IN_PROGRESS,
 } from './actions';
 import CartAddAll from './add_multiple';
 import cartCacheSaved from './cache_saved';
@@ -75,7 +75,7 @@ const cartModule = (state = {}, action = {}) => {
         return Object.assign({}, state, {
             savedCartObj: action.cartObj,
         });
-    case OPERATION_IN_PROGRESS:
+    case CART_OPERATION_IN_PROGRESS:
         return Object.assign({}, state, { inProgress: action.inProgress });
     default:
         return state;
@@ -101,6 +101,7 @@ export {
     CartClear,
     CartControl,
     CartMergeShared,
+    cartSetOperationInProgress,
     CartSearchControls,
     CartStatus,
     CartToggle,

@@ -1,5 +1,6 @@
 import cartCacheSaved from './cache_saved';
 import { cartSave } from './save';
+import cartSetOperationInProgress from './in_progress';
 
 
 // Action creators to use with Redux store.dispatch().
@@ -28,7 +29,9 @@ export const addToCartAndSave = (current, user, fetch) => (
         dispatch(addToCart(current));
         if (user) {
             const { cart, savedCartObj } = getState();
+            cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+                cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;
             });
@@ -46,7 +49,9 @@ export const addMultipleToCartAndSave = (items, user, fetch) => (
         dispatch(addMultipleToCart(items));
         if (user) {
             const { cart, savedCartObj } = getState();
+            cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+                cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;
             });
@@ -73,7 +78,9 @@ export const removeFromCartAndSave = (current, user, fetch) => (
         dispatch(removeFromCart(current));
         if (user) {
             const { cart, savedCartObj } = getState();
+            cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+                cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;
             });
@@ -91,7 +98,9 @@ export const removeMultipleFromCartAndSave = (items, user, fetch) => (
         dispatch(removeMultipleFromCart(items));
         if (user) {
             const { cart, savedCartObj } = getState();
+            cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
+                cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;
             });

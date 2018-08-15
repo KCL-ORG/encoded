@@ -25,18 +25,25 @@ class CartAddAllComponent extends React.Component {
     }
 
     render() {
-        return <button className="btn btn-info btn-sm" onClick={this.handleClick}>{`Add ${this.props.searchResults.total} items to cart`}</button>;
+        const { searchResults, inProgress } = this.props;
+        return <button disabled={inProgress} className="btn btn-info btn-sm" onClick={this.handleClick}>{`Add ${searchResults.total} items to cart`}</button>;
     }
 }
 
 CartAddAllComponent.propTypes = {
     /** Search result object of items to add to cart */
     searchResults: PropTypes.object.isRequired,
+    /** True if cart updating operation is in progress */
+    inProgress: PropTypes.bool,
     /** Function to call when Add All clicked */
     addAllResults: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = (state, ownProps) => ({ cart: state.cart, searchResults: ownProps.searchResults });
+CartAddAllComponent.defaultProps = {
+    inProgress: false,
+};
+
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, inProgress: state.inProgress, searchResults: ownProps.searchResults });
 const mapDispatchToProps = (dispatch, ownProps) => ({
     addAllResults: itemsForCart => dispatch(addMultipleToCartAndSave(itemsForCart, ownProps.sessionProperties.user, ownProps.fetch)),
 });

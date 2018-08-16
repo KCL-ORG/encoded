@@ -403,16 +403,13 @@ ItemCountArea.propTypes = {
 /**
  * Display the pager control area.
  */
-const PagerArea = ({ currentPage, totalPageCount, updateCurrentPage }) => {
-    if (totalPageCount > 1) {
-        return (
-            <div className="cart__pager">
-                <Pager total={totalPageCount} current={currentPage} updateCurrentPage={updateCurrentPage} />
-            </div>
-        );
-    }
-    return null;
-};
+const PagerArea = ({ currentPage, totalPageCount, updateCurrentPage }) => (
+    <div className="cart__pager">
+        {totalPageCount > 1 ?
+            <Pager total={totalPageCount} current={currentPage} updateCurrentPage={updateCurrentPage} />
+        : null}
+    </div>
+);
 
 PagerArea.propTypes = {
     /** Zero-based current page to display */

@@ -102,7 +102,7 @@ bootcmd:
 - cloud-init-per once mkswap-swapfile mkswap /swapfile
 
 
-package_upgrade: true
+package_upgrade: false
 
 packages:
 - apache2-mpm-worker
@@ -124,6 +124,9 @@ packages:
 - libwebp-dev
 - libxml2-dev
 - libxslt1-dev
+- linux-headers-3.13.0-153
+- linux-headers-3.13.0-153-generic
+- linux-image-3.13.0-153-generic
 - lzop
 - nodejs
 - ntp

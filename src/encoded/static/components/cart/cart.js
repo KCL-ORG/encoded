@@ -14,6 +14,12 @@ import CartMergeShared from './merge_shared';
 
 /** Number of dataset items to display per page */
 const PAGE_ITEM_COUNT = 25;
+/** File facet fields to display */
+const displayedFacetFields = [
+    'file_format',
+    'output_type',
+    'file_type',
+];
 
 
 /**
@@ -77,29 +83,29 @@ CartSearchResults.defaultProps = {
 /**
  * Display one item of the File Format facet.
  */
-class FileFormatItem extends React.Component {
+class FacetTerm extends React.Component {
     constructor() {
         super();
-        this.handleFormatSelect = this.handleFormatSelect.bind(this);
+        this.handleTermSelect = this.handleTermSelect.bind(this);
     }
 
     /**
      * Called when a file format is selected from the facet.
      */
-    handleFormatSelect() {
-        this.props.formatSelectHandler(this.props.format);
+    handleTermSelect() {
+        this.props.termSelectHandler(this.props.term);
     }
 
     render() {
-        const { format, termCount, totalTermCount, selected } = this.props;
+        const { term, termCount, totalTermCount, selected } = this.props;
         const barStyle = {
             width: `${Math.ceil((termCount / totalTermCount) * 100)}%`,
         };
         return (
             <li className={`facet-term${selected ? ' selected' : ''}`}>
-                <button onClick={this.handleFormatSelect} aria-label={`${format} with count ${termCount}`}>
+                <button onClick={this.handleTermSelect} aria-label={`${term} with count ${termCount}`}>
                     <div className="facet-term__item">
-                        <div className="facet-term__text"><span>{format}</span></div>
+                        <div className="facet-term__text"><span>{term}</span></div>
                         <div className="facet-term__count">
                             {termCount}
                         </div>
@@ -111,20 +117,20 @@ class FileFormatItem extends React.Component {
     }
 }
 
-FileFormatItem.propTypes = {
-    /** File format this button displays */
-    format: PropTypes.string.isRequired,
-    /** Number of files matching this item's format */
+FacetTerm.propTypes = {
+    /** Displayed facet item */
+    term: PropTypes.string.isRequired,
+    /** Displayed number of files for this item */
     termCount: PropTypes.number.isRequired,
     /** Total number of files in the item's facet */
     totalTermCount: PropTypes.number.isRequired,
     /** True if this term should appear selected */
     selected: PropTypes.bool,
-    /** Callback for handling clicks in a file format button */
-    formatSelectHandler: PropTypes.func.isRequired,
+    /** Callback for handling clicks in the item's button */
+    termSelectHandler: PropTypes.func.isRequired,
 };
 
-FileFormatItem.defaultProps = {
+FacetTerm.defaultProps = {
     selected: false,
 };
 
@@ -152,43 +158,114 @@ const requestFacet = (items, fetch) => (
 
 
 /**
- * Adds facet term counts and totals from one facet of a search result object to the corresponding
- * `accumulatedResults` facet.
+ * Adds facet term counts and totals from facets of a search result object to the corresponding
+ * `accumulatedResults` facet objects.
  * @param {object} accumulatedResults Mutated search results object that gets its facet term counts
  *                                    updated.
  * @param {object} currentResults Search results object to add to `accumulatedResults`.
- * @param {string} facetField Facet field value whose term counts are to be added to
+ * @param {array} facetFields Facet field values whose term counts are to be added to
  *                            `accumulatedResults`.
- * @param {object} cachedAccumulatedFacet Saved facet object within accumulatedResults. Pass in the
- *                                        value returned by this function. Saves time so calls
- *                                        after the first don't need to search for the same object
- *                                        over and over.
+ * @param {object} cachedAccumulatedFacets Saved facet objects within accumulatedResults. Pass in the
+ *                                         value previously returned by this function, or undefined
+ *                                         or null for first call. This function doesn't mutate
+ *                                         this object.
  */
-const addToAccumulatedFacets = (accumulatedResults, currentResults, facetField, cachedAccumulatedFacet) => {
-    const accumulatedFacet = cachedAccumulatedFacet || accumulatedResults.facets.find(facet => facet.field === facetField);
-    const currentFacet = currentResults.facets.find(facet => facet.field === facetField);
-    accumulatedFacet.total += currentFacet.total;
-    currentFacet.terms.forEach((currentTerm) => {
-        const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
-        if (matchingAccumulatedTerm) {
-            matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
+const addToAccumulatedFacets = (accumulatedResults, currentResults, facetFields, cachedAccumulatedFacets) => {
+    const localCache = {};
+    facetFields.forEach((facetField) => {
+        // Retrieve or update the incoming cache of accumulated results facets.
+        let accumulatedFacet;
+        if (cachedAccumulatedFacets && cachedAccumulatedFacets[facetField]) {
+            // Cache hit: Get the accumulated facet field's results object from the cache the
+            // caller saved.
+            accumulatedFacet = cachedAccumulatedFacets[facetField];
         } else {
-            accumulatedFacet.terms.push(currentTerm);
+            // Cache miss: Accumulated facet field's results object hasn't been cached, so find it
+            // and cache it with a shallow copy of the incoming cache and assigning the new
+            // accumulated facet object to the copy.
+            accumulatedFacet = accumulatedResults.facets.find(facet => facet.field === facetField);
+            localCache[facetField] = accumulatedFacet;
         }
+
+        // Handle the addition of current facet results to the accumulated results.
+        const currentFacet = currentResults.facets.find(facet => facet.field === facetField);
+        accumulatedFacet.total += currentFacet.total;
+        currentFacet.terms.forEach((currentTerm) => {
+            const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
+            if (matchingAccumulatedTerm) {
+                matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
+            } else {
+                accumulatedFacet.terms.push(currentTerm);
+            }
+        });
     });
-    return accumulatedFacet;
+
+    // Merge the incoming cache with any new cached items into a copy to return.
+    return Object.assign({}, cachedAccumulatedFacets || {}, localCache);
 };
 
 
 /**
- * Display the file format facet.
+ * Display a single file facet.
  */
-class FileFormatFacet extends React.Component {
+class Facet extends React.Component {
+    constructor() {
+        super();
+        this.handleFacetTermSelect = this.handleFacetTermSelect.bind(this);
+    }
+
+    handleFacetTermSelect(term) {
+        this.props.facetTermSelectHandler(this.props.facet.field, term);
+    }
+
+    render() {
+        const { facet, selectedFacetTerms } = this.props;
+        return (
+            <div className="facet">
+                <h5>{facet.title}</h5>
+                <ul className="facet-list nav">
+                    {facet.terms.map(term => (
+                        <div key={term.key}>
+                            {term.doc_count > 0 ?
+                                <FacetTerm
+                                    term={term.key}
+                                    termCount={term.doc_count}
+                                    totalTermCount={facet.total}
+                                    selected={selectedFacetTerms.indexOf(term.key) > -1}
+                                    termSelectHandler={this.handleFacetTermSelect}
+                                />
+                            : null}
+                        </div>
+                    ))}
+                </ul>
+            </div>
+        );
+    }
+}
+
+Facet.propTypes = {
+    /** Facet object to display */
+    facet: PropTypes.object.isRequired,
+    /** Selected term keys */
+    selectedFacetTerms: PropTypes.array,
+    /** Function called when a facet term is clicked */
+    facetTermSelectHandler: PropTypes.func.isRequired,
+};
+
+Facet.defaultProps = {
+    selectedFacetTerms: [],
+};
+
+
+/**
+ * Display the file facets.
+ */
+class FileFacets extends React.Component {
     constructor() {
         super();
         this.state = {
-            /** file_format facet from search results */
-            fileFormatFacet: null,
+            /** File search result facets to display */
+            displayedFacets: null,
             /** Tracks facet loading progress */
             facetLoadProgress: -1,
         };
@@ -222,49 +299,44 @@ class FileFormatFacet extends React.Component {
 
         // Using the arrays of dataset @id arrays, do a sequence of searches of CHUNK_SIZE datasets
         // adding the totals together to form the final facet.
+        let accumulatedFacets;
         chunks.reduce((promiseChain, currentChunk, currentChunkIndex) => (
             promiseChain.then(accumulatedResults => (
                 requestFacet(currentChunk, this.context.fetch).then((currentResults) => {
                     this.setState({ facetLoadProgress: Math.round((currentChunkIndex / chunks.length) * 100) });
                     if (accumulatedResults) {
                         accumulatedResults.total += currentResults.total;
-                        addToAccumulatedFacets(accumulatedResults, currentResults, 'file_format');
+                        accumulatedFacets = addToAccumulatedFacets(accumulatedResults, currentResults, displayedFacetFields, accumulatedFacets);
                         return accumulatedResults;
                     }
                     return currentResults;
                 })
             ))
-        ), Promise.resolve(null)).then((results) => {
-            // `results` holds the accumulated results of completing all facet requests.
-            const fileFormatFacet = results.facets.find(facet => facet.field === 'file_format');
-            fileFormatFacet.terms = fileFormatFacet.terms.sort((a, b) => b.doc_count - a.doc_count);
-            this.setState({ fileFormatFacet, facetLoadProgress: -1 });
+        ), Promise.resolve(null)).then((accumulatedResults) => {
+            // accumulatedFacets is an object keyed by facet field values for displayed facets --
+            // each property "points" to the accumulatedResults facet objects that get displayed.
+            const displayedFacets = {};
+            displayedFacetFields.forEach((field) => {
+                const displayedFacet = accumulatedResults.facets.find(facet => facet.field === field);
+                if (displayedFacet) {
+                    displayedFacet.terms.sort((a, b) => b.doc_count - a.doc_count);
+                }
+                displayedFacets[field] = displayedFacet;
+            });
+            this.setState({ displayedFacets, facetLoadProgress: -1 });
         });
     }
 
     render() {
-        const { selectedFormats, formatSelectHandler } = this.props;
-        const { fileFormatFacet } = this.state;
+        const { selectedTerms, termSelectHandler } = this.props;
+        const { displayedFacets } = this.state;
         return (
             <div className="box facets">
-                {fileFormatFacet ?
-                    <div className="facet">
-                        <h5>{fileFormatFacet.title}</h5>
-                        <ul className="facet-list nav">
-                            {fileFormatFacet.terms.map(term => (
-                                <div key={term.key}>
-                                    {term.doc_count > 0 ?
-                                        <FileFormatItem
-                                            format={term.key}
-                                            termCount={term.doc_count}
-                                            totalTermCount={fileFormatFacet.total}
-                                            selected={selectedFormats.indexOf(term.key) > -1}
-                                            formatSelectHandler={formatSelectHandler}
-                                        />
-                                    : null}
-                                </div>
-                            ))}
-                        </ul>
+                {displayedFacets ?
+                    <div>
+                        {displayedFacetFields.map(field => (
+                            <Facet key={field} facet={displayedFacets[field]} selectedFacetTerms={selectedTerms[field]} facetTermSelectHandler={termSelectHandler} />
+                        ))}
                     </div>
                 :
                     <progress value={this.state.facetLoadProgress} max="100" />
@@ -274,21 +346,21 @@ class FileFormatFacet extends React.Component {
     }
 }
 
-FileFormatFacet.propTypes = {
+FileFacets.propTypes = {
     /** Array of @ids of all items in the cart */
     items: PropTypes.array,
-    /** Array of file formats to include in rendered lists, or [] to render all */
-    selectedFormats: PropTypes.array,
+    /** Selected facet field items */
+    selectedTerms: PropTypes.object,
     /** Callback when the user clicks on a file format facet item */
-    formatSelectHandler: PropTypes.func.isRequired,
+    termSelectHandler: PropTypes.func.isRequired,
 };
 
-FileFormatFacet.defaultProps = {
+FileFacets.defaultProps = {
     items: [],
-    selectedFormats: [],
+    selectedTerms: null,
 };
 
-FileFormatFacet.contextTypes = {
+FileFacets.contextTypes = {
     fetch: PropTypes.func,
 };
 
@@ -306,10 +378,16 @@ class CartTools extends React.Component {
         let contentDisposition;
 
         // Form query string from currently selected file formats.
-        const fileFormatQuery = this.props.selectedFormats.map(format => `files.file_type=${encodedURIComponent(format)}`).join('&');
+        const fileFormatSelections = _.compact(Object.keys(this.props.selectedTerms).map((field) => {
+            let subQueryString = '';
+            if (this.props.selectedTerms[field].length > 0) {
+                subQueryString = this.props.selectedTerms[field].map(term => `files.${field}=${encodedURIComponent(term)}`).join('&');
+            }
+            return subQueryString;
+        }));
 
         // Initiate a batch download as a POST, passing it all dataset @ids in the payload.
-        this.context.fetch(`/batch_download/type=Experiment${fileFormatQuery ? `&${fileFormatQuery}` : ''}`, {
+        this.context.fetch(`/batch_download/type=Experiment${fileFormatSelections.length > 0 ? `&${fileFormatSelections.join('&')}` : ''}`, {
             method: 'POST',
             headers: {
                 Accept: 'text/plain',
@@ -359,8 +437,8 @@ class CartTools extends React.Component {
 CartTools.propTypes = {
     /** Cart items */
     items: PropTypes.array,
-    /** Selected file formats */
-    selectedFormats: PropTypes.array,
+    /** Selected facet terms */
+    selectedTerms: PropTypes.object,
     /** True if cart is active, False if cart is shared */
     activeCart: PropTypes.bool,
     /** Items in the shared cart, if that's being displayed */
@@ -369,7 +447,7 @@ CartTools.propTypes = {
 
 CartTools.defaultProps = {
     items: [],
-    selectedFormats: [],
+    selectedTerms: null,
     activeCart: true,
     sharedCart: null,
 };
@@ -431,11 +509,14 @@ class CartComponent extends React.Component {
         super();
         this.state = {
             /** Files formats selected to be included in results; all formats if empty array */
-            selectedFormats: [],
+            selectedTerms: {},
             /** Currently displayed page of dataset search results */
             currentDatasetResultsPage: 0,
         };
-        this.handleFormatSelect = this.handleFormatSelect.bind(this);
+        displayedFacetFields.forEach((field) => {
+            this.state.selectedTerms[field] = [];
+        });
+        this.handleTermSelect = this.handleTermSelect.bind(this);
         this.updateDatasetCurrentPage = this.updateDatasetCurrentPage.bind(this);
     }
 
@@ -443,21 +524,30 @@ class CartComponent extends React.Component {
      * Called when the given file format was selected or deselected in the facet.
      * @param {string} format File format facet item that was clicked
      */
-    handleFormatSelect(format) {
-        const matchingIndex = this.state.selectedFormats.indexOf(format);
-        if (matchingIndex === -1) {
-            // Selected file format not in the list of included formats, so add it.
-            this.setState(prevState => ({
-                selectedFormats: prevState.selectedFormats.concat([format]),
-                currentFileResultsPage: 0,
-            }));
-        } else {
-            // Selected file format is in the list of included formats, so remove it.
-            this.setState(prevState => ({
-                selectedFormats: prevState.selectedFormats.filter(includedFormat => includedFormat !== format),
-                currentFileResultsPage: 0,
-            }));
-        }
+    handleTermSelect(clickedField, clickedTerm) {
+        this.setState((prevState) => {
+            // Determine whether we need to add or subtract a term from the facet selections.
+            const addTerm = this.state.selectedTerms[clickedField].indexOf(clickedTerm) === -1;
+
+            // prevState is immutable, so make a copy with the newly clicked term to set the
+            // new state.
+            const newSelectedTerms = {};
+            if (addTerm) {
+                // Copy the previous selectedFacetTerms, adding the newly selected term in its
+                // facet.
+                Object.keys(prevState.selectedTerms).forEach((field) => {
+                    const newTerm = clickedField === field ? [clickedTerm] : [];
+                    newSelectedTerms[field] = prevState.selectedTerms[field].slice(0).concat(newTerm);
+                });
+            } else {
+                // Copy the previous selectedFacetTerms, filtering out the unselected term in its
+                // facet.
+                Object.keys(prevState.selectedTerms).forEach((field) => {
+                    newSelectedTerms[field] = prevState.selectedTerms[field].filter(term => term !== clickedTerm);
+                });
+            }
+            return { selectedTerms: newSelectedTerms, currentFileResultsPage: 0 };
+        });
     }
 
     /**
@@ -488,13 +578,13 @@ class CartComponent extends React.Component {
                 <Panel addClasses="cart__result-table">
                     <PanelHeading addClasses="cart__header">
                         <PagerArea currentPage={this.state.currentDatasetResultsPage} totalPageCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
-                        <CartTools items={cartItems} selectedFormats={this.state.selectedFormats} activeCart={activeCart} sharedCart={context} />
+                        <CartTools items={cartItems} selectedTerms={this.state.selectedTerms} activeCart={activeCart} sharedCart={context} />
                     </PanelHeading>
                     <ItemCountArea itemCount={cartItems.length} itemName="dataset" itemNamePlural="datasets" />
                     <PanelBody>
                         {cartItems.length > 0 ?
                             <div className="cart__display">
-                                <FileFormatFacet items={cartItems} selectedFormats={this.state.selectedFormats} formatSelectHandler={this.handleFormatSelect} />
+                                <FileFacets items={cartItems} selectedTerms={this.state.selectedTerms} termSelectHandler={this.handleTermSelect} />
                                 <CartSearchResults items={cartItems} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
                             </div>
                         :

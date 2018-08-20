@@ -13,11 +13,11 @@ class Target extends React.Component {
         const context = this.props.context;
         const itemClass = globals.itemClass(context, 'view-detail key-value');
 
-        const geneIDs = context.targeted_genes.map(
+        const geneIDs = context.genes.map(
             gene => `GeneID:${gene.geneid}`
         );
 
-        const dbxrefs = [].concat(...context.targeted_genes.map(gene => gene.dbxrefs));
+        const dbxrefs = [].concat(...context.genes.map(gene => gene.dbxrefs));
 
         // Set up breadcrumbs
         const assayTargets = context.investigated_as.map(assayTarget => `investigated_as=${assayTarget}`);

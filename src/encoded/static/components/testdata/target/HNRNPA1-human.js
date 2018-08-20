@@ -18,7 +18,7 @@ module.exports = {
         "HGNC:hnRNP-A1",
         "UniProtKB:P09651"
     ],
-    "targeted_genes": [
+    "genes": [
         {
             "go_annotations": [
                 {

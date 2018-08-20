@@ -62,7 +62,7 @@ def base_replicate_two(testapp, base_experiment):
 def base_target(testapp, organism, gene):
     item = {
         'organism': organism['uuid'],
-        'targeted_genes': [gene['uuid']],
+        'genes': [gene['uuid']],
         'label': 'XYZ',
         'investigated_as': ['transcription factor']
     }
@@ -83,7 +83,7 @@ def tag_target(testapp, organism):
 def recombinant_target(testapp, organism, gene):
     item = {
         'organism': organism['uuid'],
-        'targeted_genes': [gene['uuid']],
+        'genes': [gene['uuid']],
         'label': 'eGFP-CTCF',
         'investigated_as': ['recombinant protein', 'transcription factor']
     }

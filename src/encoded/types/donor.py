@@ -76,7 +76,7 @@ class MouseDonor(Donor):
         'references',
         'genetic_modifications',
         'genetic_modifications.modified_site_by_target_id',
-        'genetic_modifications.modified_site_by_target_id.targeted_genes',
+        'genetic_modifications.modified_site_by_target_id.genes',
         'genetic_modifications.treatments']
     set_status_up = [
         'characterizations',
@@ -106,7 +106,7 @@ class FlyDonor(Donor):
         'organism',
         'genetic_modifications',
         'genetic_modifications.modified_site_by_target_id',
-        'genetic_modifications.modified_site_by_target_id.targeted_genes',
+        'genetic_modifications.modified_site_by_target_id.genes',
         'genetic_modifications.treatments',
         'characterizations']
     set_status_up = [
@@ -133,7 +133,7 @@ class WormDonor(Donor):
         'organism',
         'genetic_modifications',
         'genetic_modifications.modified_site_by_target_id',
-        'genetic_modifications.modified_site_by_target_id.targeted_genes',
+        'genetic_modifications.modified_site_by_target_id.genes',
         'genetic_modifications.treatments']
     set_status_up = [
         'characterizations',

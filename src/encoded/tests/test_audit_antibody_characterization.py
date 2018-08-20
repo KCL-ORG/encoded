@@ -111,7 +111,7 @@ def recombinant_target(testapp, organism, gene):
         'organism': organism['uuid'],
         'label': 'HA-ABCD',
         'investigated_as': ['transcription factor', 'recombinant protein'],
-        'targeted_genes': [gene['uuid']]
+        'genes': [gene['uuid']]
     }
     return testapp.post_json('/target', item, status=201).json['@graph'][0]
 

@@ -56,7 +56,7 @@
                         "Target",
                         "Item"
                     ],
-                    "targeted_genes": [
+                    "genes": [
                         {
                             "go_annotations": [
                                 {

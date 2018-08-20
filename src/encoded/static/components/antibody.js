@@ -67,7 +67,7 @@ const LotComponent = (props, reactContext) => {
     const geneTips = [];
     targetKeys.forEach((key, i) => {
         const scientificName = targets[key].organism.scientific_name;
-        const geneName = targets[key].targeted_genes.map(
+        const geneName = targets[key].genes.map(
             gene => gene.symbol
         );
 
@@ -85,7 +85,7 @@ const LotComponent = (props, reactContext) => {
             );
             geneTerms.push(
                 ...geneName.map(
-                    symbol => `targets.targeted_genes.symbol=${symbol}`
+                    symbol => `targets.genes.symbol=${symbol}`
                 )
             );
             geneTips.push(...geneName);

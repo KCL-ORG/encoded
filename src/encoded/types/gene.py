@@ -22,7 +22,7 @@ class Gene(SharedItem):
     name_key = "geneid"
     embedded = ['organism']
     rev = {
-        'targets': ('Target', 'targeted_genes')
+        'targets': ('Target', 'genes')
     }
 
     @calculated_property(schema={
@@ -41,7 +41,7 @@ class Gene(SharedItem):
         "type": "array",
         "items": {
             "type": ['string', 'object'],
-            "linkFrom": "Target.targeted_genes"
+            "linkFrom": "Target.genes"
         },
         "notSubmittable": True,
     })

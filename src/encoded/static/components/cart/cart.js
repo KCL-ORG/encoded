@@ -291,7 +291,7 @@ class FileFacets extends React.Component {
         // Break incoming array of experiment @ids into manageable chunks of arrays, each with
         // CHUNK_SIZE items. Each chunk gets used in a search of files, and all the results get
         // combined into one facet object.
-        const CHUNK_SIZE = 500;
+        const CHUNK_SIZE = 2000;
         const chunks = [];
         for (let itemIndex = 0; itemIndex < this.props.items.length; itemIndex += CHUNK_SIZE) {
             chunks.push(this.props.items.slice(itemIndex, itemIndex + CHUNK_SIZE));

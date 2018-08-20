@@ -37,8 +37,14 @@
         }
     },
     "columns": {
+        "schema_version": {
+            "title": "Schema Version"
+        },
         "items": {
             "title": "Cart items"
+        },
+        "name": {
+            "title": "Name"
         }
     },
     "changelog": "/profiles/changelogs/cart.md"

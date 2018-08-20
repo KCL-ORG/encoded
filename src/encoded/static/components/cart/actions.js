@@ -18,7 +18,6 @@ export const addToCart = current => (
 /**
  * Redux thunk action to not only add an item to the cart, but also to save this change to the
  * database.
- *
  * @param {string} current - @id of object being added to cart
  * @param {object} user - User object from <App> session_properties
  * @param {function} fetch - fetch function from <App>
@@ -67,7 +66,6 @@ export const removeFromCart = current => (
 /**
  * Redux thunk action to not only remove an item from the cart, but also to save this change to the
  * database.
- *
  * @param {string} current - @id of object being added to cart
  * @param {object} user - User object from <App> session_properties
  * @param {function} fetch - fetch function from <App>

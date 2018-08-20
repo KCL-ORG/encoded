@@ -38,24 +38,24 @@ const updateCartObject = (cart, cartAtId, fetch) => (
 
 /**
  * Get a writeable version of the cart object specified by `cartAtId`.
- *
- * @param {string} cartAtId - @id of the cart object to retrieve
- * @param {func} fetch - system-wide fetch operation
- * @return {object} - Promise containing the retrieved cart object, or an error response
+ * @param {object} cartObj Cart object as it appears from GET
+ * @param {string} cartAtId @id of the cart object to retrieve
+ * @param {func} fetch System-wide fetch operation
+ * @return {object} Promise containing the retrieved cart object, or an error response
  */
-const getWriteableCartObject = (cartAtId, fetch) => (
-    fetch(`${cartAtId}?frame=edit`, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-        },
-    }).then((response) => {
-        if (!response.ok) {
-            throw response;
-        }
-        return response.json();
-    }).catch(parseAndLogError.bind('Get writeable cart', 'getRequest'))
-);
+const getWriteableCartObject = (cartObj, cartAtId, fetch) => {
+    return new Promise((resolve, reject) => {
+        const copy = Object.assign({}, cartObj);
+        copy.items = cartObj.items.slice();
+        delete copy['@id'];
+        delete copy.actions;
+        delete copy['@context'];
+        delete copy['@type'];
+        delete copy.uuid;
+        delete copy.audit;
+        resolve(copy);
+    });
+};
 
 
 /**
@@ -101,7 +101,7 @@ const createCartObject = (cart, user, fetch) => {
 export const cartSave = (cart, savedCartObj, user, fetch) => {
     const cartAtId = savedCartObj && savedCartObj['@id'];
     if (cartAtId) {
-        return getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
+        return getWriteableCartObject(savedCartObj, cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
             writeableCart.items = cart;
             return updateCartObject(writeableCart, cartAtId, fetch);
@@ -158,7 +158,7 @@ const mapDispatchToProps = dispatch => (
             cartSetOperationInProgress(true);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
                 cartCacheSaved(updatedSavedCartObj, dispatch);
-                // cartSetOperationInProgress(false);
+                cartSetOperationInProgress(false);
             });
         },
     }

@@ -32,8 +32,7 @@
             "items": {
                 "title": "Cart item",
                 "description": "Reference to one item in the cart",
-                "type":  "string",
-                "linkTo": "Item"
+                "type":  "string"
             }
         }
     },

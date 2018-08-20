@@ -74,11 +74,11 @@ const createCartObject = (cart, user, fetch) => {
     };
     return fetch('/carts/', {
         method: 'POST',
-        body: JSON.stringify(writeableCart),
         headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
         },
+        body: JSON.stringify(writeableCart),
     }).then((response) => {
         if (!response.ok) {
             throw response;

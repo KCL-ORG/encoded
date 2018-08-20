@@ -6,6 +6,9 @@ import { encodedURIComponent } from '../globals';
 import { requestSearch } from '../objectutils';
 
 
+/**
+ * Button to add all qualifying items to the user's cart.
+ */
 class CartAddAllComponent extends React.Component {
     constructor() {
         super();
@@ -26,7 +29,7 @@ class CartAddAllComponent extends React.Component {
 
     render() {
         const { searchResults, inProgress } = this.props;
-        return <button disabled={inProgress} className="btn btn-info btn-sm" onClick={this.handleClick}>{`Add ${searchResults.total} items to cart`}</button>;
+        return <button disabled={inProgress} className="btn btn-info btn-sm" onClick={this.handleClick}>{`Add all qualifying items to cart`}</button>;
     }
 }
 

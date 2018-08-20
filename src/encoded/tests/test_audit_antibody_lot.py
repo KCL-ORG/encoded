@@ -98,3 +98,4 @@ def test_audit_control_characterizations(testapp, antibody_lot, base_target1):
     errors = res.json['audit']
     print(errors)
     assert 'NOT_COMPLIANT' not in errors
+

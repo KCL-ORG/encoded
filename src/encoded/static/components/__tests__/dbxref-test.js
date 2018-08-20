@@ -32,7 +32,7 @@ describe('Test individual dbxref types', () => {
             const context = { '@type': ['Gene'], symbol: 'CXXC1' };
             const wrapper = mount(
                 <DbxrefList
-                    dbxrefs={['HGNC:HGNC:24343']}
+                    dbxrefs={['HGNC:24343']}
                     context={context}
                 />
             );
@@ -42,7 +42,7 @@ describe('Test individual dbxref types', () => {
 
         it('has the correct links', () => {
             expect(dbxLinks.length).toBe(1);
-            expect(dbxLinks.at(0).prop('href')).toEqual('https://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=HGNC%3A24343');
+            expect(dbxLinks.at(0).prop('href')).toEqual('https://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=24343');
         });
     });
 

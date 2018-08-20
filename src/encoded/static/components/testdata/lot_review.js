@@ -107,7 +107,7 @@
                             ],
                             "dbxrefs": [
                                 "MIM:164017",
-                                "HGNC:HGNC:5031",
+                                "HGNC:5031",
                                 "ENSEMBL:ENSG00000135486",
                                 "Vega:OTTHUMG00000169702",
                                 "UniProtKB:P09651",

@@ -2598,7 +2598,7 @@
     "synonyms": ["NCRNA00286B"]
 }, {
     "uuid": "a8e1de0f-e223-4402-9e6e-e9ed37f56bb8",
-    "dbxrefs": ["MIM:611386", "HGNC:HGNC:15766", "ENSEMBL:ENSG00000101126", "Vega:OTTHUMG00000032737", "UniProtKB:Q9H2P0", "UniProtKB:Q6DHZ8"],
+    "dbxrefs": ["MIM:611386", "HGNC:15766", "ENSEMBL:ENSG00000101126", "Vega:OTTHUMG00000032737", "UniProtKB:Q9H2P0", "UniProtKB:Q6DHZ8"],
     "geneid": "23394",
     "name": "activity dependent neuroprotector homeobox",
     "ncbi_entrez_status": "live",
@@ -2764,7 +2764,7 @@
     }]
 }, {
     "uuid": "5ade49e2-57b1-4198-9915-542579ec3e09",
-    "dbxrefs": ["MIM:189971", "HGNC:HGNC:3113", "ENSEMBL:ENSG00000101412", "Vega:OTTHUMG00000032265", "UniProtKB:Q01094", "UniProtKB:Q9BSD8"],
+    "dbxrefs": ["MIM:189971", "HGNC:3113", "ENSEMBL:ENSG00000101412", "Vega:OTTHUMG00000032265", "UniProtKB:Q01094", "UniProtKB:Q9BSD8"],
     "geneid": "1869",
     "name": "E2F transcription factor 1",
     "ncbi_entrez_status": "live",
@@ -3115,7 +3115,7 @@
     }]
 }, {
     "uuid": "a9288b44-6ef4-460e-a3d6-464fd625b103",
-    "dbxrefs": ["MIM:604167", "HGNC:HGNC:13723", "ENSEMBL:ENSG00000102974", "Vega:OTTHUMG00000137539", "UniProtKB:P49711", "UniProtKB:A0A2R8YFL0"],
+    "dbxrefs": ["MIM:604167", "HGNC:13723", "ENSEMBL:ENSG00000102974", "Vega:OTTHUMG00000137539", "UniProtKB:P49711", "UniProtKB:A0A2R8YFL0"],
     "geneid": "10664",
     "name": "CCCTC-binding factor",
     "ncbi_entrez_status": "live",
@@ -3291,7 +3291,7 @@
     }]
 }, {
     "uuid": "a13fb026-d42f-481c-9420-5fe3f17ede30",
-    "dbxrefs": ["MIM:609150", "HGNC:HGNC:24343", "ENSEMBL:ENSG00000154832", "Vega:OTTHUMG00000132670", "UniProtKB:Q9P0U4"],
+    "dbxrefs": ["MIM:609150", "HGNC:24343", "ENSEMBL:ENSG00000154832", "Vega:OTTHUMG00000132670", "UniProtKB:Q9P0U4"],
     "geneid": "30827",
     "name": "CXXC finger protein 1",
     "ncbi_entrez_status": "live",

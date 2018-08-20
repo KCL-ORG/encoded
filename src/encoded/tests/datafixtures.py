@@ -203,7 +203,7 @@ def organism(human):
 def ctcf(testapp):
     item = {
         'uuid': 'a9288b44-6ef4-460e-a3d6-464fd625b103',
-        'dbxrefs': ['HGNC:HGNC:13723'],
+        'dbxrefs': ['HGNC:13723'],
         'geneid': '10664',
         'symbol': 'CTCF',
         'ncbi_entrez_status': 'live',

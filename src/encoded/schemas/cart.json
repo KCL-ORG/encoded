@@ -45,6 +45,12 @@
         },
         "name": {
             "title": "Name"
+        },
+        "status": {
+            "title": "Status"
+        },
+        "uuid": {
+            "title": "UUID"
         }
     },
     "changelog": "/profiles/changelogs/cart.md"

@@ -565,7 +565,7 @@ class App extends React.Component {
     // Retrieve the cart contents for the current logged-in user and add them to the in-memory cart.
     initializeCartFromSessionProperties(sessionProperties) {
         // Get the newly logged-in user's saved cart, if any.
-        return requestSearch(`type=Cart&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((savedCartResults) => {
+        return requestSearch(`type=Cart&status=current&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((savedCartResults) => {
             // For now just use the first cart in the cart search results until we support multiple
             // carts per user.
             const savedCartObj = (savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'][0] : null;

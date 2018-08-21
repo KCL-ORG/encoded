@@ -23,5 +23,5 @@ class Cart(Item):
         'type': 'array'
         })
     def items(self, request):
-        if request.datastore == 'database':
+        if request.datastore == 'database' and request.params.get('truncate', False):
             return []

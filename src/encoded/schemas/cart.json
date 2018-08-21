@@ -49,6 +49,9 @@
         "status": {
             "title": "Status"
         },
+        "submitted_by": {
+            "title": "Submitted by"
+        },
         "uuid": {
             "title": "UUID"
         }

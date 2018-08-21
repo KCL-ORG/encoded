@@ -564,11 +564,20 @@ class App extends React.Component {
 
     // Retrieve the cart contents for the current logged-in user and add them to the in-memory cart.
     initializeCartFromSessionProperties(sessionProperties) {
-        // Get the newly logged-in user's saved cart, if any.
-        return requestSearch(`type=Cart&status=current&submitted_by=${globals.encodedURIComponent(sessionProperties.user['@id'])}`).then((savedCartResults) => {
-            // For now just use the first cart in the cart search results until we support multiple
-            // carts per user.
-            const savedCartObj = (savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'][0] : null;
+        return this.fetch('/carts/?datastore=database', {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+            },
+        }).then((response) => {
+            if (!response.ok) {
+                throw response;
+            }
+            return response.json();
+        }).then((savedCartResults) => {
+            const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
+            const userCarts = (userAtId && savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'].filter(cartObj => cartObj.submitted_by === userAtId) : [];
+            const savedCartObj = userCarts.length > 0 ? userCarts[0] : null;
             const savedCart = (savedCartObj && savedCartObj.items) || [];
             let memoryCart = this.cartStore.getState().cart;
             const memoryCartLength = memoryCart.length;
@@ -585,11 +594,11 @@ class App extends React.Component {
                 if (memoryCartLength > 0) {
                     memoryCart = this.cartStore.getState().cart;
                     return cartSave(memoryCart, savedCartObj, sessionProperties.user, this.fetch).then((updatedSavedCartObj) => {
+                        console.log('APP 595 %o\n%o', savedCartObj, updatedSavedCartObj);
                         cartCacheSaved(updatedSavedCartObj, this.cartStore.dispatch);
                     });
                 }
             }
-
             return savedCartObj;
         });
     }

@@ -25,7 +25,9 @@ class Cart(Item):
         'title': 'ShortCart',
         'description': 'Cart without items'
     })
-class ShortCart(Cart):
+class ShortCart(Item):
+    item_type = 'cart'
+    schema = load_schema('encoded:schemas/cart.json')
 
     @calculated_property(schema={
         'title': 'Empty Items',

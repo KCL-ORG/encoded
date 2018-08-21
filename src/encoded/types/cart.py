@@ -30,7 +30,6 @@ class Cart(Item):
 
 def is_param_in_parent(request, param):
     parent = request.__parent__
-    print(parent)
     if parent:
         if parent.params.get(param, None):
             return True

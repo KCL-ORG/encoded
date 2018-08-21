@@ -594,10 +594,13 @@ class App extends React.Component {
                 if (memoryCartLength > 0) {
                     memoryCart = this.cartStore.getState().cart;
                     return cartSave(memoryCart, savedCartObj, sessionProperties.user, this.fetch).then((updatedSavedCartObj) => {
-                        console.log('APP 595 %o\n%o', savedCartObj, updatedSavedCartObj);
                         cartCacheSaved(updatedSavedCartObj, this.cartStore.dispatch);
                     });
                 }
+            } else if (savedCartObj) {
+                // User has a cart object, but both it and the in-memory cart are empty. Still need
+                // to cache the user's cart so we know what cart to save to.
+                cartCacheSaved(savedCartObj, this.cartStore.dispatch);
             }
             return savedCartObj;
         });

@@ -24,4 +24,4 @@ class Cart(Item):
         })
     def items(self, request):
         if request.datastore == 'database':
-            return ["test"]
+            return []

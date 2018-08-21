@@ -18,20 +18,10 @@ class Cart(Item):
     item_type = 'cart'
     schema = load_schema('encoded:schemas/cart.json')
 
-
-@collection(
-    name='short-carts',
-    properties={
-        'title': 'ShortCart',
-        'description': 'Cart without items'
-    })
-class ShortCart(Item):
-    item_type = 'cart'
-    schema = load_schema('encoded:schemas/cart.json')
-
     @calculated_property(schema={
         'title': 'Empty Items',
         'type': 'array'
         })
     def items(self, request):
-        return []
+        if request.datastore == 'database':
+            return ["test"]

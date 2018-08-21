@@ -576,7 +576,9 @@ class App extends React.Component {
             return response.json();
         }).then((savedCartResults) => {
             const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
-            const userCarts = (userAtId && savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'].filter(cartObj => cartObj.submitted_by === userAtId) : [];
+            const userCarts = (userAtId && savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'].filter(
+                cartObj => cartObj.submitted_by === userAtId && cartObj.status === 'current'
+            ) : [];
             const savedCartObj = userCarts.length > 0 ? userCarts[0] : null;
             const savedCart = (savedCartObj && savedCartObj.items) || [];
             let memoryCart = this.cartStore.getState().cart;

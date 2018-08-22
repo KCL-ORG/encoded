@@ -59,11 +59,11 @@ export default CartControl;
 /**
  * Add encode item @ids to the store.
  *
- * @param {array} items - Array of @ids to add to the cart
- * @param {func} dispatch - Redux dispatch function for the cart store
+ * @param {array} elements Array of @ids to add to the cart
+ * @param {func} dispatch Redux dispatch function for the cart store
  */
-const cartAddItems = (items, dispatch) => {
-    dispatch(addMultipleToCart(items));
+const cartAddElements = (elements, dispatch) => {
+    dispatch(addMultipleToCart(elements));
 };
 
-export { cartAddItems };
+export { cartAddElements };

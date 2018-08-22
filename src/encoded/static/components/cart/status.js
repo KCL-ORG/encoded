@@ -40,7 +40,7 @@ class CartStatusComponent extends React.Component {
     render() {
         const { cart, savedCartObj, openDropdown, dropdownClick } = this.props;
         const loggedIn = !!(this.context.session && this.context.session['auth.userid']);
-        const savedCart = (savedCartObj && savedCartObj.items) || [];
+        const savedCart = (savedCartObj && savedCartObj.elements) || [];
 
         // Define the menu items for the Cart Status menu.
         const menuItems = [<a key="view" href="/cart-view/">View cart</a>];

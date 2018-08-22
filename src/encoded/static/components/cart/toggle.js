@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { svgIcon } from '../../libs/svg-icons';
 import { addToCartAndSave, removeFromCartAndSave } from './actions';
-import { MAX_CART_ITEMS } from './util';
 
 
 // Button to add the current object to the cart, or to remove it.
@@ -23,8 +22,8 @@ class CartToggleComponent extends React.Component {
     render() {
         const { cart, savedCartObj, current } = this.props;
         const inCart = cart.indexOf(current) > -1;
-        const saved = (savedCartObj.items && savedCartObj.items.length > 0) ? savedCartObj.items.indexOf(current) > -1 : false;
-        const disabled = !inCart && cart.length === MAX_CART_ITEMS;
+        const saved = (savedCartObj.elements && savedCartObj.elements.length > 0) ? savedCartObj.elements.indexOf(current) > -1 : false;
+        const disabled = !inCart;
 
         return (
             <div className="cart__toggle">

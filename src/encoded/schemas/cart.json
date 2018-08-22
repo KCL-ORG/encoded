@@ -23,15 +23,15 @@
             "description": "The name of the cart",
             "type": "string"
         },
-        "items": {
-            "title": "Cart items",
-            "description": "Tracks all items in the cart",
+        "elements": {
+            "title": "Cart elements",
+            "description": "Tracks all elements in the cart",
             "type": "array",
             "default": [],
             "uniqueItems": true,
             "items": {
-                "title": "Cart item",
-                "description": "Reference to one item in the cart",
+                "title": "Cart element",
+                "description": "Reference to one element in the cart",
                 "type":  "string"
             }
         }

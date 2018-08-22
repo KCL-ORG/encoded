@@ -306,19 +306,19 @@ def batch_download(context, request):
     param_list['field'] = ['files.href', 'files.file_type', 'files']
     param_list['limit'] = ['all']
 
-    # batch download from cart issues POST and includes "item" key
+    # batch download from cart issues POST and includes "elements" key
     if request.method == 'POST':
         try:
-            items = request.json.get('items')
+            elements = request.json.get('elements')
         except ValueError:
-            msg = 'Batch download with POST requires JSON "items" key.'
+            msg = 'Batch download with POST requires JSON "elements" key.'
             raise HTTPBadRequest(explanation=msg)
         else:
-            param_list['@id'] = items
-            metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv -H "Accept: text/tsv" -H "Content-Type: application/json" --data \'{{"items": [{items_json}]}}\''.format(
+            param_list['@id'] = elements
+            metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv -H "Accept: text/tsv" -H "Content-Type: application/json" --data \'{{"elements": [{elements_json}]}}\''.format(
                 host_url=request.host_url,
                 search_params=request.matchdict['search_params'],
-                items_json=','.join('"{0}"'.format(item) for item in items)
+                elements_json=','.join('"{0}"'.format(element) for element in elements)
             )
     else:
         metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(

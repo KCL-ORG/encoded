@@ -12,8 +12,8 @@ import CartClear from './clear';
 import CartMergeShared from './merge_shared';
 
 
-/** Number of dataset items to display per page */
-const PAGE_ITEM_COUNT = 25;
+/** Number of dataset elements to display per page */
+const PAGE_ELEMENT_COUNT = 25;
 /** File facet fields to display */
 const displayedFacetFields = [
     'file_format',
@@ -29,44 +29,44 @@ class CartSearchResults extends React.Component {
     constructor() {
         super();
         this.state = {
-            /** Carted items to display as search results; includes one page of search results */
-            displayItems: [],
+            /** Carted elements to display as search results; includes one page of search results */
+            elementsForDisplay: [],
         };
-        this.retrievePageItems = this.retrievePageItems.bind(this);
+        this.retrievePageElements = this.retrievePageElements.bind(this);
     }
 
     componentDidMount() {
-        this.retrievePageItems();
+        this.retrievePageElements();
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.currentPage !== this.props.currentPage || !_.isEqual(prevProps.items, this.props.items)) {
-            this.retrievePageItems();
+        if (prevProps.currentPage !== this.props.currentPage || !_.isEqual(prevProps.elements, this.props.elements)) {
+            this.retrievePageElements();
         }
     }
 
     /**
-     * Given the whole cart items as a list of @ids as well as the currently displayed page of cart
-     * contents, perform a search of a page of items.
+     * Given the whole cart elements as a list of @ids as well as the currently displayed page
+     * number, perform a search of a page of elements.
      */
-    retrievePageItems() {
-        const pageStartIndex = this.props.currentPage * PAGE_ITEM_COUNT;
-        const currentPageItems = this.props.items.slice(pageStartIndex, pageStartIndex + PAGE_ITEM_COUNT);
-        const experimentTypeQuery = this.props.items.every(item => item.match(/^\/experiments\/.*?\/$/) !== null);
+    retrievePageElements() {
+        const pageStartIndex = this.props.currentPage * PAGE_ELEMENT_COUNT;
+        const currentPageElements = this.props.elements.slice(pageStartIndex, pageStartIndex + PAGE_ELEMENT_COUNT);
+        const experimentTypeQuery = this.props.elements.every(element => element.match(/^\/experiments\/.*?\/$/) !== null);
         const cartQueryString = `/search/?limit=all${experimentTypeQuery ? '&type=Experiment' : ''}`;
-        requestObjects(currentPageItems, cartQueryString).then((searchResults) => {
-            this.setState({ displayItems: searchResults });
+        requestObjects(currentPageElements, cartQueryString).then((searchResults) => {
+            this.setState({ elementsForDisplay: searchResults });
         });
     }
 
     render() {
-        return <ResultTableList results={this.state.displayItems} activeCart={this.props.activeCart} />;
+        return <ResultTableList results={this.state.elementsForDisplay} activeCart={this.props.activeCart} />;
     }
 }
 
 CartSearchResults.propTypes = {
     /** Array of cart item @ids */
-    items: PropTypes.array,
+    elements: PropTypes.array,
     /** Page of results to display */
     currentPage: PropTypes.number,
     /** True if displaying an active cart */
@@ -74,7 +74,7 @@ CartSearchResults.propTypes = {
 };
 
 CartSearchResults.defaultProps = {
-    items: [],
+    elements: [],
     currentPage: 0,
     activeCart: false,
 };
@@ -136,20 +136,21 @@ FacetTerm.defaultProps = {
 
 
 /**
- * Request a search of files whose datasets match those in `items`.
- * @param {array} items `@id`s of file datasets to request for a facet
+ * Request a search of files whose datasets match those in `items`. Uses search_elements endpoint
+ * so we can send all the elements in the cart in the JSON payload of the request.
+ * @param {array} elements `@id`s of file datasets to request for a facet
  * @param {func} fetch System fetch function
  * @return {object} Promise with search result object
  */
-const requestFacet = (items, fetch) => (
-    fetch('/search_items/type=File&restricted!=true&limit=0&filterresponse=off', {
+const requestFacet = (elements, fetch) => (
+    fetch('/search_elements/type=File&restricted!=true&limit=0&filterresponse=off', {
         method: 'POST',
         headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            dataset: items,
+            dataset: elements,
         }),
     }).then(response => (
         response.ok ? response.json() : null
@@ -165,10 +166,10 @@ const requestFacet = (items, fetch) => (
  * @param {object} currentResults Search results object to add to `accumulatedResults`.
  * @param {array} facetFields Facet field values whose term counts are to be added to
  *                            `accumulatedResults`.
- * @param {object} cachedAccumulatedFacets Saved facet objects within accumulatedResults. Pass in the
- *                                         value previously returned by this function, or undefined
- *                                         or null for first call. This function doesn't mutate
- *                                         this object.
+ * @param {object} cachedAccumulatedFacets Cached facet object references within
+ *                                         `accumulatedResults`. Pass in the value previously
+ *                                         returned by this function, or undefined or null for the
+ *                                         first call.
  */
 const addToAccumulatedFacets = (accumulatedResults, currentResults, facetFields, cachedAccumulatedFacets) => {
     const localCache = {};
@@ -191,6 +192,8 @@ const addToAccumulatedFacets = (accumulatedResults, currentResults, facetFields,
         const currentFacet = currentResults.facets.find(facet => facet.field === facetField);
         accumulatedFacet.total += currentFacet.total;
         currentFacet.terms.forEach((currentTerm) => {
+            // If the current facet term is already in the accumulating facets, just add its count
+            // to the existing accumulating facet term.
             const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
             if (matchingAccumulatedTerm) {
                 matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
@@ -277,24 +280,24 @@ class FileFacets extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.items.length !== this.props.items.length || !_.isEqual(prevProps.items, this.props.items)) {
+        if (prevProps.elements.length !== this.props.elements.length || !_.isEqual(prevProps.elements, this.props.elements)) {
             this.retrieveFileFacets();
         }
     }
 
     /**
      * Perform a special search to get just the facet information for files associated with cart
-     * items. The cart items are passed in the JSON body of the POST. No search results get
+     * elements. The cart elements are passed in the JSON body of the POST. No search results get
      * returned but we do get file facet information.
      */
     retrieveFileFacets() {
         // Break incoming array of experiment @ids into manageable chunks of arrays, each with
-        // CHUNK_SIZE items. Each chunk gets used in a search of files, and all the results get
+        // CHUNK_SIZE elements. Each chunk gets used in a search of files, and all the results get
         // combined into one facet object.
         const CHUNK_SIZE = 2000;
         const chunks = [];
-        for (let itemIndex = 0; itemIndex < this.props.items.length; itemIndex += CHUNK_SIZE) {
-            chunks.push(this.props.items.slice(itemIndex, itemIndex + CHUNK_SIZE));
+        for (let elementIndex = 0; elementIndex < this.props.elements.length; elementIndex += CHUNK_SIZE) {
+            chunks.push(this.props.elements.slice(elementIndex, elementIndex + CHUNK_SIZE));
         }
 
         // Using the arrays of dataset @id arrays, do a sequence of searches of CHUNK_SIZE datasets
@@ -313,8 +316,6 @@ class FileFacets extends React.Component {
                 })
             ))
         ), Promise.resolve(null)).then((accumulatedResults) => {
-            // accumulatedFacets is an object keyed by facet field values for displayed facets --
-            // each property "points" to the accumulatedResults facet objects that get displayed.
             const displayedFacets = {};
             displayedFacetFields.forEach((field) => {
                 const displayedFacet = accumulatedResults.facets.find(facet => facet.field === field);
@@ -347,16 +348,16 @@ class FileFacets extends React.Component {
 }
 
 FileFacets.propTypes = {
-    /** Array of @ids of all items in the cart */
-    items: PropTypes.array,
-    /** Selected facet field items */
+    /** Array of @ids of all elements in the cart */
+    elements: PropTypes.array,
+    /** Selected facet fields */
     selectedTerms: PropTypes.object,
     /** Callback when the user clicks on a file format facet item */
     termSelectHandler: PropTypes.func.isRequired,
 };
 
 FileFacets.defaultProps = {
-    items: [],
+    elements: [],
     selectedTerms: null,
 };
 
@@ -394,7 +395,7 @@ class CartTools extends React.Component {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                items: this.props.items,
+                elements: this.props.elements,
             }),
         }).then((response) => {
             if (response.ok) {
@@ -422,11 +423,11 @@ class CartTools extends React.Component {
     }
 
     render() {
-        const { items, activeCart, sharedCart } = this.props;
+        const { elements, activeCart, sharedCart } = this.props;
 
         return (
             <div className="cart__tools">
-                {items.length > 0 ? <BatchDownloadModal handleDownloadClick={this.batchDownload} /> : null}
+                {elements.length > 0 ? <BatchDownloadModal handleDownloadClick={this.batchDownload} /> : null}
                 <CartMergeShared sharedCartObj={sharedCart} />
                 {activeCart ? <CartClear /> : null}
             </div>
@@ -435,18 +436,18 @@ class CartTools extends React.Component {
 }
 
 CartTools.propTypes = {
-    /** Cart items */
-    items: PropTypes.array,
+    /** Cart elements */
+    elements: PropTypes.array,
     /** Selected facet terms */
     selectedTerms: PropTypes.object,
     /** True if cart is active, False if cart is shared */
     activeCart: PropTypes.bool,
-    /** Items in the shared cart, if that's being displayed */
+    /** Elements in the shared cart, if that's being displayed */
     sharedCart: PropTypes.object,
 };
 
 CartTools.defaultProps = {
-    items: [],
+    elements: [],
     selectedTerms: null,
     activeCart: true,
     sharedCart: null,
@@ -458,23 +459,23 @@ CartTools.contextTypes = {
 
 
 /**
- * Display the total number of cart items.
+ * Display the total number of cart elements.
  */
-const ItemCountArea = ({ itemCount, itemName, itemNamePlural }) => {
-    if (itemCount > 0) {
+const ElementCountArea = ({ count, name, namePlural }) => {
+    if (count > 0) {
         return (
-            <div className="cart__item-count">
-                {itemCount}&nbsp;{itemCount === 1 ? itemName : itemNamePlural}
+            <div className="cart__element-count">
+                {count}&nbsp;{count === 1 ? name : namePlural}
             </div>
         );
     }
     return null;
 };
 
-ItemCountArea.propTypes = {
-    itemCount: PropTypes.number.isRequired, // Number of items in cart display
-    itemName: PropTypes.string.isRequired, // Singular name of item being displayed
-    itemNamePlural: PropTypes.string.isRequired, // Plural name of item being displayed
+ElementCountArea.propTypes = {
+    count: PropTypes.number.isRequired, // Number of elements in cart display
+    name: PropTypes.string.isRequired, // Singular name of elements being displayed
+    namePlural: PropTypes.string.isRequired, // Plural name of elements being displayed
 };
 
 
@@ -501,8 +502,8 @@ PagerArea.propTypes = {
 
 /**
  * Renders the cart search results page. Display either:
- * 1. Shared cart (/carts/<uuid>) containing a user's saved items
- * 2. Active cart (/cart-view/) containing saved and in-memory items
+ * 1. Shared cart (/carts/<uuid>) containing a user's saved elements
+ * 2. Active cart (/cart-view/) containing saved and in-memory elements
  */
 class CartComponent extends React.Component {
     constructor() {
@@ -522,7 +523,7 @@ class CartComponent extends React.Component {
 
     /**
      * Called when the given file format was selected or deselected in the facet.
-     * @param {string} format File format facet item that was clicked
+     * @param {string} format File format facet element that was clicked
      */
     handleTermSelect(clickedField, clickedTerm) {
         this.setState((prevState) => {
@@ -551,7 +552,7 @@ class CartComponent extends React.Component {
     }
 
     /**
-     * Called when the user selects a new page of cart items to view.
+     * Called when the user selects a new page of cart elements to view.
      * @param {number} newCurrent New current page to view; zero based
      */
     updateDatasetCurrentPage(newCurrent) {
@@ -562,11 +563,11 @@ class CartComponent extends React.Component {
         const { context, cart } = this.props;
 
         // Active and shared carts displayed slightly differently. Active carts' contents come from
-        // the in-memory Redux store while shared carts' contents come from the cart object `items`
+        // the in-memory Redux store while shared carts' contents come from the cart object `elements`
         // property.
         const activeCart = context['@type'][0] === 'cart-view';
-        const cartItems = activeCart ? cart : context.items;
-        const totalDatasetPages = Math.floor(cartItems.length / PAGE_ITEM_COUNT) + (cartItems.length % PAGE_ITEM_COUNT !== 0 ? 1 : 0);
+        const cartElements = activeCart ? cart : context.elements;
+        const totalDatasetPages = Math.floor(cartElements.length / PAGE_ELEMENT_COUNT) + (cartElements.length % PAGE_ELEMENT_COUNT !== 0 ? 1 : 0);
 
         return (
             <div className={itemClass(context, 'view-item')}>
@@ -578,14 +579,14 @@ class CartComponent extends React.Component {
                 <Panel addClasses="cart__result-table">
                     <PanelHeading addClasses="cart__header">
                         <PagerArea currentPage={this.state.currentDatasetResultsPage} totalPageCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
-                        <CartTools items={cartItems} selectedTerms={this.state.selectedTerms} activeCart={activeCart} sharedCart={context} />
+                        <CartTools elements={cartElements} selectedTerms={this.state.selectedTerms} activeCart={activeCart} sharedCart={context} />
                     </PanelHeading>
-                    <ItemCountArea itemCount={cartItems.length} itemName="dataset" itemNamePlural="datasets" />
+                    <ElementCountArea count={cartElements.length} name="dataset" namePlural="datasets" />
                     <PanelBody>
-                        {cartItems.length > 0 ?
+                        {cartElements.length > 0 ?
                             <div className="cart__display">
-                                <FileFacets items={cartItems} selectedTerms={this.state.selectedTerms} termSelectHandler={this.handleTermSelect} />
-                                <CartSearchResults items={cartItems} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
+                                <FileFacets elements={cartElements} selectedTerms={this.state.selectedTerms} termSelectHandler={this.handleTermSelect} />
+                                <CartSearchResults elements={cartElements} currentPage={this.state.currentDatasetResultsPage} activeCart={activeCart} />
                             </div>
                         :
                             <p className="cart__empty-message">

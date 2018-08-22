@@ -8,9 +8,9 @@
 // saved - The cart contents in a user's `carts` object
 // user - The user's `carts` object
 //
-// "active" carts hold both saved and unsaved items. "shared" carts hold saved items. Users who
-// aren't logged in can only have an "active" cart. "shared" carts, when displayed with the cart's
-// uuid, can be shared with others.
+// "active" carts hold both saved and unsaved elements. "shared" carts hold saved elements. Users
+// who aren't logged in can only have an "active" cart. "shared" carts, when displayed with the
+// cart's uuid, can be shared with others.
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import _ from 'underscore';
@@ -25,7 +25,7 @@ import {
 import CartAddAll from './add_multiple';
 import cartCacheSaved from './cache_saved';
 import CartClear from './clear';
-import CartControl, { cartAddItems } from './control';
+import CartControl, { cartAddElements } from './control';
 import cartSetOperationInProgress from './in_progress';
 import CartMergeShared from './merge_shared';
 import CartOverlay from './overlay';
@@ -50,10 +50,10 @@ const cartModule = (state = {}, action = {}) => {
             cart: state.cart.concat([action.current]),
         });
     case ADD_MULTIPLE_TO_CART: {
-        // Merge the current cart contents with the incoming items while deduping them.
-        const items = [...new Set([...state.cart, ...action.items])];
+        // Merge the current cart contents with the incoming elements while deduping them.
+        const elements = [...new Set([...state.cart, ...action.elements])];
         return Object.assign({}, state, {
-            cart: items,
+            cart: elements,
         });
     }
     case REMOVE_FROM_CART: {
@@ -69,7 +69,7 @@ const cartModule = (state = {}, action = {}) => {
     }
     case REMOVE_MULTIPLE_FROM_CART:
         return Object.assign({}, state, {
-            cart: _.difference(state.cart, action.items),
+            cart: _.difference(state.cart, action.elements),
         });
     case CACHE_SAVED_CART:
         return Object.assign({}, state, {
@@ -105,7 +105,7 @@ export {
     CartSearchControls,
     CartStatus,
     CartToggle,
-    cartAddItems,
+    cartAddElements,
     CartShare,
     CartOverlay,
     cartSave,

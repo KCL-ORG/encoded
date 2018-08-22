@@ -8,7 +8,7 @@ import _ from 'underscore';
 import url from 'url';
 import jsonScriptEscape from '../libs/jsonScriptEscape';
 import origin from '../libs/origin';
-import initializeCart, { cartAddItems, cartCacheSaved, cartSave } from './cart';
+import initializeCart, { cartAddElements, cartCacheSaved, cartSave } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
 import { requestSearch } from './objectutils';
@@ -564,7 +564,7 @@ class App extends React.Component {
 
     // Retrieve the cart contents for the current logged-in user and add them to the in-memory cart.
     initializeCartFromSessionProperties(sessionProperties) {
-        // First retrieve all carts without the `items` array contents so we can grab the first
+        // First retrieve all carts without the `elements` array contents so we can grab the first
         // cart belonging to the current user.
         return this.fetch('/carts/?datastore=database&truncate=true', {
             method: 'GET',
@@ -576,11 +576,11 @@ class App extends React.Component {
                 throw response;
             }
             return response.json();
-        }).then((savedCartResults) => {
+        }).then((thinCartResults) => {
             // Filter collection results to current ones owned by the current user, then retrieve the cart
             // object for the first cart in `savedCartResults`.
             const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
-            const userCarts = (userAtId && savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'].filter(
+            const userCarts = (userAtId && thinCartResults['@graph'] && thinCartResults['@graph'].length > 0) ? thinCartResults['@graph'].filter(
                 cartObj => cartObj.submitted_by === userAtId && cartObj.status === 'current'
             ) : [];
             return userCarts[0] ? this.fetch(`${userCarts[0]['@id']}?datastore=database`, {
@@ -589,6 +589,14 @@ class App extends React.Component {
                     Accept: 'application/json',
                 },
             }) : null;
+        }).then((response) => {
+            if (response) {
+                if (!response.ok) {
+                    throw response;
+                }
+                return response.json();
+            }
+            return null;
         }).then((savedCartObj) => {
             // If we retrieved the saved cart object, copy it to the in-memory cart so the user can
             // use it and view it.
@@ -596,10 +604,10 @@ class App extends React.Component {
             let memoryCart = this.cartStore.getState().cart;
             const memoryCartLength = memoryCart.length;
             if (memoryCartLength !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {
-                // The in-memory cart has different contents from saved cart. Add saved cart items
-                // to in-memory cart.
+                // The in-memory cart has different contents from the saved cart. Add saved cart
+                // elements to the in-memory cart.
                 if (savedCart.length) {
-                    cartAddItems(savedCart, this.cartStore.dispatch);
+                    cartAddElements(savedCart, this.cartStore.dispatch);
                     cartCacheSaved(savedCartObj, this.cartStore.dispatch);
                 }
 

@@ -16,7 +16,7 @@ export const addToCart = current => (
 );
 
 /**
- * Redux thunk action to not only add an item to the cart, but also to save this change to the
+ * Redux thunk action to not only add an element to the cart, but also to save this change to the
  * database.
  * @param {string} current - @id of object being added to cart
  * @param {object} user - User object from <App> session_properties
@@ -40,13 +40,13 @@ export const addToCartAndSave = (current, user, fetch) => (
     }
 );
 
-export const addMultipleToCart = items => (
-    { type: ADD_MULTIPLE_TO_CART, items }
+export const addMultipleToCart = elements => (
+    { type: ADD_MULTIPLE_TO_CART, elements }
 );
 
-export const addMultipleToCartAndSave = (items, user, fetch) => (
+export const addMultipleToCartAndSave = (elements, user, fetch) => (
     (dispatch, getState) => {
-        dispatch(addMultipleToCart(items));
+        dispatch(addMultipleToCart(elements));
         if (user) {
             const { cart, savedCartObj } = getState();
             cartSetOperationInProgress(true, dispatch);
@@ -66,8 +66,8 @@ export const removeFromCart = current => (
 );
 
 /**
- * Redux thunk action to not only remove an item from the cart, but also to save this change to the
- * database.
+ * Redux thunk action to not only remove an element from the cart, but also to save this change to
+ * the database.
  * @param {string} current - @id of object being added to cart
  * @param {object} user - User object from <App> session_properties
  * @param {function} fetch - fetch function from <App>
@@ -90,13 +90,13 @@ export const removeFromCartAndSave = (current, user, fetch) => (
     }
 );
 
-export const removeMultipleFromCart = items => (
-    { type: REMOVE_MULTIPLE_FROM_CART, items }
+export const removeMultipleFromCart = elements => (
+    { type: REMOVE_MULTIPLE_FROM_CART, elements }
 );
 
-export const removeMultipleFromCartAndSave = (items, user, fetch) => (
+export const removeMultipleFromCartAndSave = (elements, user, fetch) => (
     (dispatch, getState) => {
-        dispatch(removeMultipleFromCart(items));
+        dispatch(removeMultipleFromCart(elements));
         if (user) {
             const { cart, savedCartObj } = getState();
             cartSetOperationInProgress(true, dispatch);

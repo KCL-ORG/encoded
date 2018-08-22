@@ -7,7 +7,7 @@ import { requestSearch } from '../objectutils';
 
 
 /**
- * Button to add all qualifying items to the user's cart.
+ * Button to add all qualifying elements to the user's cart.
  */
 class CartAddAllComponent extends React.Component {
     constructor() {
@@ -21,20 +21,20 @@ class CartAddAllComponent extends React.Component {
         )).join('&')}&limit=all&field=%40id`;
         requestSearch(searchQuery).then((results) => {
             if (Object.keys(results).length > 0 && results['@graph'].length > 0) {
-                const itemsForCart = results['@graph'].map(result => result['@id']);
-                this.props.addAllResults(itemsForCart);
+                const elementsForCart = results['@graph'].map(result => result['@id']);
+                this.props.addAllResults(elementsForCart);
             }
         });
     }
 
     render() {
-        const { searchResults, inProgress } = this.props;
-        return <button disabled={inProgress} className="btn btn-info btn-sm" onClick={this.handleClick}>{`Add all qualifying items to cart`}</button>;
+        const { inProgress } = this.props;
+        return <button disabled={inProgress} className="btn btn-info btn-sm" onClick={this.handleClick}>Add all qualifying items to cart</button>;
     }
 }
 
 CartAddAllComponent.propTypes = {
-    /** Search result object of items to add to cart */
+    /** Search result object of elements to add to cart */
     searchResults: PropTypes.object.isRequired,
     /** True if cart updating operation is in progress */
     inProgress: PropTypes.bool,
@@ -48,7 +48,7 @@ CartAddAllComponent.defaultProps = {
 
 const mapStateToProps = (state, ownProps) => ({ cart: state.cart, inProgress: state.inProgress, searchResults: ownProps.searchResults });
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    addAllResults: itemsForCart => dispatch(addMultipleToCartAndSave(itemsForCart, ownProps.sessionProperties.user, ownProps.fetch)),
+    addAllResults: elementsForCart => dispatch(addMultipleToCartAndSave(elementsForCart, ownProps.sessionProperties.user, ownProps.fetch)),
 });
 
 const CartAddAllInternal = connect(mapStateToProps, mapDispatchToProps)(CartAddAllComponent);
@@ -58,7 +58,7 @@ const CartAddAll = (props, reactContext) => (
 );
 
 CartAddAll.propTypes = {
-    /** Search result object of items to add to cart */
+    /** Search result object of elements to add to cart */
     searchResults: PropTypes.object.isRequired,
 };
 

@@ -5,15 +5,15 @@ import { connect } from 'react-redux';
 import { removeMultipleFromCart } from './actions';
 
 
-// Button to remove mutliple items from the cart..
-const CartRemoveAllComponent = ({ cart, items, onClick }) => {
-    const disabled = items.every(item => cart.indexOf(item['@id']) === -1);
+// Button to remove mutliple elements from the cart.
+const CartRemoveAllComponent = ({ cart, elements, onClick }) => {
+    const disabled = elements.every(element => cart.indexOf(element['@id']) === -1);
     return <button className="btn btn-info btn-sm" disabled={disabled} onClick={onClick}>Remove all</button>;
 };
 
 CartRemoveAllComponent.propTypes = {
     cart: PropTypes.array, // Current contents of cart
-    items: PropTypes.array.isRequired, // List of @ids of the items to add
+    elements: PropTypes.array.isRequired, // List of @ids of the elements to add
     onClick: PropTypes.func.isRequired, // Function to call when Remove All clicked
 };
 
@@ -21,12 +21,12 @@ CartRemoveAllComponent.defaultProps = {
     cart: [],
 };
 
-const mapStateToProps = (state, ownProps) => ({ cart: state.cart, items: ownProps.items });
+const mapStateToProps = (state, ownProps) => ({ cart: state.cart, elements: ownProps.elements });
 const mapDispatchToProps = (dispatch, ownProps) => (
     {
         onClick: () => {
-            const itemAtIds = ownProps.items.map(item => item['@id']);
-            return dispatch(removeMultipleFromCart(itemAtIds));
+            const elementAtIds = ownProps.elements.map(element => element['@id']);
+            return dispatch(removeMultipleFromCart(elementAtIds));
         },
     }
 );

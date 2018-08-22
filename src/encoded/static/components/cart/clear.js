@@ -75,7 +75,7 @@ CartClearComponent.propTypes = {
     cart: PropTypes.array,
     /** True if cart updating operation is in progress */
     inProgress: PropTypes.bool,
-    /** Function called to remove all items */
+    /** Function called to remove all elements */
     onClearCartClick: PropTypes.func.isRequired,
 };
 
@@ -90,7 +90,7 @@ const mapStateToProps = (state, ownProps) => ({
     user: ownProps.sessionProperties,
 });
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    onClearCartClick: itemAtIds => dispatch(removeMultipleFromCartAndSave(itemAtIds, ownProps.sessionProperties.user, ownProps.fetch)),
+    onClearCartClick: elementAtIds => dispatch(removeMultipleFromCartAndSave(elementAtIds, ownProps.sessionProperties.user, ownProps.fetch)),
 });
 
 const CartClearInternal = connect(mapStateToProps, mapDispatchToProps)(CartClearComponent);

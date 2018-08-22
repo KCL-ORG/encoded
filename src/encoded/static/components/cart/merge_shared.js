@@ -12,13 +12,13 @@ class CartMergeSharedComponent extends React.Component {
     }
 
     handleClick() {
-        this.props.onMergeCartClick(this.props.sharedCartObj.items);
+        this.props.onMergeCartClick(this.props.sharedCartObj.elements);
     }
 
     render() {
         const { sharedCartObj, savedCartObj } = this.props;
 
-        if (sharedCartObj.items && (sharedCartObj.items.length > 0 && sharedCartObj['@id'] !== savedCartObj['@id'])) {
+        if (sharedCartObj.elements && (sharedCartObj.elements.length > 0 && sharedCartObj['@id'] !== savedCartObj['@id'])) {
             return (
                 <Modal actuator={<button className="btn btn-info btn-sm">Add to my cart</button>}>
                     <ModalHeader title="Add shared cart items to my cart" closeModal />
@@ -50,7 +50,7 @@ CartMergeSharedComponent.defaultProps = {
 
 const mapStateToProps = (state, ownProps) => ({ cart: state.cart, savedCartObj: state.savedCartObj, sharedCartObj: ownProps.sharedCartObj });
 const mapDispatchToProps = dispatch => ({
-    onMergeCartClick: itemAtIds => dispatch(addMultipleToCart(itemAtIds)),
+    onMergeCartClick: elementAtIds => dispatch(addMultipleToCart(elementAtIds)),
 });
 
 const CartMergeShared = connect(mapStateToProps, mapDispatchToProps)(CartMergeSharedComponent);

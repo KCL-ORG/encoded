@@ -46,7 +46,7 @@ const updateCartObject = (cart, cartAtId, fetch) => (
 const getWriteableCartObject = (cartObj, cartAtId, fetch) => {
     return new Promise((resolve, reject) => {
         const copy = Object.assign({}, cartObj);
-        copy.items = cartObj.items.slice();
+        copy.elements = cartObj.elements.slice();
         delete copy['@id'];
         delete copy.actions;
         delete copy['@context'];
@@ -68,7 +68,7 @@ const getWriteableCartObject = (cartObj, cartAtId, fetch) => {
 const createCartObject = (cart, user, fetch) => {
     const writeableCart = {
         name: `${user.title} cart`,
-        items: cart,
+        elements: cart,
         submitted_by: user['@id'],
         status: 'current',
     };
@@ -103,7 +103,7 @@ export const cartSave = (cart, savedCartObj, user, fetch) => {
     if (cartAtId) {
         return getWriteableCartObject(savedCartObj, cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
-            writeableCart.items = cart;
+            writeableCart.elements = cart;
             return updateCartObject(writeableCart, cartAtId, fetch);
         });
     }
@@ -134,7 +134,7 @@ class CartSaveComponent extends React.Component {
 
 CartSaveComponent.propTypes = {
     cart: PropTypes.array.isRequired, // In-memory cart from redux store
-    savedCartObj: PropTypes.object, // Cached saved cart items
+    savedCartObj: PropTypes.object, // Cached saved cart object
     user: PropTypes.object, // Logged-in user object
     onSaveCartClick: PropTypes.func.isRequired, // Function to call when "Save cart" clicked
     fetch: PropTypes.func.isRequired, // fetch function from App context

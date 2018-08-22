@@ -28,7 +28,7 @@ def includeme(config):
     config.add_route('news', '/news/')
     config.add_route('audit', '/audit/')
     config.add_route('summary', '/summary{slash:/?}')
-    config.add_route('search_items', '/search_items/{search_params}')
+    config.add_route('search_elements', '/search_elements/{search_params}')
     config.scan(__name__)
 
 
@@ -1763,8 +1763,9 @@ def summary(context, request):
     return result
 
 
-@view_config(route_name='search_items', request_method='POST')
-def search_items(context, request):
+@view_config(route_name='search_elements', request_method='POST')
+def search_elements(context, request):
+    """Same as search but takes JSON payload of search filters."""
     param_list = parse_qs(request.matchdict['search_params'])
     param_list.update(request.json_body)
     path = '/search/?%s' % urlencode(param_list, True)

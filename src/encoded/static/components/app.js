@@ -564,7 +564,9 @@ class App extends React.Component {
 
     // Retrieve the cart contents for the current logged-in user and add them to the in-memory cart.
     initializeCartFromSessionProperties(sessionProperties) {
-        return this.fetch('/carts/?datastore=database', {
+        // First retrieve all carts without the `items` array contents so we can grab the first
+        // cart belonging to the current user.
+        return this.fetch('/carts/?datastore=database&truncate=true', {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -575,11 +577,21 @@ class App extends React.Component {
             }
             return response.json();
         }).then((savedCartResults) => {
+            // Filter collection results to current ones owned by the current user, then retrieve the cart
+            // object for the first cart in `savedCartResults`.
             const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
             const userCarts = (userAtId && savedCartResults['@graph'] && savedCartResults['@graph'].length > 0) ? savedCartResults['@graph'].filter(
                 cartObj => cartObj.submitted_by === userAtId && cartObj.status === 'current'
             ) : [];
-            const savedCartObj = userCarts.length > 0 ? userCarts[0] : null;
+            return userCarts[0] ? this.fetch(`${userCarts[0]['@id']}?datastore=database`, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                },
+            }) : null;
+        }).then((savedCartObj) => {
+            // If we retrieved the saved cart object, copy it to the in-memory cart so the user can
+            // use it and view it.
             const savedCart = (savedCartObj && savedCartObj.items) || [];
             let memoryCart = this.cartStore.getState().cart;
             const memoryCartLength = memoryCart.length;

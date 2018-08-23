@@ -11,11 +11,10 @@ import cartSetOperationInProgress from './in_progress';
  * writeable properties in it, and @id is one of several non-writeable properites. You normally
  * get an object with no non-writeable properties by doing a GET request on that object with
  * "frame=edit" in the query string.
- *
- * @param {object} cart - cart object to update; must be editable version (no @id etc)
- * @param {string} cartAtId - @id of the cart object to update
- * @param {func} fetch - system-wide fetch operation
- * @return {object} - Promise containing array of carts for logged-in user
+ * @param {object} cart cart object to update; must be editable version (no @id etc)
+ * @param {string} cartAtId @id of the cart object to update
+ * @param {func} fetch system-wide fetch operation
+ * @return {object} Promise containing array of carts for logged-in user
  */
 const updateCartObject = (cart, cartAtId, fetch) => (
     fetch(cartAtId, {
@@ -43,27 +42,30 @@ const updateCartObject = (cart, cartAtId, fetch) => (
  * @param {func} fetch System-wide fetch operation
  * @return {object} Promise containing the retrieved cart object, or an error response
  */
-const getWriteableCartObject = (cartObj, cartAtId, fetch) => {
-    return new Promise((resolve, reject) => {
-        const copy = Object.assign({}, cartObj);
-        copy.elements = cartObj.elements.slice();
-        delete copy['@id'];
-        delete copy.actions;
-        delete copy['@context'];
-        delete copy['@type'];
-        delete copy.uuid;
-        delete copy.audit;
-        resolve(copy);
-    });
+const getWriteableCartObject = (cartAtId, fetch) => {
+    fetch(`${cartAtId}?frame=edit`, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+        },
+    })
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(response);
+        })
+        .catch((err) => {
+            parseAndLogError('getWriteableCartObject', err);
+        });
 };
 
 
 /**
  * Create a new object in the DB for the given cart object and user.
- *
- * @param {object} cart - current cart object to be saved
- * @param {object} user - current logged-in user's object
- * @param {func} fetch - system-wide fetch operation
+ * @param {object} cart current cart object to be saved
+ * @param {object} user current logged-in user's object
+ * @param {func} fetch system-wide fetch operation
  */
 const createCartObject = (cart, user, fetch) => {
     const writeableCart = {
@@ -91,7 +93,6 @@ const createCartObject = (cart, user, fetch) => {
 /**
  * Save the in-memory cart to the database. The user object has the @id of the user's cart, but not
  * the cart object itself which must be provided in `savedCartObj`.
- *
  * @param {array} cart Array of @ids contained with the in-memory cart to be saved
  * @param {object} savedCartObj User's saved cart object
  * @param {user} user User object normally retrieved from session_properties
@@ -101,7 +102,7 @@ const createCartObject = (cart, user, fetch) => {
 export const cartSave = (cart, savedCartObj, user, fetch) => {
     const cartAtId = savedCartObj && savedCartObj['@id'];
     if (cartAtId) {
-        return getWriteableCartObject(savedCartObj, cartAtId, fetch).then((writeableCart) => {
+        return getWriteableCartObject(cartAtId, fetch).then((writeableCart) => {
             // Copy the in-memory cart to the writeable cart object and then update it in the DB.
             writeableCart.elements = cart;
             return updateCartObject(writeableCart, cartAtId, fetch);

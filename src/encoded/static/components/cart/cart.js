@@ -140,10 +140,11 @@ FacetTerm.defaultProps = {
  * so we can send all the elements in the cart in the JSON payload of the request.
  * @param {array} elements `@id`s of file datasets to request for a facet
  * @param {func} fetch System fetch function
+ * @param {string} queryString Query string to add to URI being fetched; '' for no additions
  * @return {object} Promise with search result object
  */
-const requestFacet = (elements, fetch) => (
-    fetch('/search_elements/type=File&restricted!=true&limit=0&filterresponse=off', {
+const requestFacet = (elements, fetch, queryString) => (
+    fetch(`/search_elements/type=File&restricted!=true&limit=0&filterresponse=off${queryString || ''}`, {
         method: 'POST',
         headers: {
             Accept: 'application/json',
@@ -280,7 +281,7 @@ class FileFacets extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.elements.length !== this.props.elements.length || !_.isEqual(prevProps.elements, this.props.elements)) {
+        if (prevProps.elements.length !== this.props.elements.length || !_.isEqual(prevProps.elements, this.props.elements) || !_.isEqual(prevProps.selectedTerms, this.props.selectedTerms)) {
             this.retrieveFileFacets();
         }
     }
@@ -300,12 +301,21 @@ class FileFacets extends React.Component {
             chunks.push(this.props.elements.slice(elementIndex, elementIndex + CHUNK_SIZE));
         }
 
+        // Assemble the query string from the selected facets.
+        let queryString = '';
+        displayedFacetFields.forEach((field) => {
+            if (this.props.selectedTerms[field].length > 0) {
+                const termQuery = this.props.selectedTerms[field].map(term => `${field}=${encodedURIComponent(term)}`).join('&');
+                queryString += `&${termQuery}`;
+            }
+        });
+
         // Using the arrays of dataset @id arrays, do a sequence of searches of CHUNK_SIZE datasets
         // adding the totals together to form the final facet.
         let accumulatedFacets;
         chunks.reduce((promiseChain, currentChunk, currentChunkIndex) => (
             promiseChain.then(accumulatedResults => (
-                requestFacet(currentChunk, this.context.fetch).then((currentResults) => {
+                requestFacet(currentChunk, this.context.fetch, queryString).then((currentResults) => {
                     this.setState({ facetLoadProgress: Math.round((currentChunkIndex / chunks.length) * 100) });
                     if (accumulatedResults) {
                         accumulatedResults.total += currentResults.total;

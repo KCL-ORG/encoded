@@ -42,23 +42,21 @@ const updateCartObject = (cart, cartAtId, fetch) => (
  * @param {func} fetch System-wide fetch operation
  * @return {object} Promise containing the retrieved cart object, or an error response
  */
-const getWriteableCartObject = (cartAtId, fetch) => {
+const getWriteableCartObject = (cartAtId, fetch) => (
     fetch(`${cartAtId}?frame=edit`, {
         method: 'GET',
         headers: {
             Accept: 'application/json',
         },
+    }).then((response) => {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error(response);
+    }).catch((err) => {
+        parseAndLogError('getWriteableCartObject', err);
     })
-        .then((response) => {
-            if (response.ok) {
-                return response.json();
-            }
-            throw new Error(response);
-        })
-        .catch((err) => {
-            parseAndLogError('getWriteableCartObject', err);
-        });
-};
+);
 
 
 /**

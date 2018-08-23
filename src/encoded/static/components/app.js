@@ -570,38 +570,35 @@ class App extends React.Component {
             headers: {
                 Accept: 'application/json',
             },
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error(response);
-            })
-            .then((thinCartResults) => {
-                // Filter collection results to current ones owned by the current user, then retrieve the cart
-                // object for the first cart in `savedCartResults`.
-                const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
-                const userCarts = (userAtId && thinCartResults['@graph'] && thinCartResults['@graph'].length > 0) ? thinCartResults['@graph'].filter(
-                    cartObj => cartObj.submitted_by === userAtId && cartObj.status === 'current'
-                ) : [];
-                return userCarts[0] ? this.fetch(`${userCarts[0]['@id']}?datastore=database`, {
-                    method: 'GET',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                }) : null;
-            })
-            .then((response) => {
-                if (!response) {
-                    // No saved cart for the user.
-                    return null;
-                }
-                if (response.ok) {
-                    // Decode the user's saved cart.
-                    return response.json();
-                }
-                throw new Error(response);
-            });
+        }).then((response) => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(response);
+        }).then((thinCartResults) => {
+            // Filter collection results to current ones owned by the current user, then retrieve the cart
+            // object for the first cart in `savedCartResults`.
+            const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
+            const userCarts = (userAtId && thinCartResults['@graph'] && thinCartResults['@graph'].length > 0) ? thinCartResults['@graph'].filter(
+                cartObj => cartObj.submitted_by === userAtId && cartObj.status === 'current'
+            ) : [];
+            return userCarts[0] ? this.fetch(`${userCarts[0]['@id']}?datastore=database`, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                },
+            }) : null;
+        }).then((response) => {
+            if (!response) {
+                // No saved cart for the user.
+                return null;
+            }
+            if (response.ok) {
+                // Decode the user's saved cart.
+                return response.json();
+            }
+            throw new Error(response);
+        });
 
         // Once we have the user's first saved cart object, see if we need to merge it into the
         // user's in-memory cart, and whether we then have to save the updated cart.

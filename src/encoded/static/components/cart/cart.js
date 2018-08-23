@@ -315,17 +315,18 @@ class FileFacets extends React.Component {
                     return currentResults;
                 })
             ))
-        ), Promise.resolve(null)).then((accumulatedResults) => {
-            const displayedFacets = {};
-            displayedFacetFields.forEach((field) => {
-                const displayedFacet = accumulatedResults.facets.find(facet => facet.field === field);
-                if (displayedFacet) {
-                    displayedFacet.terms.sort((a, b) => b.doc_count - a.doc_count);
-                }
-                displayedFacets[field] = displayedFacet;
+        ), Promise.resolve(null))
+            .then((accumulatedResults) => {
+                const displayedFacets = {};
+                displayedFacetFields.forEach((field) => {
+                    const displayedFacet = accumulatedResults.facets.find(facet => facet.field === field);
+                    if (displayedFacet) {
+                        displayedFacet.terms.sort((a, b) => b.doc_count - a.doc_count);
+                    }
+                    displayedFacets[field] = displayedFacet;
+                });
+                this.setState({ displayedFacets, facetLoadProgress: -1 });
             });
-            this.setState({ displayedFacets, facetLoadProgress: -1 });
-        });
     }
 
     render() {

@@ -40,8 +40,8 @@
         "schema_version": {
             "title": "Schema Version"
         },
-        "items": {
-            "title": "Cart items"
+        "elements": {
+            "title": "Cart elements"
         },
         "name": {
             "title": "Name"

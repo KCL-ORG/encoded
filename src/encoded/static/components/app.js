@@ -11,7 +11,6 @@ import origin from '../libs/origin';
 import initializeCart, { cartAddElements, cartCacheSaved, cartSave } from './cart';
 import * as globals from './globals';
 import Navigation from './navigation';
-import { requestSearch } from './objectutils';
 import Footer from './footer';
 import Home from './home';
 import newsHead from './page';
@@ -566,7 +565,7 @@ class App extends React.Component {
     initializeCartFromSessionProperties(sessionProperties) {
         // First retrieve all carts without the `elements` array contents so we can grab the first
         // cart belonging to the current user.
-        return this.fetch('/carts/?datastore=database&truncate=true', {
+        return this.fetch('/carts/?datastore=database&remove=elements', {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -600,7 +599,7 @@ class App extends React.Component {
         }).then((savedCartObj) => {
             // If we retrieved the saved cart object, copy it to the in-memory cart so the user can
             // use it and view it.
-            const savedCart = (savedCartObj && savedCartObj.items) || [];
+            const savedCart = (savedCartObj && savedCartObj.elements) || [];
             let memoryCart = this.cartStore.getState().cart;
             const memoryCartLength = memoryCart.length;
             if (memoryCartLength !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {

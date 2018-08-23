@@ -115,6 +115,7 @@
 
             &:disabled {
                 stroke: #a0a0a0;
+                fill: #a0a0a0;
             }
         }
 
@@ -123,6 +124,11 @@
             button {
                 stroke-width: 0;
                 fill-opacity: 1;
+
+                &:disabled {
+                    stroke: #a0a0a0;
+                    fill: #a0a0a0;
+                }
             }
         }
     }

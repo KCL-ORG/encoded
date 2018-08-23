@@ -20,17 +20,16 @@ class CartToggleComponent extends React.Component {
     }
 
     render() {
-        const { cart, savedCartObj, current } = this.props;
+        const { cart, inProgress, savedCartObj, current } = this.props;
         const inCart = cart.indexOf(current) > -1;
         const saved = (savedCartObj.elements && savedCartObj.elements.length > 0) ? savedCartObj.elements.indexOf(current) > -1 : false;
-        const disabled = !inCart;
 
         return (
             <div className="cart__toggle">
                 <div className={`cart__checkbox${inCart ? ' cart__checkbox--in-cart' : ''}`}>
                     <button
                         onClick={this.handleClick}
-                        disabled={disabled}
+                        disabled={inProgress}
                         title={inCart ? 'Remove from cart' : 'Add to cart'}
                         aria-pressed={inCart}
                         aria-label={inCart ? `Remove ${saved ? 'saved' : 'unsaved'} item from cart` : `Add ${saved ? 'saved' : 'unsaved'} item to cart`}
@@ -45,6 +44,7 @@ class CartToggleComponent extends React.Component {
 
 CartToggleComponent.propTypes = {
     cart: PropTypes.array, // Current contents of cart
+    inProgress: PropTypes.bool, // True if cart operation is in progress
     savedCartObj: PropTypes.object, // Current user's saved cart
     current: PropTypes.string.isRequired, // @id of current object being added
     onAddToCartClick: PropTypes.func.isRequired, // Function to call when Add to Cart clicked
@@ -53,12 +53,14 @@ CartToggleComponent.propTypes = {
 
 CartToggleComponent.defaultProps = {
     cart: [],
+    inProgress: false,
     savedCartObj: {},
 };
 
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
+    inProgress: state.inProgress,
     savedCartObj: state.savedCartObj || null,
     current: ownProps.current['@id'],
 });

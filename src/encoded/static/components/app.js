@@ -564,66 +564,74 @@ class App extends React.Component {
     // Retrieve the cart contents for the current logged-in user and add them to the in-memory cart.
     initializeCartFromSessionProperties(sessionProperties) {
         // First retrieve all carts without the `elements` array contents so we can grab the first
-        // cart belonging to the current user.
-        return this.fetch('/carts/?datastore=database&remove=elements', {
+        // cart belonging to the current user without too much large-object stress.
+        const savedCartObjPromise = this.fetch('/carts/?datastore=database&remove=elements', {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
             },
-        }).then((response) => {
-            if (!response.ok) {
-                throw response;
-            }
-            return response.json();
-        }).then((thinCartResults) => {
-            // Filter collection results to current ones owned by the current user, then retrieve the cart
-            // object for the first cart in `savedCartResults`.
-            const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
-            const userCarts = (userAtId && thinCartResults['@graph'] && thinCartResults['@graph'].length > 0) ? thinCartResults['@graph'].filter(
-                cartObj => cartObj.submitted_by === userAtId && cartObj.status === 'current'
-            ) : [];
-            return userCarts[0] ? this.fetch(`${userCarts[0]['@id']}?datastore=database`, {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json',
-                },
-            }) : null;
-        }).then((response) => {
-            if (response) {
-                if (!response.ok) {
-                    throw response;
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
                 }
-                return response.json();
-            }
-            return null;
-        }).then((savedCartObj) => {
-            // If we retrieved the saved cart object, copy it to the in-memory cart so the user can
-            // use it and view it.
+                throw new Error(response);
+            })
+            .then((thinCartResults) => {
+                // Filter collection results to current ones owned by the current user, then retrieve the cart
+                // object for the first cart in `savedCartResults`.
+                const userAtId = sessionProperties.user ? sessionProperties.user['@id'] : '';
+                const userCarts = (userAtId && thinCartResults['@graph'] && thinCartResults['@graph'].length > 0) ? thinCartResults['@graph'].filter(
+                    cartObj => cartObj.submitted_by === userAtId && cartObj.status === 'current'
+                ) : [];
+                return userCarts[0] ? this.fetch(`${userCarts[0]['@id']}?datastore=database`, {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                }) : null;
+            })
+            .then((response) => {
+                if (!response) {
+                    // No saved cart for the user.
+                    return null;
+                }
+                if (response.ok) {
+                    // Decode the user's saved cart.
+                    return response.json();
+                }
+                throw new Error(response);
+            });
+
+        // Once we have the user's first saved cart object, see if we need to merge it into the
+        // user's in-memory cart, and whether we then have to save the updated cart.
+        savedCartObjPromise.then((savedCartObj) => {
             const savedCart = (savedCartObj && savedCartObj.elements) || [];
             let memoryCart = this.cartStore.getState().cart;
-            const memoryCartLength = memoryCart.length;
-            if (memoryCartLength !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {
-                // The in-memory cart has different contents from the saved cart. Add saved cart
-                // elements to the in-memory cart.
-                if (savedCart.length) {
+            if (memoryCart.length !== savedCart.length || !_.isEqual(memoryCart, savedCart)) {
+                // We now know the saved and in-memory carts are different somehow. If the user has
+                // a saved cart, merge its contents with the in-memory cart.
+                if (savedCartObj) {
                     cartAddElements(savedCart, this.cartStore.dispatch);
                     cartCacheSaved(savedCartObj, this.cartStore.dispatch);
                 }
 
-                // Save the updated in-memory cart if it had something in it before we loaded the
-                // saved cart.
-                if (memoryCartLength > 0) {
+                // Save the (updated if it got merged with the saved cart) in-memory cart if it had
+                // anything in it on page load.
+                if (memoryCart.length > 0) {
                     memoryCart = this.cartStore.getState().cart;
                     return cartSave(memoryCart, savedCartObj, sessionProperties.user, this.fetch).then((updatedSavedCartObj) => {
                         cartCacheSaved(updatedSavedCartObj, this.cartStore.dispatch);
                     });
                 }
             } else if (savedCartObj) {
-                // User has a cart object, but both it and the in-memory cart are empty. Still need
-                // to cache the user's cart so we know what cart to save to.
+                // User has a cart object from before. Cache the user's cart so we know what cart
+                // to save to.
                 cartCacheSaved(savedCartObj, this.cartStore.dispatch);
             }
             return savedCartObj;
+        }).catch((err) => {
+            globals.parseAndLogError('Load savedCartObj on page load', err);
         });
     }
 

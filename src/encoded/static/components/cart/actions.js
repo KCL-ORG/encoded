@@ -30,7 +30,6 @@ export const addToCartAndSave = (current, user, fetch) => (
             const { cart, savedCartObj } = getState();
             cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
-                console.log('action 33 %o\n%o', savedCartObj, updatedSavedCartObj);
                 cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;
@@ -51,7 +50,6 @@ export const addMultipleToCartAndSave = (elements, user, fetch) => (
             const { cart, savedCartObj } = getState();
             cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
-                console.log('action 54 %o\n%o', savedCartObj, updatedSavedCartObj);
                 cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;
@@ -80,7 +78,6 @@ export const removeFromCartAndSave = (current, user, fetch) => (
             const { cart, savedCartObj } = getState();
             cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
-                console.log('action 83 %o\n%o', savedCartObj, updatedSavedCartObj);
                 cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;
@@ -101,7 +98,6 @@ export const removeMultipleFromCartAndSave = (elements, user, fetch) => (
             const { cart, savedCartObj } = getState();
             cartSetOperationInProgress(true, dispatch);
             return cartSave(cart, savedCartObj, user, fetch).then((updatedSavedCartObj) => {
-                console.log('action 104 %o\n%o', savedCartObj, updatedSavedCartObj);
                 cartSetOperationInProgress(false, dispatch);
                 cartCacheSaved(updatedSavedCartObj, dispatch);
                 return updatedSavedCartObj;

@@ -346,7 +346,11 @@ class FileFacets extends React.Component {
                 {displayedFacets ?
                     <div>
                         {displayedFacetFields.map(field => (
-                            <Facet key={field} facet={displayedFacets[field]} selectedFacetTerms={selectedTerms[field]} facetTermSelectHandler={termSelectHandler} />
+                            <div key={field}>
+                                {displayedFacets[field] ?
+                                    <Facet key={field} facet={displayedFacets[field]} selectedFacetTerms={selectedTerms[field]} facetTermSelectHandler={termSelectHandler} />
+                                : null}
+                            </div>
                         ))}
                     </div>
                 :
@@ -533,7 +537,8 @@ class CartComponent extends React.Component {
 
     /**
      * Called when the given file format was selected or deselected in the facet.
-     * @param {string} format File format facet element that was clicked
+     * @param {string} clickedField `field` value of the facet whose term was clicked
+     * @param {string} clickedTerm `term` value that was clicked
      */
     handleTermSelect(clickedField, clickedTerm) {
         this.setState((prevState) => {
@@ -544,16 +549,24 @@ class CartComponent extends React.Component {
             // new state.
             const newSelectedTerms = {};
             if (addTerm) {
-                // Copy the previous selectedFacetTerms, adding the newly selected term in its
-                // facet.
-                Object.keys(prevState.selectedTerms).forEach((field) => {
-                    const newTerm = clickedField === field ? [clickedTerm] : [];
-                    newSelectedTerms[field] = prevState.selectedTerms[field].slice(0).concat(newTerm);
+                // Adding a selected term. Copy the previous selectedFacetTerms, adding the newly
+                // selected term in its facet in sorted position.
+                displayedFacetFields.forEach((field) => {
+                    if (clickedField === field) {
+                        // Clicked term belongs to this field's facet. Insert it into its sorted
+                        // position in a copy of the selectedTerms array.
+                        const sortedIndex = _(prevState.selectedTerms[field]).sortedIndex(clickedTerm);
+                        newSelectedTerms[field] = [...prevState.selectedTerms[field].slice(0, sortedIndex), clickedTerm, ...prevState.selectedTerms[field].slice(sortedIndex)];
+                    } else {
+                        // Clicked term doesn't belong to this field's facet. Just copy the
+                        // `selectedTerms` array unchanged.
+                        newSelectedTerms[field] = prevState.selectedTerms[field].slice(0);
+                    }
                 });
             } else {
-                // Copy the previous selectedFacetTerms, filtering out the unselected term in its
-                // facet.
-                Object.keys(prevState.selectedTerms).forEach((field) => {
+                // Removing a selected term. Copy the previous selectedFacetTerms, filtering out
+                // the unselected term in its facet.
+                displayedFacetFields.forEach((field) => {
                     newSelectedTerms[field] = prevState.selectedTerms[field].filter(term => term !== clickedTerm);
                 });
             }

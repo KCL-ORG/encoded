@@ -980,7 +980,7 @@ def test_build_terms_filter(build_terms_filter_item):
     for key, value in build_terms_filter_item.items():
         query_filters = {'must': [],
                          'must_not': []}
-        build_terms_filter(query_filters, key[0], [key[1]], None)
+        build_terms_filter(query_filters, key[0], [key[1]])
         assert query_filters == value
 
 

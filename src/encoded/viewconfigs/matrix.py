@@ -42,32 +42,21 @@ class MatrixView(BaseView):
             title = self.type_info.name + ' Matrix'
         return title
 
-    def construct_result_views(self, matrix=False, summary=False):
-        views = [
-            {
-                'href': self.request.route_path('search', slash='/') + self.search_base,
-                'title': 'View results as list',
-                'icon': 'list-alt',
-            },
-            {
-                'href': self.request.route_path('report', slash='/') + self.search_base,
-                'title': 'View tabular report',
-                'icon': 'table',
-            }
-        ]
+    def construct_result_views(self, matrix=False, summary=False, audit=False ):
+        views = []
+    
         if matrix:
+            views.extend([self.result_list, self.tabular_report])
             if hasattr(self.type_info.factory, 'summary_data'):
-                views.append({
-                    'href': self.request.route_path('summary', slash='/') + self.search_base,
-                    'title': 'View summary report',
-                    'icon': 'summary',
-                })
-        if summary:
-            views.append({
-                'href': self.request.route_path('matrix', slash='/') + self.search_base,
-                'title': 'View summary matrix',
-                'icon': 'th',
-            })
+                views.append(self.summary_report)
+
+        elif summary:
+            views.extend([self.result_list, self.tabular_report, self.summary_matrix])
+
+        elif audit:
+            views.extend([self.result_list, self.tabular_report])
+             
+
         return views
 
     def construct_query(self, view, view_type='matrix'):

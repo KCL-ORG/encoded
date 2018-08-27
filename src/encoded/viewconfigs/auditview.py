@@ -10,21 +10,6 @@ class AuditView(MatrixView):
         self.matrix = ''
         self.no_audits_groupings = ['no.audit.error', 'no.audit.not_compliant', 'no.audit.warning']
 
-    def construct_result_views(self):
-        views = [
-            {
-                'href': self.request.route_path('search', slash='/') + self.search_base,
-                'title': 'View results as list',
-                'icon': 'list-alt',
-            },
-            {
-                'href': self.request.route_path('report', slash='/') + self.search_base,
-                'title': 'View tabular report',
-                'icon': 'table',
-            }
-        ]
-        return views
-
     def construct_xygroupings(self, query, filters, negative_filters):
         # To get list of audit categories from facets
         audit_field_list_copy = []
@@ -277,7 +262,7 @@ class AuditView(MatrixView):
         self.matrix['search_base'] = self.request.route_path('search', slash='/') + self.search_base
         self.matrix['clear_matrix'] = self.request.route_path('matrix', slash='/') + '?type=' + self.doc_types[0]
 
-        self.result['views'] = self.construct_result_views
+        self.result['views'] = self.construct_result_views(audit=True)
 
         # Construct query
         query = self.construct_query()

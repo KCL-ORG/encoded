@@ -161,7 +161,8 @@ const requestFacet = (elements, fetch, queryString) => (
 
 /**
  * Adds facet term counts and totals from facets of a search result object to the corresponding
- * `accumulatedResults` facet objects.
+ * `accumulatedResults` facet objects. The facets processed have field names in `facetFields`. Any
+ * facets outside `facetFields` might or might not end up in `accumulatedResults`.
  * @param {object} accumulatedResults Mutated search results object that gets its facet term counts
  *                                    updated.
  * @param {object} currentResults Search results object to add to `accumulatedResults`.
@@ -175,33 +176,45 @@ const requestFacet = (elements, fetch, queryString) => (
 const addToAccumulatedFacets = (accumulatedResults, currentResults, facetFields, cachedAccumulatedFacets) => {
     const localCache = {};
     facetFields.forEach((facetField) => {
-        // Retrieve or update the incoming cache of accumulated results facets.
-        let accumulatedFacet;
-        if (cachedAccumulatedFacets && cachedAccumulatedFacets[facetField]) {
-            // Cache hit: Get the accumulated facet field's results object from the cache the
-            // caller saved.
-            accumulatedFacet = cachedAccumulatedFacets[facetField];
-        } else {
-            // Cache miss: Accumulated facet field's results object hasn't been cached, so find it
-            // and cache it with a shallow copy of the incoming cache and assigning the new
-            // accumulated facet object to the copy.
-            accumulatedFacet = accumulatedResults.facets.find(facet => facet.field === facetField);
-            localCache[facetField] = accumulatedFacet;
-        }
-
-        // Handle the addition of current facet results to the accumulated results.
+        // Look for `facetField` in the current facet results. `facetField` might not be there.
         const currentFacet = currentResults.facets.find(facet => facet.field === facetField);
-        accumulatedFacet.total += currentFacet.total;
-        currentFacet.terms.forEach((currentTerm) => {
-            // If the current facet term is already in the accumulating facets, just add its count
-            // to the existing accumulating facet term.
-            const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
-            if (matchingAccumulatedTerm) {
-                matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
+        if (currentFacet) {
+            // Retrieve or update the incoming cache of accumulated results facets.
+            let accumulatedFacet;
+            if (cachedAccumulatedFacets && cachedAccumulatedFacets[facetField]) {
+                // Cache hit: Get the accumulated facet field's results object from the cache the
+                // caller saved.
+                accumulatedFacet = cachedAccumulatedFacets[facetField];
             } else {
-                accumulatedFacet.terms.push(currentTerm);
+                // Cache miss: Accumulated facet field's results object hasn't been cached, so find it
+                // and cache it with a shallow copy of the incoming cache and assigning the new
+                // accumulated facet object to the copy.
+                accumulatedFacet = accumulatedResults.facets.find(facet => facet.field === facetField);
+                localCache[facetField] = accumulatedFacet;
             }
-        });
+
+            // `accumulatedFacet` points to `accumulatedResults` facet element for `facetField`, or
+            // null if `accumulatedResults` doesn't yet have that property.
+            if (accumulatedFacet) {
+                // The current facet term is already in `accumulatedResults`, just add its count
+                // to the existing accumulating facet term.
+                accumulatedFacet.total += currentFacet.total;
+                currentFacet.terms.forEach((currentTerm) => {
+                    const matchingAccumulatedTerm = accumulatedFacet.terms.find(accumulatedTerm => accumulatedTerm.key === currentTerm.key);
+                    if (matchingAccumulatedTerm) {
+                        matchingAccumulatedTerm.doc_count += currentTerm.doc_count;
+                    } else {
+                        accumulatedFacet.terms.push(currentTerm);
+                    }
+                });
+            } else {
+                // The current facet term is not yet in `accumulatedResults`, so just copy
+                // `currentResults`'s facet element to a new element in `accumulatedResults`.
+                const newFacetIndex = accumulatedResults.facets.length;
+                accumulatedResults.facets[newFacetIndex] = currentFacet;
+                localCache[facetField] = accumulatedResults.facets[newFacetIndex];
+            }
+        }
     });
 
     // Merge the incoming cache with any new cached items into a copy to return.
@@ -343,6 +356,11 @@ class FileFacets extends React.Component {
         const { displayedFacets } = this.state;
         return (
             <div className="box facets">
+                {this.state.facetLoadProgress >= 0 ?
+                    <div className="cart__facet-progress-overlay">
+                        <progress value={this.state.facetLoadProgress} max="100" />
+                    </div>
+                : null}
                 {displayedFacets ?
                     <div>
                         {displayedFacetFields.map(field => (
@@ -353,9 +371,7 @@ class FileFacets extends React.Component {
                             </div>
                         ))}
                     </div>
-                :
-                    <progress value={this.state.facetLoadProgress} max="100" />
-                }
+                : null}
             </div>
         );
     }

@@ -689,7 +689,7 @@ def search(context, request, return_generator=False):
     es = request.registry[ELASTIC_SEARCH]
     es_index = '_all'
     search_audit = request.has_permission('search_audit')
-
+    print('SEARCHRESULT {}'.format(result))
 
     # extract from/size from query parameters
     from_, size = get_pagination(request)

@@ -18,6 +18,8 @@ import csv
 import io
 import json
 import datetime
+import logging
+logger = logging.getLogger(__name__)
 
 currenttime = datetime.datetime.now()
 
@@ -314,6 +316,7 @@ def batch_download(context, request):
             msg = 'Batch download with POST requires JSON "elements" key.'
             raise HTTPBadRequest(explanation=msg)
         else:
+            logger.debug('GOTPOST');
             param_list['@id'] = elements
             metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv -H "Accept: text/tsv" -H "Content-Type: application/json" --data \'{{"elements": [{elements_json}]}}\''.format(
                 host_url=request.host_url,

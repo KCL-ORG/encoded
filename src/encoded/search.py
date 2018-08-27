@@ -16,6 +16,8 @@ from urllib.parse import urlencode
 from collections import OrderedDict
 from .vis_defines import vis_format_url
 from collections import OrderedDict
+import logging
+logger = logging.getLogger(__name__)
 
 
 CHAR_COUNT = 32
@@ -678,6 +680,8 @@ def search(context, request, return_generator=False):
     # gets schemas for all types
     types = request.registry[TYPES]
     search_base = normalize_query(request)
+    logger.debug('SEARCHPOST %s', search_base)
+
     result = {
         '@context': request.route_path('jsonld_context'),
         '@id': '/search/' + search_base,
@@ -689,7 +693,7 @@ def search(context, request, return_generator=False):
     es = request.registry[ELASTIC_SEARCH]
     es_index = '_all'
     search_audit = request.has_permission('search_audit')
-    print('SEARCHRESULT {}'.format(result))
+
 
     # extract from/size from query parameters
     from_, size = get_pagination(request)

@@ -316,13 +316,14 @@ def batch_download(context, request):
             msg = 'Batch download with POST requires JSON "elements" key.'
             raise HTTPBadRequest(explanation=msg)
         else:
-            logger.debug('GOTPOST');
+            logger.debug('GOTPOST %s', elements[0])
             param_list['@id'] = elements
             metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv -H "Accept: text/tsv" -H "Content-Type: application/json" --data \'{{"elements": [{elements_json}]}}\''.format(
                 host_url=request.host_url,
                 search_params=request.matchdict['search_params'],
                 elements_json=','.join('"{0}"'.format(element) for element in elements)
             )
+            logger.debug('METADATA %s', metadata_link)
     else:
         metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(
             host_url=request.host_url,

@@ -21,6 +21,7 @@ import datetime
 import logging
 logger = logging.getLogger(__name__)
 
+ELEMENT_CHUNK_SIZE = 2000
 currenttime = datetime.datetime.now()
 
 
@@ -316,30 +317,33 @@ def batch_download(context, request):
             msg = 'Batch download with POST requires JSON "elements" key.'
             raise HTTPBadRequest(explanation=msg)
         else:
-            logger.debug('GOTPOST %s', elements[0])
-            param_list['@id'] = elements
             metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv -H "Accept: text/tsv" -H "Content-Type: application/json" --data \'{{"elements": [{elements_json}]}}\''.format(
                 host_url=request.host_url,
                 search_params=request.matchdict['search_params'],
                 elements_json=','.join('"{0}"'.format(element) for element in elements)
             )
-            logger.debug('METADATA %s', metadata_link)
+            experiments = []
+            for i in range(0, len(elements), ELEMENT_CHUNK_SIZE):
+                param_list['@id'] = elements[i:i + ELEMENT_CHUNK_SIZE]
+                path = '/search/?%s' % urlencode(param_list, True)
+                results = request.embed(path, as_user=True)
+                experiments.extend(results['@graph'])
     else:
         metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(
             host_url=request.host_url,
             search_params=request.matchdict['search_params']
         )
-
-    path = '/search/?%s' % urlencode(param_list, True)
-    results = request.embed(path, as_user=True)
-    files = [metadata_link]
+        path = '/search/?%s' % urlencode(param_list, True)
+        results = request.embed(path, as_user=True)
+        experiments = results['@graph']
 
     exp_files = (
             exp_file
-            for exp in results['@graph']
+            for exp in experiments
             for exp_file in exp.get('files', [])
     )
 
+    files = [metadata_link]
     for exp_file in exp_files:
         if not file_type_param_list(exp_file, param_list):
             continue

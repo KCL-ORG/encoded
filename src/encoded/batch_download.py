@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-ELEMENT_CHUNK_SIZE = 2000
+ELEMENT_CHUNK_SIZE = 1000
 currenttime = datetime.datetime.now()
 
 
@@ -328,7 +328,7 @@ def batch_download(context, request):
             for i in range(0, len(elements), ELEMENT_CHUNK_SIZE):
                 param_list['@id'] = elements[i:i + ELEMENT_CHUNK_SIZE]
                 path = '/search/?%s' % urlencode(param_list, True)
-                logger.debug('SEARCHCHUNK %s', path)
+                logger.debug('SEARCHCHUNK %s -- %s', i, path)
                 results = request.embed(path, as_user=True)
                 experiments.extend(results['@graph'])
     else:

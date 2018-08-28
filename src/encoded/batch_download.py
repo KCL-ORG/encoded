@@ -328,9 +328,7 @@ def batch_download(context, request):
             for i in range(0, len(elements), ELEMENT_CHUNK_SIZE):
                 param_list['@id'] = elements[i:i + ELEMENT_CHUNK_SIZE]
                 path = '/search/?%s' % urlencode(param_list, True)
-                logger.debug('PATH --- %s', path)
                 results = request.embed(path, as_user=True)
-                logger.debug('RESULTS --- %s', results)
                 experiments.extend(results['@graph'])
     else:
         metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(

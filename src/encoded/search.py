@@ -680,7 +680,6 @@ def search(context, request, return_generator=False):
     # gets schemas for all types
     types = request.registry[TYPES]
     search_base = normalize_query(request)
-    logger.debug('SEARCHPOST %s', search_base)
 
     result = {
         '@context': request.route_path('jsonld_context'),

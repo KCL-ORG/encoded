@@ -20,6 +20,7 @@ import json
 import datetime
 import logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 ELEMENT_CHUNK_SIZE = 2000
 currenttime = datetime.datetime.now()

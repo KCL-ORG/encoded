@@ -307,7 +307,8 @@ def metadata_tsv(context, request):
 def batch_download(context, request):
     # adding extra params to get required columns
     param_list = parse_qs(request.matchdict['search_params'])
-    param_list['field'] = ['files.href', 'files.file_type', 'files']
+    param_list['field'] = ['files.href', 'files.file_type']
+    param_list['restricted!'] = ['true']
     param_list['limit'] = ['all']
 
     # batch download from cart issues POST and includes "elements" key
@@ -324,12 +325,12 @@ def batch_download(context, request):
                 elements_json=','.join('"{0}"'.format(element) for element in elements)
             )
             experiments = []
-            logger.debug('LEN LEN LEN %s', len(elements))
             for i in range(0, len(elements), ELEMENT_CHUNK_SIZE):
                 param_list['@id'] = elements[i:i + ELEMENT_CHUNK_SIZE]
                 path = '/search/?%s' % urlencode(param_list, True)
+                logger.debug('PATH --- %s', path)
                 results = request.embed(path, as_user=True)
-                logger.debug('SEARCHCHUNK %s -- %s', i, results)
+                logger.debug('RESULTS --- %s', results)
                 experiments.extend(results['@graph'])
     else:
         metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(
@@ -349,8 +350,6 @@ def batch_download(context, request):
     files = [metadata_link]
     for exp_file in exp_files:
         if not file_type_param_list(exp_file, param_list):
-            continue
-        elif restricted_files_present(exp_file):
             continue
         files.append(
             '{host_url}{href}'.format(

@@ -323,9 +323,11 @@ def batch_download(context, request):
                 elements_json=','.join('"{0}"'.format(element) for element in elements)
             )
             experiments = []
+            logger.debug('LEN LEN LEN %s', len(elements))
             for i in range(0, len(elements), ELEMENT_CHUNK_SIZE):
                 param_list['@id'] = elements[i:i + ELEMENT_CHUNK_SIZE]
                 path = '/search/?%s' % urlencode(param_list, True)
+                logger.debug('SEARCHCHUNK %s', path)
                 results = request.embed(path, as_user=True)
                 experiments.extend(results['@graph'])
     else:

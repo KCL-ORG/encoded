@@ -1,3 +1,4 @@
+import datetime
 import urllib3
 import io
 import gzip
@@ -13,6 +14,7 @@ from elasticsearch.exceptions import (
 from elasticsearch.helpers import (
     bulk
 )
+from sqlalchemy.exc import StatementError
 from snovault.elasticsearch.indexer import (
     Indexer
 )
@@ -324,10 +326,14 @@ class RemoteReader(object):
             file_to_read = self.temp_file
             log.warn('Wrote %s to %s', href, file_to_read)
         else:
+            urllib3_log_lvl = logging.getLogger("urllib3").getEffectiveLevel()
+            logging.getLogger("urllib3").setLevel(logging.DEBUG)
             r = http.request('GET', href)
+            logging.getLogger("urllib3").setLevel(urllib3_log_lvl)
             if r.status != 200:
-                log.warn("File (%s or %s) not found" % (afile['@id'], href))
-                return False
+                http_error_msg = "File (%s or %s) not found" % (afile['@id'], href)
+                log.warn(http_error_msg)
+                raise urllib3.exceptions.HTTPError(http_error_msg)
             file_in_mem = io.BytesIO()
             file_in_mem.write(r.data)
             file_in_mem.seek(0)
@@ -641,56 +647,75 @@ class RegionIndexer(Indexer):
     def update_object(self, request, dataset_uuid, force):
         request.datastore = 'elasticsearch'  # Let's be explicit
 
+        last_exc = None
         try:
             # less efficient than going to es directly but keeps methods in one place
             dataset = request.embed(str(dataset_uuid), as_user=True)
-        except Exception:
+        except StatementError:
+            # Can't reconnect until invalid transaction is rolled back
+            raise
+        except Exception as e:
             log.warn("dataset is not found for uuid: %s", dataset_uuid)
-            # Not an error if it wasn't found.
-            return
+            last_exc = repr(e)
 
-        dataset_region_uses = self.candidate_dataset(dataset)
-        if not dataset_region_uses:
-            return  # Note if dataset is NO LONGER a candidate its files won't get removed.
+        if last_exc is None:
+            dataset_region_uses = self.candidate_dataset(dataset)
+            if not dataset_region_uses:
+                return  # Note if dataset is NO LONGER a candidate its files won't get removed.
 
-        files = dataset.get('files', [])
-        for afile in files:
-            # files may not be embedded
-            if isinstance(afile, str):
-                file_id = afile
-                try:
-                    afile = request.embed(file_id, as_user=True)
-                except Exception:
-                    log.warn("file is not found for: %s", file_id)
-                    continue
+        if last_exc is None:
+            files = dataset.get('files', [])
+            for afile in files:
+                # files may not be embedded
+                if isinstance(afile, str):
+                    file_id = afile
+                    try:
+                        afile = request.embed(file_id, as_user=True)
+                    except StatementError:
+                        # Can't reconnect until invalid transaction is rolled back
+                        raise
+                    except Exception as e:
+                        log.warn("file %s of dataset %s is not found; "
+                                 "skip the rest of files in this dataset.",
+                                 file_id, dataset_uuid)
+                        last_exc = repr(e)
+                        break
 
-            if afile.get('file_format') not in ALLOWED_FILE_FORMATS:
-                continue  # Note: if file_format changed, it doesn't get removed from region index.
+                if afile.get('file_format') not in ALLOWED_FILE_FORMATS:
+                    continue  # Note: if file_format changed, it doesn't get removed from region index.
 
-            file_uuid = afile['uuid']
+                file_uuid = afile['uuid']
 
-            file_doc = self.candidate_file(request, afile, dataset, dataset_region_uses)
-            if file_doc:
+                file_doc = self.candidate_file(request, afile, dataset, dataset_region_uses)
+                if file_doc:
 
-                using = ""
-                if force:
-                    using = "with FORCE"
-                    self.remove_from_regions_es(file_uuid)  # remove all regions first
+                    using = ""
+                    if force:
+                        using = "with FORCE"
+                        self.remove_from_regions_es(file_uuid)  # remove all regions first
+                    else:
+                        if self.in_regions_es(file_uuid):
+                            # TODO: update residence doc but not file!
+                            continue
+
+                    try:
+                        self.add_file_to_regions_es(request, afile, file_doc)
+                        log.info("added file: %s %s %s", dataset['accession'], afile['href'], using)
+                        self.state.file_added(file_uuid)
+                    except Exception as e:
+                        log.warn("Fail to index file %s of dataset %s; "
+                                 "skip the rest of files in this dataset.",
+                                 file_uuid, dataset_uuid)
+                        last_exc = repr(e)
+                        break
+
                 else:
-                    if self.in_regions_es(file_uuid):
-                        # TODO: update residence doc but not file!
-                        continue
+                    if self.remove_from_regions_es(file_uuid):
+                        log.warn("dropped file: %s %s", dataset['accession'], afile['@id'])
+                        self.state.file_dropped(file_uuid)
 
-                if self.add_file_to_regions_es(request, afile, file_doc):
-                    log.info("added file: %s %s %s", dataset['accession'], afile['href'], using)
-                    self.state.file_added(file_uuid)
-
-            else:
-                if self.remove_from_regions_es(file_uuid):
-                    log.warn("dropped file: %s %s", dataset['accession'], afile['@id'])
-                    self.state.file_dropped(file_uuid)
-
-        # TODO: gather and return errors
+        timestamp = datetime.datetime.now().isoformat()
+        return {'error_message': last_exc, 'timestamp': timestamp, 'uuid': str(dataset_uuid)}
 
     @staticmethod
     def check_embedded_targets(request, dataset):
@@ -1019,8 +1044,6 @@ class RegionIndexer(Indexer):
         file_doc['chroms'] = []
 
         readable_file = self.reader.readable_file(request, afile)
-        if not readable_file:
-            return False
 
         file_data = {}
         chroms = []
@@ -1074,7 +1097,7 @@ class RegionIndexer(Indexer):
         # However, probably not worth as much as just abstracting the file_data building/indexing
 
         if len(chroms) == 0 or not file_data:
-            return False
+            raise IOError('Error parsing file %s' % afile['href'])
 
         # Note if indexing by chrom (snp_set or big_file) then file_data will only have one chrom
         if snp_set:

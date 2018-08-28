@@ -1,6 +1,8 @@
 from pyramid.httpexceptions import HTTPBadRequest
 from snovault.viewconfigs.base_view import BaseView
-from encoded.helpers.helper import search_result_actions
+from encoded.helpers.helper import (
+    search_result_actions, 
+    View_Item)
 from snovault.helpers.helper import (
     get_filtered_query,
     get_search_fields,
@@ -22,7 +24,8 @@ class MatrixView(BaseView):
         super(MatrixView, self).__init__(context, request)
         self.result['matrix'] = ''
         self.matrix = ''
-
+        self.view_item = View_Item(self.request, self.search_base)
+        
     def validate_items(self):
         if len(self.doc_types) != 1:
             msg = 'Search result matrix currently requires specifying a single type.'
@@ -46,17 +49,16 @@ class MatrixView(BaseView):
         views = []
     
         if matrix:
-            views.extend([self.result_list, self.tabular_report])
+            views.extend([self.view_item.result_list, self.view_item.tabular_report])
             if hasattr(self.type_info.factory, 'summary_data'):
-                views.append(self.summary_report)
+                views.append(self.view_item.summary_report)
 
         elif summary:
-            views.extend([self.result_list, self.tabular_report, self.summary_matrix])
+            views.extend([self.view_item.result_list, self.view_item.tabular_report, self.view_item.summary_matrix])
 
         elif audit:
-            views.extend([self.result_list, self.tabular_report])
+            views.extend([self.view_item.result_list, self.view_item.tabular_report])
              
-
         return views
 
     def construct_query(self, view, view_type='matrix'):

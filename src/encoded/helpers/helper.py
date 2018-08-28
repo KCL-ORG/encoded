@@ -43,7 +43,6 @@ def format_results(request, hits, result=None):
     if not any_released and result is not None and 'visualize_batch' in result:
         del result['visualize_batch']
 
-
 def search_result_actions(request, doc_types, es_results, position=None):
     actions = {}
     aggregations = es_results['aggregations']
@@ -94,3 +93,26 @@ def search_result_actions(request, doc_types, es_results, position=None):
             )
 
     return actions
+
+class View_Item:
+    def __init__(self, request, search_base):
+        self.result_list = {
+            'href': request.route_path('search', slash='/') + search_base,
+            'title': 'View results as list',
+            'icon': 'list-alt',
+        }
+        self.tabular_report = {
+            'href': request.route_path('report', slash='/') + search_base,
+            'title': 'View tabular report',
+            'icon': 'table',
+        }
+        self.summary_report = {
+            'href': request.route_path('summary', slash='/') + search_base,
+            'title': 'View summary report',
+            'icon': 'summary',
+        }
+        self.summary_matrix = {
+            'href': request.route_path('matrix', slash='/') + search_base,
+            'title': 'View summary matrix',
+            'icon': 'th',
+        }

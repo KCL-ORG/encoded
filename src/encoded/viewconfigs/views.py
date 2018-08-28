@@ -5,6 +5,7 @@ from encoded.viewconfigs.news import NewsView
 from encoded.viewconfigs.matrix import MatrixView
 from encoded.viewconfigs.auditview import AuditView
 from encoded.viewconfigs.summary import SummaryView 
+from encoded.helpers.helper import (View_Item, search_result_actions)
 
 def includeme(config):
     config.add_route('search', '/search{slash:/?}')
@@ -36,7 +37,19 @@ def search(context, request, search_type=None, return_generator=False):
     ]
     search = SearchView(context, request, search_type, return_generator, default_doc_types)
     
-    return search.preprocess_view()
+    views = []
+    view_item = View_Item(search.request, search.search_base)
+    if len(search.doc_types) == 1:
+        ti = search.types[search.doc_types[0]]
+        views.append(view_item.tabular_report)
+
+        if hasattr(ti.factory, 'matrix'):
+            views.append(view_item.summary_matrix)
+
+        if hasattr(ti.factory, 'summary_daya'):
+            views.append(view_item.summary_report)
+            
+    return search.preprocess_view(views=views, search_result_actions=search_result_actions)
 
 
 @view_config(route_name='report', request_method='GET', permission='search')

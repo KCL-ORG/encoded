@@ -16,8 +16,6 @@ from urllib.parse import urlencode
 from collections import OrderedDict
 from .vis_defines import vis_format_url
 from collections import OrderedDict
-import logging
-logger = logging.getLogger(__name__)
 
 
 CHAR_COUNT = 32

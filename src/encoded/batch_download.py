@@ -19,8 +19,6 @@ import io
 import json
 import datetime
 import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 ELEMENT_CHUNK_SIZE = 1000
 currenttime = datetime.datetime.now()
@@ -221,7 +219,7 @@ def peak_metadata(context, request):
     )
 
 
-@view_config(route_name='metadata', request_method='GET')
+@view_config(route_name='metadata', request_method=('GET', 'POST'))
 def metadata_tsv(context, request):
     param_list = parse_qs(request.matchdict['search_params'])
     if 'referrer' in param_list:
@@ -239,13 +237,13 @@ def metadata_tsv(context, request):
 
     # For cart-generated metadata.tsv, get JSON payload and add "items" array of experiment @ids
     # to query string.
-    items = None
+    elements = None
     try:
-        items = request.json.get('items')
+        elements = request.json.get('elements')
     except ValueError:
         pass
     else:
-        param_list['@id'] = items
+        param_list['@id'] = elements
 
     param_list['limit'] = ['all']
     path = '{}?{}'.format(search_path, urlencode(param_list, True))
@@ -311,8 +309,10 @@ def batch_download(context, request):
     param_list['restricted!'] = ['true']
     param_list['limit'] = ['all']
 
-    # batch download from cart issues POST and includes "elements" key
     if request.method == 'POST':
+        # Batch download from cart issues POST and includes "elements" key.
+        # Because of potential number of datasets in cart, break search into
+        # multiple searches of ELEMENT_CHUNK_SIZE datasets each.
         try:
             elements = request.json.get('elements')
         except ValueError:
@@ -331,6 +331,7 @@ def batch_download(context, request):
                 results = request.embed(path, as_user=True)
                 experiments.extend(results['@graph'])
     else:
+        # Regular batch download has single simple call to request.embed
         metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(
             host_url=request.host_url,
             search_params=request.matchdict['search_params']

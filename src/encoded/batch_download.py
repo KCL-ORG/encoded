@@ -316,6 +316,12 @@ def batch_download(context, request):
     param_list['limit'] = ['all']
 
     if request.method == 'POST':
+        # Batch download from cart issues POST and includes "cart" key.
+        if len(param_list['cart']) != 1:
+            msg = 'Must have exactly one "cart" query string parameter.'
+            raise HTTPBadRequest(explanation=msg)
+        cart_uuid = param_list['cart'][0]
+
         # Batch download from cart issues POST and includes "elements" key.
         # Because of potential number of datasets in cart, break search into
         # multiple searches of ELEMENT_CHUNK_SIZE datasets each.
@@ -325,10 +331,9 @@ def batch_download(context, request):
             msg = 'Batch download with POST requires JSON "elements" key.'
             raise HTTPBadRequest(explanation=msg)
         else:
-            metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv -H "Accept: text/tsv" -H "Content-Type: application/json" --data \'{{"elements": [{elements_json}]}}\''.format(
+            metadata_link = '{host_url}/metadata/{search_params}/metadata.tsv'.format(
                 host_url=request.host_url,
                 search_params=request.matchdict['search_params'],
-                elements_json=','.join('"{0}"'.format(element) for element in elements)
             )
             experiments = []
             for i in range(0, len(elements), ELEMENT_CHUNK_SIZE):

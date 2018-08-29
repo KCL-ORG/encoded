@@ -407,6 +407,7 @@ class CartTools extends React.Component {
 
     batchDownload() {
         let contentDisposition;
+        const cartUuid = this.props.savedCartObj && this.props.savedCartObj.uuid;
 
         // Form query string from currently selected file formats.
         const fileFormatSelections = _.compact(Object.keys(this.props.selectedTerms).map((field) => {
@@ -418,7 +419,7 @@ class CartTools extends React.Component {
         }));
 
         // Initiate a batch download as a POST, passing it all dataset @ids in the payload.
-        this.context.fetch(`/batch_download/type=Experiment${fileFormatSelections.length > 0 ? `&${fileFormatSelections.join('&')}` : ''}`, {
+        this.context.fetch(`/batch_download/type=Experiment${cartUuid ? `&cart=${cartUuid}` : ''}${fileFormatSelections.length > 0 ? `&${fileFormatSelections.join('&')}` : ''}`, {
             method: 'POST',
             headers: {
                 Accept: 'text/plain',
@@ -470,6 +471,8 @@ CartTools.propTypes = {
     elements: PropTypes.array,
     /** Selected facet terms */
     selectedTerms: PropTypes.object,
+    /** Cart as it exists in the database */
+    savedCartObj: PropTypes.object,
     /** True if cart is active, False if cart is shared */
     activeCart: PropTypes.bool,
     /** Elements in the shared cart, if that's being displayed */
@@ -479,6 +482,7 @@ CartTools.propTypes = {
 CartTools.defaultProps = {
     elements: [],
     selectedTerms: null,
+    savedCartObj: null,
     activeCart: true,
     sharedCart: null,
 };
@@ -599,7 +603,7 @@ class CartComponent extends React.Component {
     }
 
     render() {
-        const { context, cart } = this.props;
+        const { context, cart, savedCartObj } = this.props;
 
         // Active and shared carts displayed slightly differently. Active carts' contents come from
         // the in-memory Redux store while shared carts' contents come from the cart object `elements`
@@ -618,7 +622,7 @@ class CartComponent extends React.Component {
                 <Panel addClasses="cart__result-table">
                     <PanelHeading addClasses="cart__header">
                         <PagerArea currentPage={this.state.currentDatasetResultsPage} totalPageCount={totalDatasetPages} updateCurrentPage={this.updateDatasetCurrentPage} />
-                        <CartTools elements={cartElements} selectedTerms={this.state.selectedTerms} activeCart={activeCart} sharedCart={context} />
+                        <CartTools elements={cartElements} savedCartObj={savedCartObj} selectedTerms={this.state.selectedTerms} activeCart={activeCart} sharedCart={context} />
                     </PanelHeading>
                     <ElementCountArea count={cartElements.length} name="dataset" namePlural="datasets" />
                     <PanelBody>
@@ -644,11 +648,17 @@ CartComponent.propTypes = {
     context: PropTypes.object.isRequired,
     /** In-memory cart contents */
     cart: PropTypes.array.isRequired,
-    /** System fetch function */
+    /** Cart as it exists in the database */
+    savedCartObj: PropTypes.object,
+};
+
+CartComponent.defaultProps = {
+    savedCartObj: null,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     cart: state.cart,
+    savedCartObj: state.savedCartObj,
     context: ownProps.context,
 });
 

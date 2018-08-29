@@ -219,7 +219,7 @@ def peak_metadata(context, request):
     )
 
 
-@view_config(route_name='metadata', request_method=('GET', 'POST'))
+@view_config(route_name='metadata', request_method='GET')
 def metadata_tsv(context, request):
     param_list = parse_qs(request.matchdict['search_params'])
     if 'referrer' in param_list:
@@ -235,13 +235,21 @@ def metadata_tsv(context, request):
         if _tsv_mapping[prop][0].startswith('files'):
             file_attributes = file_attributes + [_tsv_mapping[prop][0]]
 
-    # For cart-generated metadata.tsv, get JSON payload and add "items" array of experiment @ids
-    # to query string.
+    # For cart-generated metadata.tsv, load the specified cart and get its
+    # "elements" property for a list of items to retrieve.
     if 'cart' in param_list:
-        cart_uuid = param_list['cart'][0] if len(param_list['cart']) >= 1 else None
-        cart = request.embed(cart_uuid, '@@object') if not cart_uuid is None else None
-        print('CART {} -- {}'.format(param_list, cart))
-
+        if len(param_list['cart']) != 1:
+            msg = 'Cannot have more than one "cart" query string parameter.'
+            raise HTTPBadRequest(explanation=msg)
+        cart_uuid = param_list['cart'][0]
+        del param_list['cart']
+        try:
+            cart = request.embed(cart_uuid, '@@object')
+        except KeyError:
+            msg = 'No cart with uuid {0}.'.format(cart_uuid)
+            raise HTTPBadRequest(explanation=msg)
+        if len(cart['elements']) > 0:
+            param_list['@id'] = cart['elements']
 
     param_list['limit'] = ['all']
     path = '{}?{}'.format(search_path, urlencode(param_list, True))

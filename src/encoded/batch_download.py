@@ -237,13 +237,11 @@ def metadata_tsv(context, request):
 
     # For cart-generated metadata.tsv, get JSON payload and add "items" array of experiment @ids
     # to query string.
-    elements = None
-    try:
-        elements = request.json.get('elements')
-    except ValueError:
-        pass
-    else:
-        param_list['@id'] = elements
+    if 'cart' in param_list:
+        cart_uuid = param_list['cart'][0] if len(param_list['cart']) >= 1 else None
+        cart = request.embed(cart_uuid, '@@object') if not cart_uuid is None else None
+        print('CART {} -- {}'.format(param_list, cart))
+
 
     param_list['limit'] = ['all']
     path = '{}?{}'.format(search_path, urlencode(param_list, True))
